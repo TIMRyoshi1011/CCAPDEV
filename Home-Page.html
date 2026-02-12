@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Home Page</title>
+        <link rel="stylesheet" href="style.css">
+        <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"> -->
+    </head>
+
+    <body>
+        <!-- Header -->
+        <div class="header">
+            <h3 class="name">Bite<span>Back</span></h3>
+
+            <div class="buttons">
+                <button class="login" onclick="openLoginPopup()">Login</button>
+                <button class="sign-up" onclick="openSignUpPopup()">Sign Up</button>
+            </div>
+        </div>
+
+        <!-- Login Popup -->
+        <div id="loginPopup" class="popup hidden">
+            <div class="popup-content">
+                <span class="close" onclick="closeLoginPopup()">&times;</span>
+                <h2>Sign in to Bite<span>Back</span></h2>
+                <h1>Please Enter your Login Details Below</h1>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <div class="login-options">
+                        <label class="remember-me">
+                            <input type="checkbox"> Remember me
+                        </label>
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="submit-btn">Login</button>
+                </form>
+                
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+                <button class="google-btn">Continue with Google</button>
+                
+                <p class="popup-footer">Don't have an account? <a href="#" onclick="switchToSignUp()">Sign up here</a></p>
+            </div>
+        </div>
+
+        <!-- Sign Up Popup -->
+        <div id="signupPopup" class="popup hidden">
+            <div class="popup-content">
+                <span class="close" onclick="closeSignUpPopup()">&times;</span>
+                <h2>Register for your Bite<span>Back</span> Account</h2>
+                <form onsubmit="handleSignUp(event)">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <input type="text" id="signup-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" placeholder="example.name@domain.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Enter password</label>
+                        <input type="password" id="signup-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm">Re-enter password</label>
+                        <input type="password" id="signup-confirm" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Register Account</button>
+                </form>
+                
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+                
+                <button class="google-btn">Sign up with Google</button>
+                
+                <p class="popup-footer">Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
+            </div>
+        </div>
+
+        <!-- Main (Text) -->
+        <section class="main">
+            <h1>Discover & Review <br>
+            <span>Metro Manila's</span> Best Bites
+            </h1>
+
+            <p>
+            Real reviews from real foodies. Find hidden gems, share your favorites,
+            and earn your way to Diamond tier.
+            </p>
+
+            <div class="main-buttons">
+                <button class="get-started">Get Started</button>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="stats">
+            <div class="stat">
+                <h2>6</h2>
+                <p>🍽️ Restaurants</p>
+            </div>
+            <div class="stat">
+                <h2>6</h2>
+                <p>📝 Reviews</p>
+            </div>
+            <div class="stat">
+                <h2>4</h2>
+                <p>📍 Locations</p>
+                </div>
+            <div class="stat">
+                <h2>3.7★</h2>
+                <p>⭐ Avg Rating</p>
+            </div>
+        </section>
+
+        <!-- Tutorial -->
+        <section class="tutorial">
+            <h2>How it works</h2>
+            <p>Three simple steps to earn your place in the community</p>
+
+            <div class="steps">
+                <div class="card">
+                    <h4>01</h4>
+                    <h3>Find a Restaurant</h3>
+                    <p>Search and explore restaurants across Metro Manila.</p>
+                </div>
+
+                <div class="card">
+                    <h4>02</h4>
+                    <h3>Write Your Review</h3>
+                    <p>Share your honest experience and help other foodies.</p>
+                </div>
+
+                <div class="card">
+                    <h4>03</h4>
+                    <h3>Earn & Rise</h3>
+                    <p>Gain points, level up, and unlock exclusive perks.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Below is copy-paste nalang from chatgpt lol -->
+        <!-- TOP REVIEWS -->
+        <section class="top-reviews">
+        <div class="top-header">
+            <div>
+            <h2>🔥 Top Reviews</h2>
+            <p>See what the community is loving right now</p>
+            </div>
+            <button class="view-all" onclick="window.location='review-page.html'">View All →</button>
+        </div>
+
+        <div class="review-grid">
+
+            <!-- REVIEW CARD -->
+            <div class="review-card">
+            <div class="review-title">
+                <h3>Seoul Garden BGC</h3>
+                <span class="rating">★★★★★ 5.0</span>
+            </div>
+
+            <div class="review-user">
+                <span class="avatar">MS</span>
+                <div>
+                <strong>Mia Santos</strong>
+                <span class="badge platinum">💎 Platinum</span>
+                <div class="verified">✔ Verified · Jan 20, 2026</div>
+                </div>
+            </div>
+
+            <div class="tags">
+                <span class="tag">Korean</span>
+                <span class="tag">📍 BGC</span>
+            </div>
+
+            <div class="scores">
+                Service: ★★★★★ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★☆
+            </div>
+
+            <h4>Galbi That Made Me Cry</h4>
+            <p class="review-text">
+                The Korean BBQ here is genuinely one of the best I’ve had.
+                The galbi marinade is unreal...
+            </p>
+            </div>
+
+            <!-- REVIEW CARD -->
+            <div class="review-card">
+            <div class="review-title">
+                <h3>Curry House PH</h3>
+                <span class="rating">★★★★★ 4.7</span>
+            </div>
+
+            <div class="review-user">
+                <span class="avatar">MS</span>
+                <div>
+                <strong>Mia Santos</strong>
+                <span class="badge platinum">💎 Platinum</span>
+                <div class="verified">✔ Verified · Jan 26, 2026</div>
+                </div>
+            </div>
+
+            <div class="tags">
+                <span class="tag">Indian</span>
+                <span class="tag">📍 Makati</span>
+            </div>
+
+            <div class="scores">
+                Service: ★★★★☆ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★☆
+            </div>
+
+            <h4>Best Butter Chicken in Metro Manila</h4>
+            <p class="review-text">
+                I've tried a LOT of Indian restaurants and this one takes
+                the cake. The butter chicken...
+            </p>
+            </div>
+
+            <!-- REVIEW CARD -->
+            <div class="review-card">
+            <div class="review-title">
+                <h3>Mang Tomas Warzone</h3>
+                <span class="rating">★★★★☆ 3.3</span>
+            </div>
+
+            <div class="review-user">
+                <span class="avatar dark">CD</span>
+                <div>
+                <strong>Carlo Dela Cruz</strong>
+                <span class="badge bronze">🥉 Bronze</span>
+                <div class="verified">Jan 22, 2026</div>
+                </div>
+            </div>
+
+            <div class="tags">
+                <span class="tag">Filipino</span>
+                <span class="tag">📍 Quezon City</span>
+            </div>
+
+            <div class="scores">
+                Service: ★★★☆☆ &nbsp; Taste: ★★★★☆ &nbsp; Ambiance: ★★☆☆☆
+            </div>
+
+            <h4>Sizzling Sisig Heaven</h4>
+            <p class="review-text">
+                This place is loud, cramped, and the beer is always cold.
+                The sisig here is legendary...
+            </p>
+            </div>
+
+        </div>
+        </section>
+    </body>
+
+    <script src="script.js"></script>
+    
+</html>
