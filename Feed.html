@@ -9,9 +9,9 @@
 </head>
 
 <body>
-    <!--MAIN SIDEBAR (COPY THIS STYLE FOR THE REST OF THE PAGES OK)-->
+    <!--MAIN SIDEBAR (COPY THIS STYLE FOR THE REST OF THE PAGES)-->
     <div class="sidebar">
-        <div class="sidebar-logo">
+        <div class="sidebar-logo" onclick="goToFeed()" style="cursor: pointer;">
             Bite<span>Back</span>
         </div>
 
@@ -24,22 +24,22 @@
         </div>
 
         <div class="sidebar-nav">
-            <div class="sidebar-nav-item active">
+            <div class="sidebar-nav-item active" onclick="goToFeed()">
                 🏠 Feed
             </div>
-            <div class="sidebar-nav-item" onclick="window.location='Notifs.html'">
+            <div class="sidebar-nav-item" onclick="goToNotifications()">
                 🔔 Notifications
                 <span class="notif-badge">2</span>
             </div>
-            <div class="sidebar-nav-item" onclick="window.location='UserProfile-Reviews.html'">
+            <div class="sidebar-nav-item" onclick="goToProfile()">
                 👤 Profile
             </div>
-            <div class="sidebar-nav-item">
+            <div class="sidebar-nav-item" onclick="goToSettings()">
                 ⚙️ Settings
             </div>
         </div>
 
-        <div class="sidebar-logout">
+        <div class="sidebar-logout" onclick="logout()">
             🚪 Log Out
         </div>
     </div>
@@ -121,7 +121,12 @@
                     <div>
                         <h3>Jollibee</h3>
                     </div>
-                    <div class="options">...</div>
+                    <div class="options-container">
+                        <div class="options" data-own-post="false">...</div>
+                        <div class="options-dropdown show">
+                            <div class="option-item">🚩 Report</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="review-user">
@@ -155,7 +160,7 @@
                 <div class="review-actions">
                     <span>👍 34</span>
                     <span>👎 2</span>
-                    <span>💬 2 Comments ▼</span>
+                    <span class="toggle-comments">💬 2 Comments ▶</span>
                 </div>
             </div>
 
@@ -165,7 +170,13 @@
                     <div>
                         <h3>Yabu</h3>
                     </div>
-                    <div class="options">...</div>
+                    <div class="options-container">
+                        <div class="options" data-own-post="true">...</div>
+                        <div class="options-dropdown show">
+                            <div class="option-item">✏️ Edit</div>
+                            <div class="option-item">🗑️ Delete</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="review-user">
@@ -199,7 +210,12 @@
                 <div class="review-actions">
                     <span>👍 58</span>
                     <span>👎 2</span>
-                    <span>💬 2 Comments ▼</span>
+                    <span class="toggle-comments">💬 0 Comments ▶</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <!-- No comments -->
                 </div>
             </div>
 
@@ -209,7 +225,12 @@
                     <div>
                         <h3>Illo</h3>
                     </div>
-                    <div class="options">...</div>
+                    <div class="options-container">
+                        <div class="options" data-own-post="false">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item">🚩 Report</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="review-user">
@@ -243,7 +264,13 @@
                 <div class="review-actions">
                     <span>👍 21</span>
                     <span>👎 6</span>
-                    <span>💬 1 Comment ▼</span>
+                    <span class="toggle-comments">💬 1 Comment ▶</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <div class="comment-item">
+                    </div>
                 </div>
             </div>
 
@@ -253,7 +280,12 @@
                     <div>
                         <h3>Chef Bab's Sisig</h3>
                     </div>
-                    <div class="options">...</div>
+                    <div class="options-container">
+                        <div class="options" data-own-post="false">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item">🚩 Report</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="review-user">
@@ -286,7 +318,12 @@
                 <div class="review-actions">
                     <span>👍 45</span>
                     <span>👎 5</span>
-                    <span>💬 0 Comments ▼</span>
+                    <span class="toggle-comments">💬 0 Comments ▶</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <!-- No comments -->
                 </div>
             </div>
 
@@ -296,7 +333,13 @@
                     <div>
                         <h3>Kodawari</h3>
                     </div>
-                    <div class="options">...</div>
+                    <div class="options-container">
+                        <div class="options" data-own-post="true">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item">✏️ Edit</div>
+                            <div class="option-item">🗑️ Delete</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="review-user">
@@ -330,7 +373,48 @@
                 <div class="review-actions">
                     <span>👍 89</span>
                     <span>👎 1</span>
-                    <span>💬 5 Comments ▼</span>
+                    <span class="toggle-comments">💬 5 Comments ▼</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section show">
+                    <div class="comment-item">
+                        <div class="comment-avatar bronze">CD</div>
+                        <div class="review-user-info">
+                            <strong>Carlo Dela Cruz <span class="review-date">· 3 hours ago</span></strong>
+                            <div class="review-text">This place is my go-to! The ramen is also incredible, you should
+                                try it next time.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar silver">RR</div>
+                        <div class="review-user-info">
+                            <strong>Rina Reyes <span class="review-date">· 1 day ago</span></strong>
+                            <div class="review-text">Totally agree with this review! The service here is always
+                                excellent too.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar platinum">MS</div>
+                        <div class="review-user-info">
+                            <strong>Mia Santos <span class="review-date">· 2 days ago</span></strong>
+                            <div class="review-text">The gyudon is so bomb! I love the appetizers too.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar gold">LC</div>
+                        <div class="review-user-info">
+                            <strong>Lando Cruz <span class="review-date">· 3 days ago</span></strong>
+                            <div class="review-text">Great review! Will try this place soon.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar silver">RR</div>
+                        <div class="review-user-info">
+                            <strong>Rina Reyes <span class="review-date">· 4 days ago</span></strong>
+                            <div class="review-text">The service is always excellent here.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -340,7 +424,12 @@
                     <div>
                         <h3>Pizzulu</h3>
                     </div>
-                    <div class="options">...</div>
+                    <div class="options-container">
+                        <div class="options" data-own-post="false">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item">🚩 Report</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="review-user">
@@ -374,12 +463,45 @@
                 <div class="review-actions">
                     <span>👍 67</span>
                     <span>👎 3</span>
-                    <span>💬 4 Comments ▼</span>
+                    <span class="toggle-comments">💬 4 Comments ▼</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section show">
+                    <div class="comment-item">
+                        <div class="comment-avatar platinum">MS</div>
+                        <div class="review-user-info">
+                            <strong>Mia Santos <span class="review-date">· 5 hours ago</span></strong>
+                            <div class="review-text">The pizza here is amazing! Best Italian spot in Taguig for sure.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar gold">LC</div>
+                        <div class="review-user-info">
+                            <strong>Lando Cruz <span class="review-date">· 2 days ago</span></strong>
+                            <div class="review-text">Thanks for sharing! The carbonara is also worth trying if you go
+                                back.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar bronze">CD</div>
+                        <div class="review-user-info">
+                            <strong>Carlo Dela Cruz <span class="review-date">· 1 day ago</span></strong>
+                            <div class="review-text">Love the pasta here, so fresh!</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar silver">RR</div>
+                        <div class="review-user-info">
+                            <strong>Rina Reyes <span class="review-date">· 3 days ago</span></strong>
+                            <div class="review-text">The ambiance is perfect for family gatherings.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 

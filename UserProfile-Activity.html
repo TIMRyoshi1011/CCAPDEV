@@ -7,18 +7,12 @@
     <title>User Activity</title>
     <link rel="stylesheet" href="profile.css">
     <link rel="stylesheet" href="feed.css">
-
-    <script>
-        function goToReviews() {
-            window.location.href = "UserProfile-Reviews.html";
-        }
-    </script>
 </head>
 
 <body>
     <!--============= START OF SIDEBAR ============= -->
     <div class="sidebar">
-        <div class="sidebar-logo">
+        <div class="sidebar-logo" onclick="goToFeed()" style="cursor: pointer;">
             Bite<span>Back</span>
         </div>
 
@@ -31,22 +25,22 @@
         </div>
 
         <div class="sidebar-nav">
-            <div class="sidebar-nav-item" onclick="window.location='Feed.html'">
+            <div class="sidebar-nav-item" onclick="goToFeed()">
                 🏠 Feed
             </div>
-            <div class="sidebar-nav-item" onclick="window.location='Notifs.html'">
+            <div class="sidebar-nav-item" onclick="goToNotifications()">
                 🔔 Notifications
                 <span class="notif-badge">2</span>
             </div>
             <div class="sidebar-nav-item active">
                 👤 Profile
             </div>
-            <div class="sidebar-nav-item">
+            <div class="sidebar-nav-item" onclick="goToSettings()">
                 ⚙️ Settings
             </div>
         </div>
 
-        <div class="sidebar-logout">
+        <div class="sidebar-logout" onclick="logout()">
             🚪 Log Out
         </div>
     </div>
@@ -207,6 +201,7 @@
             </div>
         </div>
     </div>
+    <script src="script.js"></script>
 </body>
 
 </html>

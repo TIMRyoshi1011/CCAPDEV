@@ -55,6 +55,19 @@ function goToProfile() {
     window.location.href = "UserProfile-Reviews.html";
 }
 
+function goToActivity() {
+    window.location.href = "UserProfile-Activity.html";
+}
+
 function goToSettings() {
     window.location.href = "Settings.html";
+}
+
+function goToLanding() {
+    window.location.href = "Landing.html";
+}
+
+function logout() {
+
+    window.location.href = "Landing.html";
 }

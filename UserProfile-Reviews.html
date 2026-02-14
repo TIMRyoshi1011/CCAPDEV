@@ -7,30 +7,12 @@
     <title>User Reviews</title>
     <link rel="stylesheet" href="profile.css">
     <link rel="stylesheet" href="feed.css">
-
-    <script>
-        function goToActivity() {
-            window.location.href = "UserProfile-Activity.html";
-        }
-        function goToFeed() {
-            window.location.href = "Feed.html";
-        }
-        function goToNotifications() {
-            window.location.href = "Notifs.html";
-        }
-        function goToProfile() {
-            window.location.href = "UserProfile.html";
-        }
-        function goToSettings() {
-            window.location.href = "Settings.html";
-        }
-    </script>
 </head>
 
 <body>
     <!--============= START OF SIDEBAR ============= -->
     <div class="sidebar">
-        <div class="sidebar-logo">
+        <div class="sidebar-logo" onclick="goToFeed()" style="cursor: pointer;">
             Bite<span>Back</span>
         </div>
 
@@ -44,12 +26,13 @@
 
         <div class="sidebar-nav">
             <div class="sidebar-nav-item" onclick="goToFeed()">🏠 Feed</div>
-            <div class="sidebar-nav-item" onclick="goToNotifications()">🔔 Notifications<span class="notif-badge">2</span></div>
+            <div class="sidebar-nav-item" onclick="goToNotifications()">🔔 Notifications<span
+                    class="notif-badge">2</span></div>
             <div class="sidebar-nav-item" onclick="goToProfile()">👤 Profile</div>
             <div class="sidebar-nav-item" onclick="goToSettings()">⚙️ Settings</div>
         </div>
 
-        <div class="sidebar-logout">
+        <div class="sidebar-logout" onclick="logout()">
             🚪 Log Out
         </div>
     </div>
@@ -121,7 +104,13 @@
             <div class="review-card">
                 <div class="review-header">
                     <h3>Yabu</h3>
-                    <div class="options">...</div>
+                    <div class="options-container">
+                        <div class="options" data-own-post="true">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item">✏️ Edit</div>
+                            <div class="option-item">🗑️ Delete</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="review-user">
@@ -156,7 +145,13 @@
             <div class="review-card">
                 <div class="review-header">
                     <h3>Kodawari</h3>
-                    <div class="options">...</div>
+                    <div class="options-container">
+                        <div class="options" data-own-post="true">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item">✏️ Edit</div>
+                            <div class="option-item">🗑️ Delete</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="review-user">
@@ -188,6 +183,8 @@
                 <div class="comments">💬 2 Comments ▼</div>
             </div>
         </div>
+    </div>
+    <script src="script.js"></script>
 </body>
 
 </html>
