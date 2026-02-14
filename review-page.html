@@ -1,138 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>All Reviews</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="style.css">
-    </head>
 
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <title>All Reviews</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="feed.css">
+</head>
 
-    <!-- Header (same as homepage, might need to change if needed account before accessing reviews) -->
-    <div class="header">
-        <h3 class="name">Bite<span>Back</span></h3>
+<body>
+    <!--============= START OF SIDEBAR ============= -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            Bite<span>Back</span>
+        </div>
 
-        <div class="buttons">
-            <button class="login" onclick="openLoginPopup()">Login</button>
-            <button class="sign-up" onclick="openSignUpPopup()">Sign Up</button>
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">MS</div>
+            <div class="sidebar-user-info">
+                <h4>Mia Santos</h4>
+                <div class="user-badge">💎 Platinum</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-item" onclick="window.location='Feed.html'">
+                🏠 Feed
+            </div>
+            <div class="sidebar-nav-item" onclick="window.location='Notifs.html'">
+                🔔 Notifications
+                <span class="notif-badge">2</span>
+            </div>
+            <div class="sidebar-nav-item" onclick="window.location='UserProfile-Reviews.html'">
+                👤 Profile
+            </div>
+            <div class="sidebar-nav-item">
+                ⚙️ Settings
+            </div>
+        </div>
+
+        <div class="sidebar-logout">
+            🚪 Log Out
         </div>
     </div>
+    <!--============= END OF SIDEBAR ============= -->
 
-    <!-- Page Title -->
-    <section class="main">
-        <h1>Community Reviews</h1>
-        <p>Real experiences from real foodies around Metro Manila</p>
-    </section>
+    <div style="margin-left: 240px;">
+        <!-- Header (same as homepage, might need to change if needed account before accessing reviews) -->
+        <div class="header">
+            <h3 class="name">Bite<span>Back</span></h3>
 
-    <section class="top-reviews">
-        <div class="top-header">
-            <div>
-                <h2>All Reviews</h2>
-                <p>Browse restaurants by taste, service, and vibe</p>
+            <div class="buttons">
+                <button class="login" onclick="openLoginPopup()">Login</button>
+                <button class="sign-up" onclick="openSignUpPopup()">Sign Up</button>
             </div>
         </div>
 
-        <!-- Review Grid -->
-        <div class="review-grid">
+        <!-- Page Title -->
+        <section class="main">
+            <h1>Community Reviews</h1>
+            <p>Real experiences from real foodies around Metro Manila</p>
+        </section>
 
-            <div class="review-card">
-                <div class="review-title">
-                    <h3>Seoul Garden BGC</h3>
-                    <span class="rating">★★★★★ 5.0</span>
+        <section class="top-reviews">
+            <div class="top-header">
+                <div>
+                    <h2>All Reviews</h2>
+                    <p>Browse restaurants by taste, service, and vibe</p>
                 </div>
-
-                <div class="review-user">
-                    <span class="avatar">MS</span>
-                    <div>
-                        <strong>Mia Santos</strong>
-                        <span class="badge platinum">💎 Platinum</span>
-                        <div class="verified">✔ Verified · Jan 20, 2026</div>
-                    </div>
-                </div>
-
-                <div class="tags">
-                    <span class="tag">Korean</span>
-                    <span class="tag">📍 BGC</span>
-                </div>
-
-                <div class="scores">
-                    Service: ★★★★★ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★☆
-                </div>
-
-                <h4>Galbi That Made Me Cry</h4>
-                <p class="review-text">
-                    The Korean BBQ here is genuinely one of the best I’ve had.
-                    The galbi marinade is unreal and the staff are incredibly attentive.
-                </p>
             </div>
 
-            <div class="review-card">
-                <div class="review-title">
-                    <h3>Curry House PH</h3>
-                    <span class="rating">★★★★☆ 4.7</span>
-                </div>
+            <!-- Review Grid -->
+            <div class="review-grid">
 
-                <div class="review-user">
-                    <span class="avatar">MS</span>
-                    <div>
-                        <strong>Mia Santos</strong>
-                        <span class="badge platinum">💎 Platinum</span>
-                        <div class="verified">✔ Verified · Jan 26, 2026</div>
+                <div class="review-card">
+                    <div class="review-title">
+                        <h3>Seoul Garden BGC</h3>
+                        <span class="rating">★★★★★ 5.0</span>
                     </div>
-                </div>
 
-                <div class="tags">
-                    <span class="tag">Indian</span>
-                    <span class="tag">📍 Makati</span>
-                </div>
-
-                <div class="scores">
-                    Service: ★★★★☆ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★☆
-                </div>
-
-                <h4>Butter Chicken Royalty</h4>
-                <p class="review-text">
-                    Rich, creamy, and perfectly spiced. Easily my go-to Indian spot
-                    whenever I’m in Makati.
-                </p>
-            </div>
-
-            <div class="review-card">
-                <div class="review-title">
-                    <h3>Mang Tomas Warzone</h3>
-                    <span class="rating">★★★☆☆ 3.3</span>
-                </div>
-
-                <div class="review-user">
-                    <span class="avatar dark">CD</span>
-                    <div>
-                        <strong>Carlo Dela Cruz</strong>
-                        <span class="badge bronze">🥉 Bronze</span>
-                        <div class="verified">Jan 22, 2026</div>
+                    <div class="review-user">
+                        <span class="avatar">MS</span>
+                        <div>
+                            <strong>Mia Santos</strong>
+                            <span class="badge platinum">💎 Platinum</span>
+                            <div class="verified">✔ Verified · Jan 20, 2026</div>
+                        </div>
                     </div>
+
+                    <div class="tags">
+                        <span class="tag">Korean</span>
+                        <span class="tag">📍 BGC</span>
+                    </div>
+
+                    <div class="scores">
+                        Service: ★★★★★ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★☆
+                    </div>
+
+                    <h4>Galbi That Made Me Cry</h4>
+                    <p class="review-text">
+                        The Korean BBQ here is genuinely one of the best I’ve had.
+                        The galbi marinade is unreal and the staff are incredibly attentive.
+                    </p>
                 </div>
 
-                <div class="tags">
-                    <span class="tag">Filipino</span>
-                    <span class="tag">📍 Quezon City</span>
+                <div class="review-card">
+                    <div class="review-title">
+                        <h3>Curry House PH</h3>
+                        <span class="rating">★★★★☆ 4.7</span>
+                    </div>
+
+                    <div class="review-user">
+                        <span class="avatar">MS</span>
+                        <div>
+                            <strong>Mia Santos</strong>
+                            <span class="badge platinum">💎 Platinum</span>
+                            <div class="verified">✔ Verified · Jan 26, 2026</div>
+                        </div>
+                    </div>
+
+                    <div class="tags">
+                        <span class="tag">Indian</span>
+                        <span class="tag">📍 Makati</span>
+                    </div>
+
+                    <div class="scores">
+                        Service: ★★★★☆ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★☆
+                    </div>
+
+                    <h4>Butter Chicken Royalty</h4>
+                    <p class="review-text">
+                        Rich, creamy, and perfectly spiced. Easily my go-to Indian spot
+                        whenever I’m in Makati.
+                    </p>
                 </div>
 
-                <div class="scores">
-                    Service: ★★★☆☆ &nbsp; Taste: ★★★★☆ &nbsp; Ambiance: ★★☆☆☆
+                <div class="review-card">
+                    <div class="review-title">
+                        <h3>Mang Tomas Warzone</h3>
+                        <span class="rating">★★★☆☆ 3.3</span>
+                    </div>
+
+                    <div class="review-user">
+                        <span class="avatar dark">CD</span>
+                        <div>
+                            <strong>Carlo Dela Cruz</strong>
+                            <span class="badge bronze">🥉 Bronze</span>
+                            <div class="verified">Jan 22, 2026</div>
+                        </div>
+                    </div>
+
+                    <div class="tags">
+                        <span class="tag">Filipino</span>
+                        <span class="tag">📍 Quezon City</span>
+                    </div>
+
+                    <div class="scores">
+                        Service: ★★★☆☆ &nbsp; Taste: ★★★★☆ &nbsp; Ambiance: ★★☆☆☆
+                    </div>
+
+                    <h4>Sisig + Cold Beer Combo</h4>
+                    <p class="review-text">
+                        Loud, messy, and chaotic — but the sisig absolutely delivers.
+                        Come for flavor, not comfort.
+                    </p>
                 </div>
 
-                <h4>Sisig + Cold Beer Combo</h4>
-                <p class="review-text">
-                    Loud, messy, and chaotic — but the sisig absolutely delivers.
-                    Come for flavor, not comfort.
-                </p>
             </div>
+        </section>
 
-        </div>
-    </section>
+        <script src="script.js"></script>
+    </div>
 
-    <script src="script.js"></script>
+</body>
 
-    </body>
 </html>

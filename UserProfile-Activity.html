@@ -1,20 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>User Activity</title>
-        <link rel="stylesheet" href="profile.css">
 
-        <script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Activity</title>
+    <link rel="stylesheet" href="profile.css">
+    <link rel="stylesheet" href="feed.css">
+
+    <script>
         function goToReviews() {
             window.location.href = "UserProfile-Reviews.html";
         }
-        </script>
-    </head>
+    </script>
+</head>
 
-    <body>
-        <div class="dashboard">
+<body>
+    <!--============= START OF SIDEBAR ============= -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            Bite<span>Back</span>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">MS</div>
+            <div class="sidebar-user-info">
+                <h4>Mia Santos</h4>
+                <div class="user-badge">💎 Platinum</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-item" onclick="window.location='Feed.html'">
+                🏠 Feed
+            </div>
+            <div class="sidebar-nav-item" onclick="window.location='Notifs.html'">
+                🔔 Notifications
+                <span class="notif-badge">2</span>
+            </div>
+            <div class="sidebar-nav-item active">
+                👤 Profile
+            </div>
+            <div class="sidebar-nav-item">
+                ⚙️ Settings
+            </div>
+        </div>
+
+        <div class="sidebar-logout">
+            🚪 Log Out
+        </div>
+    </div>
+    <!--============= END OF SIDEBAR ============= -->
+
+    <div class="dashboard" style="margin-left: 240px;">
         <!-- Left Panel -->
         <div>
             <!-- Profile -->
@@ -29,14 +67,15 @@
                     </h2>
                     <p>@miasantos</p> <br>
                     <p>Foodie from Manila 🍜</p>
-                    <P>📅 Joined March 2024</P> <br> <hr>
+                    <P>📅 Joined March 2024</P> <br>
+                    <hr>
 
                     <button class="edit-btn">Edit Profile</button>
 
                     <div class="stats-row">
-                    <div><strong>2</strong><br>Reviews</div>
-                    <div><strong>2</strong><br>Comments</div>
-                    <div><strong>420</strong><br>Points</div>
+                        <div><strong>2</strong><br>Reviews</div>
+                        <div><strong>2</strong><br>Comments</div>
+                        <div><strong>420</strong><br>Points</div>
                     </div>
                 </div>
             </div>
@@ -45,12 +84,14 @@
                 <h3>📊 Stats</h3>
                 <p>Avg Rating ⭐ 4.9</p>
                 <p>Total Upvotes 👍 130</p>
-                <p>Total Downvotes 👎 3</p> <br> <hr> <br>
+                <p>Total Downvotes 👎 3</p> <br>
+                <hr> <br>
                 <h4>Top Cusines</h4>
                 <ul style="padding: 10px;">
                     <li>Indian (1)</li>
                     <li>Korean (1)</li>
-                </ul> <br> <hr> <br>
+                </ul> <br>
+                <hr> <br>
                 <h4>Top Locations</h4>
                 <ul style="padding: 10px;">
                     <li>Makati (1)</li>
@@ -69,19 +110,19 @@
         <!-- Right Panel -->
         <div>
             <div class="tabs">
-            <span onclick="goToReviews()">Reviews</span>
-            <span class="active">Activity</span>
+                <span onclick="goToReviews()">Reviews</span>
+                <span class="active">Activity</span>
             </div>
 
             <!-- Comment 1 -->
             <div class="activity-card">
-                <div class="activity-header">  
+                <div class="activity-header">
                     <div class="icon">💬</div>
                     <div>
-                    <div class="title">
-                        Commented on <strong>Jollibee Timog</strong>
-                    </div>
-                    <div class="date">Jan 28, 2026</div>
+                        <div class="title">
+                            Commented on <strong>Jollibee Timog</strong>
+                        </div>
+                        <div class="date">Jan 28, 2026</div>
                     </div>
                 </div>
                 <div class="activity-text">
@@ -94,16 +135,16 @@
                 <div class="activity-header">
                     <div class="icon">✍️</div>
                     <div>
-                    <div class="title">
-                        Reviewed <strong>Curry House PH</strong>
-                    </div>
-                    <div class="date">Jan 26, 2026</div>
+                        <div class="title">
+                            Reviewed <strong>Curry House PH</strong>
+                        </div>
+                        <div class="date">Jan 26, 2026</div>
                     </div>
                     <div class="rating">
-                    ⭐⭐⭐⭐⭐ <span class="rating-score">4.7</span>
+                        ⭐⭐⭐⭐⭐ <span class="rating-score">4.7</span>
                     </div>
                 </div>
-                
+
                 <div class="review-title">
                     Best Butter Chicken in Metro Manila
                 </div>
@@ -121,13 +162,13 @@
 
             <!-- Comment 2 -->
             <div class="activity-card">
-                <div class="activity-header">  
+                <div class="activity-header">
                     <div class="icon">💬</div>
                     <div>
-                    <div class="title">
-                        Commented on <strong>Sukiyaki Central</strong>
-                    </div>
-                    <div class="date">Jan 24, 2026</div>
+                        <div class="title">
+                            Commented on <strong>Sukiyaki Central</strong>
+                        </div>
+                        <div class="date">Jan 24, 2026</div>
                     </div>
                 </div>
                 <div class="activity-text">
@@ -140,16 +181,16 @@
                 <div class="activity-header">
                     <div class="icon">✍️</div>
                     <div>
-                    <div class="title">
-                        Reviewed <strong>Seoul Garden BGC</strong>
-                    </div>
-                    <div class="date">Jan 20, 2026</div>
+                        <div class="title">
+                            Reviewed <strong>Seoul Garden BGC</strong>
+                        </div>
+                        <div class="date">Jan 20, 2026</div>
                     </div>
                     <div class="rating">
-                    ⭐⭐⭐⭐⭐ <span class="rating-score">5.0</span>
+                        ⭐⭐⭐⭐⭐ <span class="rating-score">5.0</span>
                     </div>
                 </div>
-                
+
                 <div class="review-title">
                     Galbi that made Me Cry
                 </div>
@@ -165,6 +206,7 @@
                 </div>
             </div>
         </div>
-        </div>
-    </body>
+    </div>
+</body>
+
 </html>
