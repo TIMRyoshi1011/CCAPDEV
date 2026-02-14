@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>User Activity</title>
+        <link rel="stylesheet" href="profile.css">
+
+        <script>
+        function goToReviews() {
+            window.location.href = "UserProfile-Reviews.html";
+        }
+        </script>
+    </head>
+
+    <body>
+        <div class="dashboard">
+        <!-- Left Panel -->
+        <div>
+            <!-- Profile -->
+            <div class="card" style="padding: 0;">
+                <div class="profile-header"></div>
+                <div class="profile-avatar">MS</div>
+
+                <div class="profile-content">
+                    <h2> Mia Santos
+                        <span class="badge platinum">💎Platinum</span>
+                        <span class="badge verified">Verified</span>
+                    </h2>
+                    <p>@miasantos</p> <br>
+                    <p>Foodie from Manila 🍜</p>
+                    <P>📅 Joined March 2024</P> <br> <hr>
+
+                    <button class="edit-btn">Edit Profile</button>
+
+                    <div class="stats-row">
+                    <div><strong>2</strong><br>Reviews</div>
+                    <div><strong>2</strong><br>Comments</div>
+                    <div><strong>420</strong><br>Points</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Stats -->
+            <div class="card">
+                <h3>📊 Stats</h3>
+                <p>Avg Rating ⭐ 4.9</p>
+                <p>Total Upvotes 👍 130</p>
+                <p>Total Downvotes 👎 3</p> <br> <hr> <br>
+                <h4>Top Cusines</h4>
+                <ul style="padding: 10px;">
+                    <li>Indian (1)</li>
+                    <li>Korean (1)</li>
+                </ul> <br> <hr> <br>
+                <h4>Top Locations</h4>
+                <ul style="padding: 10px;">
+                    <li>Makati (1)</li>
+                    <li>BGC (1)</li>
+                </ul>
+            </div>
+            <!-- Achievements -->
+            <div class="card">
+                <h3>🏅 Achievements</h3>
+                <p>✍ First Review</p>
+                <p>👍 Community Fave</p>
+                <p>🔥 Viral Post</p>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div>
+            <div class="tabs">
+            <span onclick="goToReviews()">Reviews</span>
+            <span class="active">Activity</span>
+            </div>
+
+            <!-- Comment 1 -->
+            <div class="activity-card">
+                <div class="activity-header">  
+                    <div class="icon">💬</div>
+                    <div>
+                    <div class="title">
+                        Commented on <strong>Jollibee Timog</strong>
+                    </div>
+                    <div class="date">Jan 28, 2026</div>
+                    </div>
+                </div>
+                <div class="activity-text">
+                    "Agree! The Chickenjoy is timeless. Have you tried the new breakfast menu though?"
+                </div>
+            </div>
+
+            <!-- Rating 1 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="icon">✍️</div>
+                    <div>
+                    <div class="title">
+                        Reviewed <strong>Curry House PH</strong>
+                    </div>
+                    <div class="date">Jan 26, 2026</div>
+                    </div>
+                    <div class="rating">
+                    ⭐⭐⭐⭐⭐ <span class="rating-score">4.7</span>
+                    </div>
+                </div>
+                
+                <div class="review-title">
+                    Best Butter Chicken in Metro Manila
+                </div>
+
+                <p class="activity-text">
+                    I've tried a LOT of Indian restaurants here and this one takes the cake.
+                    The butter chicken is insane!
+                </p> <br>
+
+                <div class="activity-footer">
+                    <span>👍 58 . </span>
+                    <span>💬 2</span>
+                </div>
+            </div>
+
+            <!-- Comment 2 -->
+            <div class="activity-card">
+                <div class="activity-header">  
+                    <div class="icon">💬</div>
+                    <div>
+                    <div class="title">
+                        Commented on <strong>Sukiyaki Central</strong>
+                    </div>
+                    <div class="date">Jan 24, 2026</div>
+                    </div>
+                </div>
+                <div class="activity-text">
+                    "Yeah the portions are small. I'd recommend ordering extra sides."
+                </div>
+            </div>
+
+            <!-- Rating 2 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="icon">✍️</div>
+                    <div>
+                    <div class="title">
+                        Reviewed <strong>Seoul Garden BGC</strong>
+                    </div>
+                    <div class="date">Jan 20, 2026</div>
+                    </div>
+                    <div class="rating">
+                    ⭐⭐⭐⭐⭐ <span class="rating-score">5.0</span>
+                    </div>
+                </div>
+                
+                <div class="review-title">
+                    Galbi that made Me Cry
+                </div>
+
+                <p class="activity-text">
+                    The Korean BBQ here is genuinely one of the best I've had.
+                    The galbi marinade is sweet and savory in a way that just works.
+                </p> <br>
+
+                <div class="activity-footer">
+                    <span>👍 72 . </span>
+                    <span>💬 2</span>
+                </div>
+            </div>
+        </div>
+        </div>
+    </body>
+</html>

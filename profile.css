@@ -1,0 +1,252 @@
+/* Overall */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    padding: 40px;
+    color: #1f2937;
+    background: #ebebeb;
+}
+
+.dashboard {
+    max-width: 1300px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    margin-bottom: 25px;
+}
+
+/* Profile */
+.profile-header {
+    background: #f38ca0;
+    height: 120px;
+    border-radius: 18px 18px 0 0;
+}
+
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 100%;
+    background: #d94866;
+    color: white;
+    font-weight: 700;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -45px;
+    margin-left: 20px;
+}
+
+.profile-content {
+    padding: 20px;
+}
+
+.badge {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-left: 8px;
+}
+
+.country {
+    background: #80b89d;
+    color: #0c6832;
+}
+
+.location {
+    background: #afafaf;
+    color: #707070;
+}
+
+.platinum {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.verified {
+    background: #fde2e7;
+    color: #d94866;
+}
+
+.edit-btn {
+    margin-top: 15px;
+    padding: 8px 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.stats-row div strong {
+    font-size: 20px;
+}
+
+/* Right Panel */
+.tabs {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+}
+
+.tabs span {
+    padding-bottom: 10px;
+    cursor: pointer;
+}
+
+.tabs .active {
+    color: #d94866;
+    border-bottom: 3px solid #d94866;
+    font-weight: 600;
+}
+
+/* Review Card */
+.review-card {
+    background: white;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    margin-bottom: 25px;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    background: #ffe2ea;
+    padding: 20px 25px;
+    border: 0px;
+    margin-top: -24px;
+    margin-left: -24px;
+    margin-right: -24px;
+    border-radius: 10px;
+}
+
+.review-header h3 {
+    color: #d94866;
+}
+
+.review-user {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.review-user .rating {
+    margin-left: auto;
+}
+
+.small-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #d94866;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.options {
+    color: #9b9b9b;
+    font-weight: 600;
+    align-items: right;
+}
+
+.comments {
+    cursor: pointer;
+}
+
+.rating {
+    color: #d94866;
+    font-weight: 600;
+    align-items: right;
+    justify-content: space-between;
+}
+
+.review-title {
+    font-weight: 700;
+    margin: 10px 0;
+}
+
+.review-text {
+    color: #555;
+    line-height: 1.6;
+}
+
+@media (max-width: 1000px) {
+    .dashboard {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Activity Card */
+.activity-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+  transition: 0.2s ease;
+}
+
+.activity-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 15px;
+}
+
+.activity-header .rating {
+    margin-left: auto;
+}
+
+.title {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+.date {
+  font-size: 13px;
+  color: #999;
+  margin-top: 3px;
+}
