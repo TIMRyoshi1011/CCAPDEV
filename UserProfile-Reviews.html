@@ -12,6 +12,18 @@
         function goToActivity() {
             window.location.href = "UserProfile-Activity.html";
         }
+        function goToFeed() {
+            window.location.href = "Feed.html";
+        }
+        function goToNotifications() {
+            window.location.href = "Notifs.html";
+        }
+        function goToProfile() {
+            window.location.href = "UserProfile.html";
+        }
+        function goToSettings() {
+            window.location.href = "Settings.html";
+        }
     </script>
 </head>
 
@@ -31,19 +43,11 @@
         </div>
 
         <div class="sidebar-nav">
-            <div class="sidebar-nav-item" onclick="window.location='Feed.html'">
-                🏠 Feed
-            </div>
-            <div class="sidebar-nav-item" onclick="window.location='Notifs.html'">
-                🔔 Notifications
-                <span class="notif-badge">2</span>
-            </div>
-            <div class="sidebar-nav-item active">
-                👤 Profile
-            </div>
-            <div class="sidebar-nav-item">
-                ⚙️ Settings
-            </div>
+            <div class="sidebar-nav-item" onclick="goToFeed()">🏠 Feed</div>
+            <div class="sidebar-nav-item" onclick="goToNotifications()">🔔 Notifications<span
+                    class="notif-badge">2</span></div>
+            <div class="sidebar-nav-item" onclick="goToProfile()">👤 Profile</div>
+            <div class="sidebar-nav-item" onclick="goToSettings()">⚙️ Settings</div>
         </div>
 
         <div class="sidebar-logout">

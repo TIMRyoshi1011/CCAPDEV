@@ -41,3 +41,20 @@ window.onclick = function(event) {
         successPopup.classList.add("hidden");
     }
 }
+
+// for ALL sidebar buttons, just change the href once u added the html file na
+function goToFeed() {
+    window.location.href = "Feed.html";
+}
+
+function goToNotifications() {
+    window.location.href = "Notifs.html";
+}
+
+function goToProfile() {
+    window.location.href = "UserProfile-Reviews.html";
+}
+
+function goToSettings() {
+    window.location.href = "Settings.html";
+}
