@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Notifications</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- <link rel="stylesheet" href="style.css"> -->
+    </head>
+
+    <style>
+        body {
+            background-color: #ffffff;
+            justify-content: center;
+            padding-top: 50px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .header {
+            width: auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .header h3 {
+            margin: 20;
+            font-size: 1.1rem;
+            color: #1a1a1a;
+        }
+
+        #read {
+            background: none;
+            border: none;
+            color: #007bff;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+
+        #read:hover { color: #0056b3; }
+        #read:disabled { color: #ccc; cursor: default; }
+
+        section {
+            width: 420px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+
+        .review, .comment, .upvote, .downvote, .status {
+            display: flex;
+            align-items: center; /* Vertically centers emoji and text */
+            padding: 16px 20px;
+            gap: 16px;           /* Space between emoji and text */
+            border-bottom: 1px solid #6c6c6c; 
+        }
+
+        .unread {
+            font-weight: bold;
+            color: #007bff;
+            display: flex;
+            align-items: center; /* Vertically centers emoji and text */
+            padding: 16px 20px;
+            gap: 16px;           /* Space between emoji and text */
+            border-bottom: 1px solid #6c6c6c;
+        }
+
+        .timestamp {
+            font-size: 0.75rem;
+            color: #6c6c6c;
+            margin-left: auto; /* Pushes timestamp to the right */
+        }
+    </style>
+
+    <body>
+        <div class="header">
+            <h3>Notifications</h3>
+            <button id="read">Mark all as read</button>
+        </div>
+
+        <div section="notifications">
+            <div class="review">
+                <span class="icon">🖋</span>
+                <p>You left a review for Curry House PH</p>
+                <!-- <p>Click to view the whole review</p> -->
+                <span class="timestamp">2 minutes ago</span>
+            </div>
+            <div class="unread">
+                <span class="icon">🖋</span>
+                <p>You left a review for Mang Tomas Warzone</p>
+                <!-- <p>Click to view the whole review</p> -->
+                <span class="timestamp">3 hours ago</span>
+            </div>
+            <div class="comment">
+                <span class="icon">💬</span>
+                <p>Lee Dokyeom left a comment under your review on Seoul Garden BGC</p> <!-- I was thinking the users and restos have tags? -->
+                <!-- <p>Click to view the whole comment</p> -->
+                <span class="timestamp">1 day ago</span>
+            </div>
+            <div class="upvote">
+                <span class="icon">🔺</span>
+                <p>Carlo Dela Cruz upvoted your review on Curry House PH</p>
+                <span class="timestamp">4 days ago</span>
+            </div>
+            <div class="downvote">
+                <span class="icon">🔻</span>
+                <p>Charles Sanchez downvoted your review on Mang Tomas Warzone</p>
+                <span class="timestamp">4 days ago</span>
+            </div>
+            <div class="status">
+                <span class="icon">🌟</span>
+                <p>Your status has been upgraded to the Bronze tier</p>
+                <span class="timestamp">1 week ago</span>
+            </div>
+    </body>
+</html>
