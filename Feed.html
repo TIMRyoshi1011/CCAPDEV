@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed - BiteBack</title>
+    <link rel="stylesheet" href="feed.css">
+</head>
+
+<body>
+    <!--MAIN SIDEBAR (COPY THIS STYLE FOR THE REST OF THE PAGES OK)-->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            Bite<span>Back</span>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">MS</div>
+            <div class="sidebar-user-info">
+                <h4>Mia Santos</h4>
+                <div class="user-badge">💎 Platinum</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-item active">
+                🏠 Feed
+            </div>
+            <div class="sidebar-nav-item" onclick="window.location='Notifs.html'">
+                🔔 Notifications
+                <span class="notif-badge">2</span>
+            </div>
+            <div class="sidebar-nav-item" onclick="window.location='UserProfile-Reviews.html'">
+                👤 Profile
+            </div>
+            <div class="sidebar-nav-item">
+                ⚙️ Settings
+            </div>
+        </div>
+
+        <div class="sidebar-logout">
+            🚪 Log Out
+        </div>
+    </div>
+    <!--============= END OF SIDEBAR ============= -->
+
+    <div class="main-content">
+        <!-- STATS CARDS  -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>📝 REVIEWS</h4>
+                <h2>6</h2>
+            </div>
+            <div class="stat-card">
+                <h4>🍽️ TOP CUISINE</h4>
+                <h2>Filipino</h2>
+            </div>
+            <div class="stat-card">
+                <h4>⭐ AVG RATING</h4>
+                <h2>3.7★</h2>
+            </div>
+            <div class="stat-card">
+                <h4>📍 LOCATIONS</h4>
+                <h2>7</h2>
+            </div>
+            <div class="stat-card">
+                <h4>🔥 Top Rated</h4>
+                <p style="margin-top: 10px;">Not enough data yet</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group">
+                <span>🍽️</span>
+                <select>
+                    <option>Cuisine: All</option>
+                    <option>Filipino</option>
+                    <option>Korean</option>
+                    <option>Indian</option>
+                    <option>Japanese</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <span>📍</span>
+                <select>
+                    <option>Location: All</option>
+                    <option>BGC</option>
+                    <option>Makati</option>
+                    <option>Quezon City</option>
+                    <option>Taguig</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <span>🕒</span>
+                <select>
+                    <option>Recent</option>
+                    <option>Top Rated</option>
+                    <option>Most Commented</option>
+                </select>
+            </div>
+
+            <button class="write-review-btn">
+                ✏️ Write a Review
+            </button>
+
+            <div class="view-toggle">
+                <button class="active">◼️ Grid</button>
+                <button>☰ List</button>
+            </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="review-grid">
+            <!-- Review 1 -->
+            <div class="review-card">
+                <div class="review-card-header">
+                    <div>
+                        <h3>Jollibee Timog</h3>
+                    </div>
+                    <div class="options">...</div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar gold">LC</div>
+                    <div class="review-user-info">
+                        <div>
+                            <strong>Lando Cruz</strong>
+                            <span class="badge gold">🏆 Gold</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 28, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐⭐☆ 3.7</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Filipino</span>
+                    <span class="tag">📍 Quezon City</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐☆ &nbsp; Taste: ⭐⭐⭐⭐⭐ &nbsp; Ambiance: ⭐⭐⭐☆☆
+                </div>
+
+                <div class="review-title">Classic Chickenjoy Never Fails</div>
+                <div class="review-text">
+                    Went here after a long day. The Chickenjoy combo is still the standard — crispy skin, juicy meat,
+                    and that iconic gravy. Sides were fresh. Staff was friendly too.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 34</span>
+                    <span>👎 2</span>
+                    <span>💬 2 Comments ▼</span>
+                </div>
+            </div>
+
+            <!-- Review 2 -->
+            <div class="review-card">
+                <div class="review-card-header">
+                    <div>
+                        <h3>Curry House PH</h3>
+                    </div>
+                    <div class="options">...</div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar platinum">MS</div>
+                    <div class="review-user-info">
+                        <div>
+                            <strong>Mia Santos</strong>
+                            <span class="badge platinum">💎 Platinum</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 26, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐⭐⭐ 4.7</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Indian</span>
+                    <span class="tag">📍 Makati</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐⭐ &nbsp; Taste: ⭐⭐⭐⭐⭐ &nbsp; Ambiance: ⭐⭐⭐⭐☆
+                </div>
+
+                <div class="review-title">Best Butter Chicken in Metro Manila</div>
+                <div class="review-text">
+                    I've tried a LOT of Indian restaurants here and this one takes the cake. The butter chicken is
+                    insanely creamy and perfectly spiced. The naan bread was warm and fluffy.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 58</span>
+                    <span>👎 2</span>
+                    <span>💬 2 Comments ▼</span>
+                </div>
+            </div>
+
+            <!-- Review 3 -->
+            <div class="review-card">
+                <div class="review-card-header">
+                    <div>
+                        <h3>Sukiyaki Central</h3>
+                    </div>
+                    <div class="options">...</div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar platinum">RR</div>
+                    <div class="review-user-info">
+                        <div>
+                            <strong>Rina Reyes</strong>
+                            <span class="badge silver">🥈 Silver</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 24, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐☆☆ 3.3</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Japanese</span>
+                    <span class="tag">📍 BGC</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐☆ &nbsp; Taste: ⭐⭐⭐☆☆ &nbsp; Ambiance: ⭐⭐⭐⭐⭐
+                </div>
+
+                <div class="review-title">Decent but Overhyped</div>
+                <div class="review-text">
+                    The sukiyaki pot was tasty enough, sure. But the portions felt small for the price and the wait time
+                    was almost an hour on a Tuesday.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 21</span>
+                    <span>👎 6</span>
+                    <span>💬 1 Comment ▼</span>
+                </div>
+            </div>
+
+            <!-- Review 4 -->
+            <div class="review-card">
+                <div class="review-card-header">
+                    <div>
+                        <h3>Mang Tomas Warzone</h3>
+                    </div>
+                    <div class="options">...</div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar bronze">CD</div>
+                    <div class="review-user-info">
+                        <div>
+                            <strong>Carlo Dela Cruz</strong>
+                            <span class="badge bronze">🥉 Bronze</span>
+                        </div>
+                        <div class="review-date">Jan 22, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐☆☆ 3.3</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Filipino</span>
+                    <span class="tag">📍 Quezon City</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐☆☆ &nbsp; Taste: ⭐⭐⭐⭐☆ &nbsp; Ambiance: ⭐⭐☆☆☆
+                </div>
+
+                <div class="review-title">Sizzling Sisig Heaven</div>
+                <div class="review-text">
+                    This place is loud, cramped, and the beer is always cold. The sisig here is legendary — crispy,
+                    tangy, spicy. Perfect beer food.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 45</span>
+                    <span>👎 5</span>
+                    <span>💬 0 Comments ▼</span>
+                </div>
+            </div>
+
+            <!-- Review 5 -->
+            <div class="review-card">
+                <div class="review-card-header">
+                    <div>
+                        <h3>Seoul Garden BGC</h3>
+                    </div>
+                    <div class="options">...</div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar platinum">MS</div>
+                    <div class="review-user-info">
+                        <div>
+                            <strong>Mia Santos</strong>
+                            <span class="badge platinum">💎 Platinum</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 20, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐⭐⭐ 5.0</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Korean</span>
+                    <span class="tag">📍 BGC</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐⭐ &nbsp; Taste: ⭐⭐⭐⭐⭐ &nbsp; Ambiance: ⭐⭐⭐⭐⭐
+                </div>
+
+                <div class="review-title">Galbi That Made Me Cry</div>
+                <div class="review-text">
+                    The Korean BBQ here is genuinely one of the best I've had. The galbi marinade is sweet and savory in
+                    a way that just works. The banchan selection is also impressive.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 89</span>
+                    <span>👎 1</span>
+                    <span>💬 5 Comments ▼</span>
+                </div>
+            </div>
+
+            <!-- Review 6 -->
+            <div class="review-card">
+                <div class="review-card-header">
+                    <div>
+                        <h3>Pizza Roma Taguig</h3>
+                    </div>
+                    <div class="options">...</div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar gold">LC</div>
+                    <div class="review-user-info">
+                        <div>
+                            <strong>Lando Cruz</strong>
+                            <span class="badge gold">🏆 Gold</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 15, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐⭐☆ 4.2</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Italian</span>
+                    <span class="tag">📍 Taguig</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐☆ &nbsp; Taste: ⭐⭐⭐⭐⭐ &nbsp; Ambiance: ⭐⭐⭐⭐☆
+                </div>
+
+                <div class="review-title">Authentic Italian Vibes</div>
+                <div class="review-text">
+                    The thin crust pizza here is spot on. Great ingredients, wood-fired oven, and the pasta is fresh. A
+                    bit pricey but worth it for a special occasion.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 67</span>
+                    <span>👎 3</span>
+                    <span>💬 4 Comments ▼</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
