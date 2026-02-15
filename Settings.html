@@ -37,6 +37,7 @@
     .notifications,
     .others,
     .tier-system {
+        /* Cards for eacy sections in the settings category */
         background: var(--card-bg);
         border-radius: 16px;
         padding: 24px;
@@ -362,7 +363,7 @@
             <div class="others">
                 <h3>Other Settings</h3>
                 <div class="logout">
-                    <br> <button id="logout">Logout</button>
+                    <br> <button id="logout" onclick="logout()">Log Out</button>
                     <label for="logout" class="description">Clicking this will log you out of your account on this
                         device. You
                         can log back in anytime.</label>
