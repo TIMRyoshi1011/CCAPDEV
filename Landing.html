@@ -75,13 +75,40 @@
         </div>
     </div>
 
+    <!-- Change Password Popup -->
+    <div id="changePasswordPopup" class="popup hidden">
+        <div class="popup-content">
+            <span class="close" onclick="closeChangePassword()">&times;</span>
+            <h2>Change Password</h2>
+            <h1>Please enter your new password below</h1>
+            
+            <form onsubmit="submitChangePassword(); return false;">
+                <div class="form-group">
+                    <label for="email-code">Code sent on your email</label>
+                    <input type="password" id="email-code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" id="new-password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm New Password</label>
+                    <input type="password" id="confirm-password" required>
+                </div>
+                <button type="submit" class="submit-btn">Change Password</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Sign Up Popup -->
     <div id="signupPopup" class="popup hidden">
         <div class="popup-content">
             <span class="close" onclick="closeSignUpPopup()">&times;</span>
             <h2>Register for your Bite<span>Back</span> <span style="display:block;text-align:center;">Account</span>
             </h2>
-            <form onsubmit="window.location.href='Feed.html'; return false;">
+            <form onsubmit="showAccountSuccess(); return false;">
                 <div class="form-group">
                     <label for="signup-name">Full Name</label>
                     <input type="text" id="signup-name" required>
@@ -108,6 +135,17 @@
             <button class="google-btn">Sign up with Google</button>
 
             <p class="popup-footer">Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
+        </div>
+    </div>
+
+    <!-- Account Created Popup -->
+    <div id="accountCreatedPopup" class="popup hidden">
+        <div class="popup-content popup-success">
+            <span class="close" onclick="closeAccountSuccess()">&times;</span>
+            <h2>Hello <span>Mia</span>!</h2>
+            <h1 class="success-welcome">Welcome to <span>Bite</span>Back</h1>
+            <p class="success-subtitle">Your account has been created successfully.</p>
+            <button class="submit-btn" onclick="goToFeed()">Go to Feed</button>
         </div>
     </div>
 

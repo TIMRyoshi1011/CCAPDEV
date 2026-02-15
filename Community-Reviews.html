@@ -75,13 +75,40 @@
         </div>
     </div>
 
+    <!-- Change Password Popup -->
+    <div id="changePasswordPopup" class="popup hidden">
+        <div class="popup-content">
+            <span class="close" onclick="closeChangePassword()">&times;</span>
+            <h2>Change Password</h2>
+            <h1>Please enter your new password below</h1>
+            
+            <form onsubmit="submitChangePassword(); return false;">
+                <div class="form-group">
+                    <label for="email-code">Code sent on your email</label>
+                    <input type="password" id="email-code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" id="new-password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm New Password</label>
+                    <input type="password" id="confirm-password" required>
+                </div>
+                <button type="submit" class="submit-btn">Change Password</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Sign Up Popup -->
     <div id="signupPopup" class="popup hidden">
         <div class="popup-content">
             <span class="close" onclick="closeSignUpPopup()">&times;</span>
             <h2>Register for your Bite<span>Back</span> <span style="display:block;text-align:center;">Account</span>
             </h2>
-            <form onsubmit="window.location.href='Feed.html'; return false;">
+            <form onsubmit="showAccountSuccess(); return false;">
                 <div class="form-group">
                     <label for="signup-name">Full Name</label>
                     <input type="text" id="signup-name" required>
@@ -111,6 +138,17 @@
         </div>
     </div>
 
+    <!-- Account Created Popup -->
+    <div id="accountCreatedPopup" class="popup hidden">
+        <div class="popup-content popup-success">
+            <span class="close" onclick="closeAccountSuccess()">&times;</span>
+            <h2>Hello <span>Mia</span>!</h2>
+            <h1 class="success-welcome">Welcome to <span>Bite</span>Back</h1>
+            <p class="success-subtitle">Your account has been created successfully.</p>
+            <button class="submit-btn" onclick="goToFeed()">Go to Feed</button>
+        </div>
+    </div>
+
     <!-- Page Title -->
     <section class="main">
         <h1>Community Reviews</h1>
@@ -125,102 +163,379 @@
             </div>
         </div>
 
-        <!-- Review Grid -->
+        <!-- Reviews -->
         <div class="review-grid">
-
+            <!-- Review 1 -->
             <div class="review-card">
-                <div class="review-title">
-                    <h3>Kodawari</h3>
-                    <span class="rating">★★★★★ 5.0</span>
-                </div>
-
-                <div class="review-user">
-                    <span class="avatar">MS</span>
-                    <div>
-                        <strong>Mia Santos</strong>
-                        <span class="badge platinum">💎 Platinum</span>
-                        <div class="verified">✔ Verified · Jan 20, 2026</div>
+                <div class="review-header">
+                    <h3>Jollibee</h3>
+                    <div class="options-container">
+                        <div class="options" data-own-post="false">...</div>
+                        <div class="options-dropdown show">
+                            <div class="option-item">🚩 Report</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="tags">
-                    <span class="tag">Japanese</span>
-                    <span class="tag">📍 BGC</span>
-                </div>
-
-                <div class="scores">
-                    Service: ★★★★★ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★☆
-                </div>
-
-                <h4>Gyudon so bomb</h4>
-                <p class="review-text">
-                    The Japanese Gyudon here is genuinely one of the best I’ve had.
-                    The marinade is unreal and the staff are incredibly attentive.
-                </p>
-            </div>
-
-            <div class="review-card">
-                <div class="review-title">
-                    <h3>Yabu</h3>
-                    <span class="rating">★★★★☆ 4.7</span>
-                </div>
-
                 <div class="review-user">
-                    <span class="avatar">MS</span>
-                    <div>
-                        <strong>Mia Santos</strong>
-                        <span class="badge platinum">💎 Platinum</span>
-                        <div class="verified">✔ Verified · Jan 26, 2026</div>
+                    <div class="review-avatar gold">LC</div>
+                    <div class="review-user-info">
+                        <div>
+                            <highlight>Lando Cruz</highlight>
+                            <span class="badge gold">🏆 Gold</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 28, 2026</div>
                     </div>
+                    <div class="review-rating">⭐⭐⭐⭐☆ 3.7</div>
                 </div>
 
-                <div class="tags">
-                    <span class="tag">Indian</span>
-                    <span class="tag">📍 Makati</span>
-                </div>
-
-                <div class="scores">
-                    Service: ★★★★☆ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★☆
-                </div>
-
-                <h4>Butter Chicken Royalty</h4>
-                <p class="review-text">
-                    Rich, creamy, and perfectly spiced. Easily my go-to Indian spot
-                    whenever I’m in Makati.
-                </p>
-            </div>
-
-            <div class="review-card">
-                <div class="review-title">
-                    <h3>Chef Bab's Sisig</h3>
-                    <span class="rating">★★★☆☆ 3.3</span>
-                </div>
-
-                <div class="review-user">
-                    <span class="avatar dark">CD</span>
-                    <div>
-                        <strong>Carlo Dela Cruz</strong>
-                        <span class="badge bronze">🥉 Bronze</span>
-                        <div class="verified">✔ Verified · Jan 22, 2026</div>
-                    </div>
-                </div>
-
-                <div class="tags">
+                <div class="review-tags">
                     <span class="tag">Filipino</span>
                     <span class="tag">📍 Quezon City</span>
                 </div>
 
-                <div class="scores">
-                    Service: ★★★☆☆ &nbsp; Taste: ★★★★☆ &nbsp; Ambiance: ★★☆☆☆
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐☆ &nbsp; Taste: ⭐⭐⭐⭐⭐ &nbsp; Ambiance: ⭐⭐⭐☆☆
                 </div>
 
-                <h4>Sisig + Cold Beer Combo</h4>
-                <p class="review-text">
-                    Loud, messy, and chaotic — but the sisig absolutely delivers.
-                    Come for flavor, not comfort.
-                </p>
+                <div class="review-title">Classic Chickenjoy Never Fails</div>
+                <div class="review-text">
+                    Went here after a long day. The Chickenjoy combo is still the standard — crispy skin, juicy meat,
+                    and that iconic gravy. Sides were fresh. Staff was friendly too.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 34</span>
+                    <span>👎 2</span>
+                    <span class="toggle-comments">💬 2 Comments ▶</span>
+                </div>
             </div>
 
+            <!-- Review 2 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <h3>Yabu</h3>
+                    <div class="options-container">
+                        <div class="options" data-own-post="true">...</div>
+                        <div class="options-dropdown show show">
+                            <div class="option-item">✏️ Edit</div>
+                            <div class="option-item">🗑️ Delete</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar platinum">MS</div>
+                    <div class="review-user-info">
+                        <div>
+                            <highlight>Mia Santos</highlight>
+                            <span class="badge platinum">💎 Platinum</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 26, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐⭐⭐ 4.7</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Indian</span>
+                    <span class="tag">📍 Makati</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐⭐ &nbsp; Taste: ⭐⭐⭐⭐⭐ &nbsp; Ambiance: ⭐⭐⭐⭐☆
+                </div>
+
+                <div class="review-title">Best Butter Chicken in Manila</div>
+                <div class="review-text">
+                    I've tried a LOT of Indian restaurants here and this one takes the cake. The butter chicken is
+                    insanely creamy and perfectly spiced. The naan bread was warm and fluffy.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 58</span>
+                    <span>👎 2</span>
+                    <span class="toggle-comments">💬 0 Comments ▶</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <!-- No comments -->
+                </div>
+            </div>
+
+            <!-- Review 3 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <h3>Illo</h3>
+                    <div class="options-container">
+                        <div class="options" data-own-post="false">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item">🚩 Report</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar platinum">RR</div>
+                    <div class="review-user-info">
+                        <div>
+                            <highlight>Rina Reyes</highlight>
+                            <span class="badge silver">🥈 Silver</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 24, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐☆☆ 3.3</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Japanese</span>
+                    <span class="tag">📍 BGC</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐☆ &nbsp; Taste: ⭐⭐⭐☆☆ &nbsp; Ambiance: ⭐⭐⭐⭐⭐
+                </div>
+
+                <div class="review-title">Decent but Overhyped</div>
+                <div class="review-text">
+                    The sukiyaki pot was tasty enough, sure. But the portions felt small for the price and the wait time
+                    was almost an hour on a Tuesday.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 21</span>
+                    <span>👎 6</span>
+                    <span class="toggle-comments">💬 1 Comment ▶</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <div class="comment-item">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review 4 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <h3>Chef Bab's Sisig</h3>
+                    <div class="options-container">
+                        <div class="options" data-own-post="false">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item">🚩 Report</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar bronze">CD</div>
+                    <div class="review-user-info">
+                        <div>
+                            <highlight>Carlo Dela Cruz</highlight>
+                            <span class="badge bronze">🥉 Bronze</span>
+                        </div>
+                        <div class="review-date">Jan 22, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐☆☆ 3.3</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Filipino</span>
+                    <span class="tag">📍 Quezon City</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐☆☆ &nbsp; Taste: ⭐⭐⭐⭐☆ &nbsp; Ambiance: ⭐⭐☆☆☆
+                </div>
+
+                <div class="review-title">Sizzling Sisig Heaven</div>
+                <div class="review-text">
+                    This place is loud, cramped, and the beer is always cold. The sisig here is legendary — crispy,
+                    tangy, spicy. Perfect beer food.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 45</span>
+                    <span>👎 5</span>
+                    <span class="toggle-comments">💬 0 Comments ▶</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <!-- No comments -->
+                </div>
+            </div>
+
+            <!-- Review 5 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <h3>Kodawari</h3>
+                    <div class="options-container">
+                        <div class="options" data-own-post="true">...</div>
+                        <div class="options-dropdown show">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar platinum">MS</div>
+                    <div class="review-user-info">
+                        <div>
+                            <highlight>Mia Santos</highlight>
+                            <span class="badge platinum">💎 Platinum</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 20, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐⭐⭐ 5.0</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Korean</span>
+                    <span class="tag">📍 BGC</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐⭐ &nbsp; Taste: ⭐⭐⭐⭐⭐ &nbsp; Ambiance: ⭐⭐⭐⭐⭐
+                </div>
+
+                <div class="review-title">Gyudon so bomb</div>
+                <div class="review-text">
+                    The Japanese Gyudon here is genuinely one of the best I've had. The marinade is sweet and savory in
+                    a way that just works. The appetizer selection is also amazing.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 89</span>
+                    <span>👎 1</span>
+                    <span class="toggle-comments">💬 5 Comments ▼</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section show">
+                    <div class="comment-item">
+                        <div class="comment-avatar bronze">CD</div>
+                        <div class="review-user-info">
+                            <highlight>Carlo Dela Cruz <span class="review-date">· 3 hours ago</span></highlight>
+                            <div class="review-text">This place is my go-to! The ramen is also incredible, you should
+                                try it next time.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar silver">RR</div>
+                        <div class="review-user-info">
+                            <highlight>Rina Reyes <span class="review-date">· 1 day ago</span></highlight>
+                            <div class="review-text">Totally agree with this review! The service here is always
+                                excellent too.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar platinum">MS</div>
+                        <div class="review-user-info">
+                            <highlight>Mia Santos <span class="review-date">· 2 days ago</span></highlight>
+                            <div class="review-text">The gyudon is so bomb! I love the appetizers too.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar gold">LC</div>
+                        <div class="review-user-info">
+                            <highlight>Lando Cruz <span class="review-date">· 3 days ago</span></highlight>
+                            <div class="review-text">Great review! Will try this place soon.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar silver">RR</div>
+                        <div class="review-user-info">
+                            <highlight>Rina Reyes <span class="review-date">· 4 days ago</span></highlight>
+                            <div class="review-text">The service is always excellent here.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review 6 -->
+            <div class="review-card">
+                <div class="review-header">
+                    <h3>Pizzulu</h3>
+                    <div class="options-container">
+                        <div class="options" data-own-post="false">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item">🚩 Report</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-user">
+                    <div class="review-avatar gold">LC</div>
+                    <div class="review-user-info">
+                        <div>
+                            <highlight>Lando Cruz</highlight>
+                            <span class="badge gold">🏆 Gold</span>
+                            <span class="verified">✔ Verified</span>
+                        </div>
+                        <div class="review-date">Jan 15, 2026</div>
+                    </div>
+                    <div class="review-rating">⭐⭐⭐⭐☆ 4.2</div>
+                </div>
+
+                <div class="review-tags">
+                    <span class="tag">Italian</span>
+                    <span class="tag">📍 Taguig</span>
+                </div>
+
+                <div class="review-scores">
+                    Service: ⭐⭐⭐⭐☆ &nbsp; Taste: ⭐⭐⭐⭐⭐ &nbsp; Ambiance: ⭐⭐⭐⭐☆
+                </div>
+
+                <div class="review-title">Authentic Italian Vibes</div>
+                <div class="review-text">
+                    The thin crust pizza here is spot on. Great ingredients, wood-fired oven, and the pasta is fresh. A
+                    bit pricey but worth it for a special occasion.
+                </div>
+
+                <div class="review-actions">
+                    <span>👍 67</span>
+                    <span>👎 3</span>
+                    <span class="toggle-comments">💬 4 Comments ▼</span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section show">
+                    <div class="comment-item">
+                        <div class="comment-avatar platinum">MS</div>
+                        <div class="review-user-info">
+                            <highlight>Mia Santos <span class="review-date">· 5 hours ago</span></highlight>
+                            <div class="review-text">The pizza here is amazing! Best Italian spot in Taguig for sure.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar gold">LC</div>
+                        <div class="review-user-info">
+                            <highlight>Lando Cruz <span class="review-date">· 2 days ago</span></highlight>
+                            <div class="review-text">Thanks for sharing! The carbonara is also worth trying if you go
+                                back.</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar bronze">CD</div>
+                        <div class="review-user-info">
+                            <highlight>Carlo Dela Cruz <span class="review-date">· 1 day ago</span></highlight>
+                            <div class="review-text">Love the pasta here, so fresh!</div>
+                        </div>
+                    </div>
+                    <div class="comment-item">
+                        <div class="comment-avatar silver">RR</div>
+                        <div class="review-user-info">
+                            <highlight>Rina Reyes <span class="review-date">· 3 days ago</span></highlight>
+                            <div class="review-text">The ambiance is perfect for family gatherings.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 

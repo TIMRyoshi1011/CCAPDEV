@@ -72,6 +72,38 @@ body {
     color: white;
 } 
 
+.popup-success {
+    text-align: center;
+}
+
+.popup-success h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 10px;
+}
+
+.popup-success h2 span {
+    color: #85a83f;
+}
+
+.success-welcome {
+    font-size: 36px !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+}
+
+.success-welcome span {
+    color: #85a83f;
+}
+
+.success-subtitle {
+    font-size: 13px;
+    font-weight: 400;
+    color: #6b7280;
+    margin-bottom: 28px;
+}
+
 /* Main (Text) */
 .main {
     background: #36734e;
