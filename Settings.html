@@ -4,7 +4,6 @@
         <meta charset="UTF-8">
         <title>Settings</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <!-- <link rel="stylesheet" href="style.css"> -->
     </head>
 
     <style>
@@ -297,14 +296,14 @@
             <div class="sidebar-nav-item" onclick="goToFeed()">
                 🏠 Feed
             </div>
-            <div class="sidebar-nav-item">
+            <div class="sidebar-nav-item" onclick="goToNotifications()">
                 🔔 Notifications
                 <span class="notif-badge">2</span>
             </div>
             <div class="sidebar-nav-item" onclick="goToProfile()">
                 👤 Profile
             </div>
-            <div class="sidebar-nav-item active" onclick="goToSettings()">
+            <div class="sidebar-nav-item active">
                 ⚙️ Settings
             </div>
         </div>
@@ -389,5 +388,7 @@
             </div>
     <!-- Logging out and deletion of account -->
         </div>
+
+        <script src="script.js"></script>
     </body>
 </html>
