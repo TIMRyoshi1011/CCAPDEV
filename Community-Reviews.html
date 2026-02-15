@@ -20,6 +20,97 @@
         </div>
     </div>
 
+    <!-- Login Popup -->
+    <div id="loginPopup" class="popup hidden">
+        <div class="popup-content">
+            <span class="close" onclick="closeLoginPopup()">&times;</span>
+            <h2>Sign in to Bite<span>Back</span></h2>
+            <h1>Please Enter your Login Details Below</h1>
+            <form onsubmit="window.location.href='Feed.html'; return false;">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <div class="login-options">
+                    <label class="remember-me">
+                        <input type="checkbox"> Remember me
+                    </label>
+                    <a href="#" class="forgot-password" onclick="openForgotPasswordPopup(); return false;">Forgot password?</a>
+                </div>
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <button class="google-btn">Continue with Google</button>
+
+            <p class="popup-footer">Don't have an account? <a href="#" onclick="switchToSignUp()">Sign up here</a></p>
+        </div>
+    </div>
+
+    <!--Forgot Password Popup-->
+    <div id="forgotPasswordPopup" class="popup hidden">
+        <div class="popup-content">
+            <span class="close" onclick="closeForgotPasswordPopup()">&times;</span>
+            <h2>Forgot Password?</h2>
+            <h1>Please enter your email address to reset your password</h1>
+            
+            <form onsubmit="submitForgotPassword(); return false;">
+                <div class="form-group">
+                    <label for="forgot-email">Email</label>
+                    <input type="email" id="forgot-email" placeholder="example.name@domain.com" required>
+                </div>
+                <button type="submit" class="submit-btn">Submit</button>
+            </form>
+            
+            <p class="popup-footer">
+                <a href="#" onclick="closeForgotPasswordPopup(); openLoginPopup(); return false;">Back to Login</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Sign Up Popup -->
+    <div id="signupPopup" class="popup hidden">
+        <div class="popup-content">
+            <span class="close" onclick="closeSignUpPopup()">&times;</span>
+            <h2>Register for your Bite<span>Back</span> <span style="display:block;text-align:center;">Account</span>
+            </h2>
+            <form onsubmit="window.location.href='Feed.html'; return false;">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="example.name@domain.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Enter password</label>
+                    <input type="password" id="signup-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm">Re-enter password</label>
+                    <input type="password" id="signup-confirm" required>
+                </div>
+                <button type="submit" class="submit-btn">Register Account</button>
+            </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <button class="google-btn">Sign up with Google</button>
+
+            <p class="popup-footer">Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
+        </div>
+    </div>
+
     <!-- Page Title -->
     <section class="main">
         <h1>Community Reviews</h1>
@@ -137,5 +228,4 @@
     </div>
 
 </body>
-
 </html>
