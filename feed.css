@@ -423,7 +423,7 @@ body {
 }
 
 /* ============= COMMENTS ============= */
-.comments-section { /* Comments section (hidden by default) */
+.comments-section { /* Comments section */
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid #f0f0f0;
