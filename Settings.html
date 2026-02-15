@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Settings</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
 
-    <style>
+<head>
+    <meta charset="UTF-8">
+    <title>Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="feed.css">
+</head>
+
+<style>
     :root {
         --bg-body: #F9F8F6;
         --card-bg: #ffffff;
@@ -19,6 +21,9 @@
 
     body {
         background-color: var(--bg-body);
+    }
+
+    .main-content {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         color: var(--text-dark);
         line-height: 1.5;
@@ -27,13 +32,17 @@
         margin: 0 auto;
     }
 
-    .account, .about-me, .notifications, .others, .tier-system {
+    .account,
+    .about-me,
+    .notifications,
+    .others,
+    .tier-system {
         background: var(--card-bg);
         border-radius: 16px;
         padding: 24px;
         margin-bottom: 24px;
         border: 1px solid var(--border);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     h3 {
@@ -52,7 +61,9 @@
         align-items: center;
     }
 
-    .account h3 { grid-column: 1 / -1; }
+    .account h3 {
+        grid-column: 1 / -1;
+    }
 
     .profile-pic {
         width: 60px;
@@ -67,27 +78,62 @@
         font-size: 20px;
     }
 
-    .user-info .name { display: block; font-weight: bold; font-size: 18px; }
-    .user-info .username { color: var(--text-muted); font-size: 14px; }
-
-    .membership-status { text-align: right; }
-    .status { 
-        background: #2061a3; color: #b6d9ff; padding: 4px 12px; 
-        border-radius: 20px; font-size: 11px; font-weight: bold;
+    .user-info .name {
+        display: block;
+        font-weight: bold;
+        font-size: 18px;
     }
-    .member-date { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+
+    .user-info .username {
+        color: var(--text-muted);
+        font-size: 14px;
+    }
+
+    .membership-status {
+        text-align: right;
+    }
+
+    .status {
+        background: #2061a3;
+        color: #b6d9ff;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    .member-date {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 5px;
+    }
 
     /* Stats (Tier/Points) */
-    .current-tier, .points, .next-tier {
+    .current-tier,
+    .points,
+    .next-tier {
         background: #fcfcfc;
         border: 1px solid var(--border);
         padding: 12px;
         border-radius: 12px;
         text-align: center;
     }
-    .label { display: block; font-size: 14px; font-weight: bold; color: #000000; margin-bottom: 2px; }
-    .value { font-size: 14px; }
-    .points .value { color: var(--brand-pink); }
+
+    .label {
+        display: block;
+        font-size: 14px;
+        font-weight: bold;
+        color: #000000;
+        margin-bottom: 2px;
+    }
+
+    .value {
+        font-size: 14px;
+    }
+
+    .points .value {
+        color: var(--brand-pink);
+    }
 
     /* Forms & Inputs */
     textarea {
@@ -100,7 +146,8 @@
         resize: vertical;
     }
 
-    input[type="submit"], button {
+    input[type="submit"],
+    button {
         background: var(--brand-pink);
         color: white;
         border: none;
@@ -112,17 +159,28 @@
         transition: opacity 0.2s;
     }
 
-    #delete-account { background: var(--brand-pink); }
-    button:hover { opacity: 0.8; }
+    #delete-account {
+        background: var(--brand-pink);
+    }
+
+    button:hover {
+        opacity: 0.8;
+    }
 
     /* Notifications & Toggles */
-    .public-profile, .show-tier {
+    .public-profile,
+    .show-tier {
         justify-content: space-between;
         align-items: center;
         padding: 15px 0;
         border-bottom: 1px solid #f9f9f9;
     }
-    .description { font-size: 12px; color: var(--text-muted); display: block; }
+
+    .description {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: block;
+    }
 
     /* The Toggle Switch */
     .switch {
@@ -132,156 +190,75 @@
         width: 44px;
         height: 24px;
     }
-    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
     .slider {
         position: absolute;
         cursor: pointer;
-        top: 0; left: 0; right: 0; bottom: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         background-color: #ccc;
         transition: .4s;
         border-radius: 34px;
     }
+
     .slider:before {
         position: absolute;
         content: "";
-        height: 18px; width: 18px;
-        left: 3px; bottom: 3px;
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
         background-color: white;
         transition: .4s;
         border-radius: 50%;
     }
-    input:checked + .slider { background-color: var(--brand-pink); }
-    input:checked + .slider:before { transform: translateX(20px); }
+
+    input:checked+.slider {
+        background-color: var(--brand-pink);
+    }
+
+    input:checked+.slider:before {
+        transform: translateX(20px);
+    }
 
     /* Tier System Info Box */
     .tier-system {
         background: #FFF0F2;
         border-color: #FFE5E9;
     }
-    .tier-system .label { color: var(--brand-pink); font-size: 14px; margin-bottom: 10px; }
-    .tier-system .description { color: #666; margin-bottom: 8px; }
-    .tier-system .description::before { content: "• "; color: var(--brand-pink); }
+
+    .tier-system .label {
+        color: var(--brand-pink);
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .tier-system .description {
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .tier-system .description::before {
+        content: "• ";
+        color: var(--brand-pink);
+    }
 
     /* Other Settings */
-    .others .description { margin-top: 5px; }
-
-    /* Sidebar */
-    .sidebar {
-        width: 240px;
-        background: linear-gradient(180deg, #2d5016 0%, #1a3d0f 100%);
-        color: white;
-        padding: 24px 0;
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        height: 100vh;
-        left: 0;
-        top: 0;
-        z-index: 100;
+    .others .description {
+        margin-top: 5px;
     }
+</style>
 
-    .sidebar-logo {
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 30px;
-        padding-left: 24px;
-    }
-
-    .sidebar-logo span {
-        color: #ff4458;
-    }
-
-    .sidebar-logo::after {
-        content: '🍽️';
-        margin-left: 5px;
-    }
-
-    .sidebar-user {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 18px 24px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        margin: 0 16px 32px 8px;
-    }
-
-    .sidebar-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: #d94866;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 16px;
-    }
-
-    .sidebar-user-info h4 {
-        font-size: 14px;
-    }
-
-    .sidebar-user-info .user-badge {
-        font-size: 11px;
-        color: #ffd700;
-    }
-
-    .sidebar-nav {
-        flex: 1;
-        margin-left: 8px;
-        margin-right: 8px;
-    }
-
-    .sidebar-nav-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 15px;
-        margin-bottom: 5px;
-        border-radius: 8px;
-        cursor: pointer;
-        position: relative;
-    }
-
-    .sidebar-nav-item:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    .sidebar-nav-item.active {
-        background: #ff4458;
-    }
-
-    .sidebar-nav-item .notif-badge {
-        position: absolute;
-        right: 15px;
-        background: #ff4458;
-        color: white;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: bold;
-    }
-
-    .sidebar-logout {
-        padding: 12px 15px;
-        position: absolute;
-        bottom: 20px;
-        left: 0;
-        width: 100%;
-        cursor: pointer;
-        opacity: 0.7;
-    }
-
-    </style>
-
-    <body>
-        <!--============= START OF SIDEBAR ============= -->
+<body>
+    <!--MAIN SIDEBAR-->
     <div class="sidebar">
         <div class="sidebar-logo" onclick="goToFeed()" style="cursor: pointer;">
             Bite<span>Back</span>
@@ -306,7 +283,7 @@
             <div class="sidebar-nav-item" onclick="goToProfile()">
                 👤 Profile
             </div>
-            <div class="sidebar-nav-item active">
+            <div class="sidebar-nav-item active" onclick="goToSettings()">
                 ⚙️ Settings
             </div>
         </div>
@@ -316,6 +293,8 @@
         </div>
     </div>
     <!--============= END OF SIDEBAR ============= -->
+
+    <div class="main-content">
         <div class="account">
             <h3>Account</h3>
             <div class="profile-pic">
@@ -341,14 +320,15 @@
                 <span class="label">Next Tier:</span>
                 <span class="value">N/A</span>
             </div>
-    <!-- Account -->
+            <!-- Account -->
         </div>
-        
+
         <div class="about-me">
             <h3>About Me</h3>
-            <textarea id="about-me" name="about-me" rows="5" cols="50" placeholder="Tell us about yourself..."></textarea> <br>
+            <textarea id="about-me" name="about-me" rows="5" cols="50"
+                placeholder="Tell us about yourself..."></textarea> <br>
             <input type="submit" value="Submit">
-    <!-- Bio -->
+            <!-- Bio -->
         </div>
 
         <div class="notifications">
@@ -360,38 +340,43 @@
                     <input type="checkbox" checked>
                     <span class="slider"></span>
                 </label>
-            <div class="show-tier">
-                <span class="label">Show Tier Badge</span> 
-                <span class="description">Display your tier on reviews and comments</span>
-                <label class="switch">
-                    <input type="checkbox" checked>
-                    <span class="slider"></span>
-                </label>
+                <div class="show-tier">
+                    <span class="label">Show Tier Badge</span>
+                    <span class="description">Display your tier on reviews and comments</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <!-- Notifications and Privacy -->
             </div>
-    <!-- Notifications and Privacy -->
-        </div>
 
-        <div class="tier-system">
-            <span class="label">How Points and Tiers Work</span>
-            <span class="description">Post a restaurant review -> others upvote or downvote</span>
-            <span class="description">Every 10 upvotes -> you earn +10 points</span>
-            <span class="description">Reach tier thresholds -> unlock higher tiers & a Verified badge</span>
-            <span class="description">Verified users (Silver+) appear more credible in the community</span>
-        </div>
-        
-        <div class="others">
-            <h3>Other Settings</h3>
-            <div class="logout">
-                <br> <button id="logout">Logout</button>
-                <label for="logout" class="description">Clicking this will log you out of your account on this device. You can log back in anytime.</label>
+            <div class="tier-system">
+                <span class="label">How Points and Tiers Work</span>
+                <span class="description">Post a restaurant review -> others upvote or downvote</span>
+                <span class="description">Every 10 upvotes -> you earn +10 points</span>
+                <span class="description">Reach tier thresholds -> unlock higher tiers & a Verified badge</span>
+                <span class="description">Verified users (Silver+) appear more credible in the community</span>
             </div>
-            <div class="delete-account">
-                <br> <button id="delete-account">Delete Account</button>
-                <label for="delete" class="description">Clicking this will permanently delete your account and all associated data. This action cannot be undone.</label> <br>
+
+            <div class="others">
+                <h3>Other Settings</h3>
+                <div class="logout">
+                    <br> <button id="logout">Logout</button>
+                    <label for="logout" class="description">Clicking this will log you out of your account on this
+                        device. You
+                        can log back in anytime.</label>
+                </div>
+                <div class="delete-account">
+                    <br> <button id="delete-account">Delete Account</button>
+                    <label for="delete" class="description">Clicking this will permanently delete your account and all
+                        associated data. This action cannot be undone.</label> <br>
+                </div>
+                <!-- Logging out and deletion of account -->
             </div>
-    <!-- Logging out and deletion of account -->
         </div>
 
         <script src="script.js"></script>
-    </body>
+</body>
+
 </html>
