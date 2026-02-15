@@ -42,6 +42,15 @@ function switchToLogin() {
     openLoginPopup();
 }
 
+function showAccountSuccess() {
+    document.getElementById("signupPopup").classList.add("hidden");
+    document.getElementById("accountCreatedPopup").classList.remove("hidden");
+}
+
+function closeAccountSuccess() {
+    document.getElementById("accountCreatedPopup").classList.add("hidden");
+}
+
 function openEditProfilePopup() {
     document.getElementById("editProfilePopup").classList.remove("hidden");
 }
