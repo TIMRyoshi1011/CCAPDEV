@@ -58,7 +58,7 @@
     .profile-pic {
         width: 60px;
         height: 60px;
-        background: #d355cd;
+        background: #d94866;
         color: white;
         border-radius: 50%;
         display: flex;
@@ -73,7 +73,7 @@
 
     .membership-status { text-align: right; }
     .status { 
-        background: #FFF9E6; color: #B28900; padding: 4px 12px; 
+        background: #2061a3; color: #b6d9ff; padding: 4px 12px; 
         border-radius: 20px; font-size: 11px; font-weight: bold;
     }
     .member-date { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
@@ -87,7 +87,7 @@
         text-align: center;
     }
     .label { display: block; font-size: 14px; font-weight: bold; color: #000000; margin-bottom: 2px; }
-    .value { font-weight: bold; font-size: 14px; }
+    .value { font-size: 14px; }
     .points .value { color: var(--brand-pink); }
 
     /* Forms & Inputs */
@@ -165,9 +165,155 @@
 
     /* Other Settings */
     .others .description { margin-top: 5px; }
+
+    /* Sidebar */
+    .sidebar {
+        width: 240px;
+        background: linear-gradient(180deg, #2d5016 0%, #1a3d0f 100%);
+        color: white;
+        padding: 24px 0;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        z-index: 100;
+    }
+
+    .sidebar-logo {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 30px;
+        padding-left: 24px;
+    }
+
+    .sidebar-logo span {
+        color: #ff4458;
+    }
+
+    .sidebar-logo::after {
+        content: '🍽️';
+        margin-left: 5px;
+    }
+
+    .sidebar-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 18px 24px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        margin: 0 16px 32px 8px;
+    }
+
+    .sidebar-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #d94866;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .sidebar-user-info h4 {
+        font-size: 14px;
+    }
+
+    .sidebar-user-info .user-badge {
+        font-size: 11px;
+        color: #ffd700;
+    }
+
+    .sidebar-nav {
+        flex: 1;
+        margin-left: 8px;
+        margin-right: 8px;
+    }
+
+    .sidebar-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 15px;
+        margin-bottom: 5px;
+        border-radius: 8px;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .sidebar-nav-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-nav-item.active {
+        background: #ff4458;
+    }
+
+    .sidebar-nav-item .notif-badge {
+        position: absolute;
+        right: 15px;
+        background: #ff4458;
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    .sidebar-logout {
+        padding: 12px 15px;
+        margin-top: auto;
+        cursor: pointer;
+        opacity: 0.7;
+    }
+
     </style>
 
     <body>
+        <!--============= START OF SIDEBAR ============= -->
+    <div class="sidebar">
+        <div class="sidebar-logo" onclick="goToFeed()" style="cursor: pointer;">
+            Bite<span>Back</span>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">MS</div>
+            <div class="sidebar-user-info">
+                <h4>Mia Santos</h4>
+                <div class="user-badge">💎 Platinum</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-item" onclick="goToFeed()">
+                🏠 Feed
+            </div>
+            <div class="sidebar-nav-item">
+                🔔 Notifications
+                <span class="notif-badge">2</span>
+            </div>
+            <div class="sidebar-nav-item" onclick="goToProfile()">
+                👤 Profile
+            </div>
+            <div class="sidebar-nav-item active" onclick="goToSettings()">
+                ⚙️ Settings
+            </div>
+        </div>
+
+        <div class="sidebar-logout" onclick="logout()">
+            🚪 Log Out
+        </div>
+    </div>
+    <!--============= END OF SIDEBAR ============= -->
         <div class="account">
             <h3>Account</h3>
             <div class="profile-pic">
@@ -178,20 +324,20 @@
                 <span class="username">@Foodie26</span>
             </div>
             <div class="membership-status">
-                <span class="status">Gold Member</span>
+                <span class="status">Platinum Member</span>
                 <p class="member-date">Member since January 2023</p>
             </div>
             <div class="current-tier">
                 <span class="label">Current Tier:</span>
-                <span class="value">Gold</span>
+                <span class="value">💎 Platinum</span>
             </div>
             <div class="points">
                 <span class="label">Points:</span>
-                <span class="value">180</span>
+                <span class="value">500</span>
             </div>
             <div class="next-tier">
                 <span class="label">Next Tier:</span>
-                <span class="value">170 pts to Platinum</span>
+                <span class="value">N/A</span>
             </div>
     <!-- Account -->
         </div>
@@ -244,5 +390,4 @@
     <!-- Logging out and deletion of account -->
         </div>
     </body>
-
 </html>
