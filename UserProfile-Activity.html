@@ -64,13 +64,39 @@
                     <P>📅 Joined March 2024</P> <br>
                     <hr>
 
-                    <button class="edit-btn">Edit Profile</button>
+                    <button class="edit-btn" onclick="openEditProfilePopup()">Edit Profile</button>
 
                     <div class="stats-row">
                         <div><strong>2</strong><br>Reviews</div>
                         <div><strong>2</strong><br>Comments</div>
                         <div><strong>420</strong><br>Points</div>
                     </div>
+                </div>
+            </div>
+            <!-- Edit Profile Pop -->
+            <div id="editProfilePopup" class="popup hidden">
+                <div class="popup-content">
+                    <span class="close" onclick="closeEditProfilePopup()">&times;</span>
+                    <h2>Edit Profile</h2> <br>
+                    <form onsubmit="window.location.href='UserProfile-Reviews.html'; return false;">
+                        <div class="form-group">
+                            <label for="change-name">Change Display Name</label>
+                            <input type="text" id="change-name" placeholder="Enter name">
+                        </div> <br>
+                        <div class="form-group">
+                            <label for="change-username">Change Username</label>
+                            <input type="text" id="change-username" placeholder="Enter username">
+                        </div> <br>
+                        <div class="form-group">
+                            <label for="change-email">Change Email</label>
+                            <input type="email" id="change-email" placeholder="Enter email">
+                        </div> <br>
+                        <div class="form-group">
+                            <label for="change-desc">Edit Description</label>
+                            <input type="text" id="change-desc" placeholder="Enter description">
+                        </div> <br>
+                        <button type="submit" class="submit-btn">Update Profile</button>
+                    </form>
                 </div>
             </div>
             <!-- Stats -->
@@ -83,7 +109,7 @@
                 <h4>Top Cusines</h4>
                 <ul style="padding: 10px;">
                     <li>Indian (1)</li>
-                    <li>Korean (1)</li>
+                    <li>Japanese (1)</li>
                 </ul> <br>
                 <hr> <br>
                 <h4>Top Locations</h4>
@@ -104,23 +130,23 @@
         <!-- Right Panel -->
         <div>
             <div class="tabs">
-                <span onclick="goToReviews()">Reviews</span>
-                <span class="active">Activity</span>
+            <span onclick="goToProfile()">Reviews</span>
+            <span class="active">Activity</span>
             </div>
 
             <!-- Comment 1 -->
             <div class="activity-card">
-                <div class="activity-header">
+                <div class="activity-header">  
                     <div class="icon">💬</div>
                     <div>
-                        <div class="title">
-                            Commented on <strong>Jollibee</strong>
-                        </div>
-                        <div class="date">Jan 28, 2026</div>
+                    <div class="title">
+                        Commented on <strong>Ramen Kuroda Greenhills</strong>
+                    </div>
+                    <div class="date">Feb 02, 2026</div>
                     </div>
                 </div>
                 <div class="activity-text">
-                    "Agree! The Chickenjoy is absolutely delicious bro. Have you tried their peach mango pie?"
+                    "The broth is super rich! I'd suggest going for the tamago add-on, it's worth it."
                 </div>
             </div>
 
@@ -129,18 +155,110 @@
                 <div class="activity-header">
                     <div class="icon">✍️</div>
                     <div>
-                        <div class="title">
-                            Reviewed <strong>Yabu</strong>
-                        </div>
-                        <div class="date">Jan 26, 2026</div>
+                    <div class="title">
+                        Reviewed <strong>Mendokoro Ramenba</strong>
+                    </div>
+                    <div class="date">Jan 30, 2026</div>
                     </div>
                     <div class="rating">
-                        ⭐⭐⭐⭐⭐ <span class="rating-score">4.7</span>
+                    ⭐⭐⭐⭐⭐ <span class="rating-score">4.8</span>
                     </div>
                 </div>
-
+                
                 <div class="review-title">
-                    Best Butter Chicken in Manila
+                    Tonkotsu Heaven
+                </div>
+
+                <p class="activity-text">
+                    I've tried a lot of ramen spots around the metro and this one really stands out. 
+                    The broth is creamy and flavorful without being too heavy. Definitely coming back.
+                </p> <br>
+
+                <div class="activity-footer">
+                    <span>👍 64 . </span>
+                    <span>💬 3</span>
+                </div>
+            </div>
+
+            <!-- Comment 2 -->
+            <div class="activity-card">
+                <div class="activity-header">  
+                    <div class="icon">💬</div>
+                    <div>
+                    <div class="title">
+                        Commented on <strong>Wildflour Café + Bakery</strong>
+                    </div>
+                    <div class="date">Jan 29, 2026</div>
+                    </div>
+                </div>
+                <div class="activity-text">
+                    "Love their pastries! The croissants sell out fast so go early if you can."
+                </div>
+            </div>
+
+            <!-- Comment 3 -->
+            <div class="activity-card">
+                <div class="activity-header">  
+                    <div class="icon">💬</div>
+                    <div>
+                    <div class="title">
+                        Commented on <strong>Jollibee Timog</strong>
+                    </div>
+                    <div class="date">Jan 28, 2026</div>
+                    </div>
+                </div>
+                <div class="activity-text">
+                    "Agree! The Chickenjoy is timeless. Have you tried the new breakfast menu though?"
+                </div>
+            </div>
+
+            <!-- Rating 2 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="icon">✍️</div>
+                    <div>
+                    <div class="title">
+                        Reviewed <strong>Manam Comfort Filipino</strong>
+                    </div>
+                    <div class="date">Jan 27, 2026</div>
+                    </div>
+                    <div class="rating">
+                    ⭐⭐⭐⭐⭐ <span class="rating-score">4.6</span>
+                    </div>
+                </div>
+                
+                <div class="review-title">
+                    Modern Filipino Done Right
+                </div>
+
+                <p class="activity-text">
+                    The sisig was perfectly crispy and flavorful. I like how they give 
+                    different portion sizes depending on your group. Great for family dinners.
+                </p> <br>
+
+                <div class="activity-footer">
+                    <span>👍 55 . </span>
+                    <span>💬 1</span>
+                </div>
+            </div>
+
+            <!-- Rating 3 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="icon">✍️</div>
+                    <div>
+                    <div class="title">
+                        Reviewed <strong>Curry House PH</strong>
+                    </div>
+                    <div class="date">Jan 26, 2026</div>
+                    </div>
+                    <div class="rating">
+                    ⭐⭐⭐⭐⭐ <span class="rating-score">4.7</span>
+                    </div>
+                </div>
+                
+                <div class="review-title">
+                    Best Butter Chicken in Metro Manila
                 </div>
 
                 <p class="activity-text">
@@ -154,15 +272,31 @@
                 </div>
             </div>
 
-            <!-- Comment 2 -->
+            <!-- Comment 4 -->
             <div class="activity-card">
-                <div class="activity-header">
+                <div class="activity-header">  
                     <div class="icon">💬</div>
                     <div>
-                        <div class="title">
-                            Commented on <strong>Illo</strong>
-                        </div>
-                        <div class="date">Jan 24, 2026</div>
+                    <div class="title">
+                        Commented on <strong>Frankie's New York Buffalo Wings</strong>
+                    </div>
+                    <div class="date">Jan 25, 2026</div>
+                    </div>
+                </div>
+                <div class="activity-text">
+                    "The garlic parmesan flavor is underrated. Not too salty and super addicting."
+                </div>
+            </div>
+
+            <!-- Comment 5 -->
+            <div class="activity-card">
+                <div class="activity-header">  
+                    <div class="icon">💬</div>
+                    <div>
+                    <div class="title">
+                        Commented on <strong>Sukiyaki Central</strong>
+                    </div>
+                    <div class="date">Jan 24, 2026</div>
                     </div>
                 </div>
                 <div class="activity-text">
@@ -170,21 +304,51 @@
                 </div>
             </div>
 
-            <!-- Rating 2 -->
+            <!-- Rating 4 -->
             <div class="activity-card">
                 <div class="activity-header">
                     <div class="icon">✍️</div>
                     <div>
-                        <div class="title">
-                            Reviewed <strong>Kodawari</strong>
-                        </div>
-                        <div class="date">Jan 20, 2026</div>
+                    <div class="title">
+                        Reviewed <strong>Marugame Udon PH</strong>
+                    </div>
+                    <div class="date">Jan 23, 2026</div>
                     </div>
                     <div class="rating">
-                        ⭐⭐⭐⭐⭐ <span class="rating-score">5.0</span>
+                    ⭐⭐⭐⭐⭐ <span class="rating-score">4.7</span>
                     </div>
                 </div>
+                
+                <div class="review-title">
+                    Affordable and Consistent
+                </div>
 
+                <p class="activity-text">
+                    For the price, the quality is surprisingly good. The udon noodles have that 
+                    perfect chew and the tempura is always freshly fried. Solid go-to spot.
+                </p> <br>
+
+                <div class="activity-footer">
+                    <span>👍 49 . </span>
+                    <span>💬 2</span>
+                </div>
+            </div>
+
+            <!-- Rating 5 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="icon">✍️</div>
+                    <div>
+                    <div class="title">
+                        Reviewed <strong>Seoul Garden BGC</strong>
+                    </div>
+                    <div class="date">Jan 20, 2026</div>
+                    </div>
+                    <div class="rating">
+                    ⭐⭐⭐⭐⭐ <span class="rating-score">5.0</span>
+                    </div>
+                </div>
+                
                 <div class="review-title">
                     Galbi that made Me Cry
                 </div>

@@ -28,7 +28,7 @@
             <div class="sidebar-nav-item" onclick="goToFeed()">🏠 Feed</div>
             <div class="sidebar-nav-item" onclick="goToNotifications()">🔔 Notifications<span
                     class="notif-badge">2</span></div>
-            <div class="sidebar-nav-item" onclick="goToProfile()">👤 Profile</div>
+            <div class="sidebar-nav-item active" onclick="goToProfile()">👤 Profile</div>
             <div class="sidebar-nav-item" onclick="goToSettings()">⚙️ Settings</div>
         </div>
 
@@ -56,13 +56,39 @@
                     <P>📅 Joined March 2024</P> <br>
                     <hr>
 
-                    <button class="edit-btn">Edit Profile</button>
+                    <button class="edit-btn" onclick="openEditProfilePopup()">Edit Profile</button>
 
                     <div class="stats-row">
                         <div><strong>2</strong><br>Reviews</div>
                         <div><strong>2</strong><br>Comments</div>
                         <div><strong>420</strong><br>Points</div>
                     </div>
+                </div>
+            </div>
+            <!-- Edit Profile Pop -->
+            <div id="editProfilePopup" class="popup hidden">
+                <div class="popup-content">
+                    <span class="close" onclick="closeEditProfilePopup()">&times;</span>
+                    <h2>Edit Profile</h2> <br>
+                    <form onsubmit="window.location.href='UserProfile-Reviews.html'; return false;">
+                        <div class="form-group">
+                            <label for="change-name">Change Display Name</label>
+                            <input type="text" id="change-name" placeholder="Enter name">
+                        </div> <br>
+                        <div class="form-group">
+                            <label for="change-username">Change Username</label>
+                            <input type="text" id="change-username" placeholder="Enter username">
+                        </div> <br>
+                        <div class="form-group">
+                            <label for="change-email">Change Email</label>
+                            <input type="email" id="change-email" placeholder="Enter email">
+                        </div> <br>
+                        <div class="form-group">
+                            <label for="change-desc">Edit Description</label>
+                            <input type="text" id="change-desc" placeholder="Enter description">
+                        </div> <br>
+                        <button type="submit" class="submit-btn">Update Profile</button>
+                    </form>
                 </div>
             </div>
             <!-- Stats -->

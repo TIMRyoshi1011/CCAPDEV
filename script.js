@@ -42,10 +42,19 @@ function switchToLogin() {
     openLoginPopup();
 }
 
+function openEditProfilePopup() {
+    document.getElementById("editProfilePopup").classList.remove("hidden");
+}
+
+function closeEditProfilePopup() {
+    document.getElementById("editProfilePopup").classList.add("hidden");
+}
+
 window.onclick = function(event) {
     const loginPopup = document.getElementById("loginPopup");
     const signUpPopup = document.getElementById("signupPopup");
     const successPopup = document.getElementById("successPopup");
+    const editProfilePopup = document.getElementById("editProfilePopup");
     
     if (event.target === loginPopup) {
         loginPopup.classList.add("hidden");
@@ -55,6 +64,9 @@ window.onclick = function(event) {
     }
     if (event.target === successPopup) {
         successPopup.classList.add("hidden");
+    }
+    if (event.target === editProfilePopup) {
+        editProfilePopup.classList.add("hidden");
     }
 }
 

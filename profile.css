@@ -54,6 +54,154 @@ body {
     padding: 20px;
 }
 
+/* Popup */
+.popup {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
+
+.popup.hidden {
+    display: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.popup-content {
+    background: white;
+    padding: 50px 45px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    position: relative;
+    animation: slideIn 0.3s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.popup-content h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 6px;
+}
+
+.popup-content h2 span {
+    color: #85a83f;
+}
+
+.popup-content h1 {
+    font-size: 13px;
+    font-weight: 400;
+    color: #6b7280;
+    margin-bottom: 28px;
+}
+
+.close {
+    color: #9ca3af;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 28px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #ef4444;
+}
+
+.form-group {
+    margin-bottom: 18px;
+    position: relative;
+}
+
+.form-group label {
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    background: white;
+    padding: 0 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    z-index: 1;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    outline: none;
+    background: #fafafa;
+    font-family: Arial, sans-serif;
+}
+
+.form-group input:focus {
+    border-color: #36734e;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(54, 115, 78, 0.08);
+}
+
+.form-group input::placeholder {
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.submit-btn {
+    width: 100%;
+    background: #36734e;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.submit-btn:hover {
+    background: #2d5f40;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(54, 115, 78, 0.3);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
 .badge {
     font-size: 12px;
     padding: 4px 10px;
@@ -135,15 +283,15 @@ body {
     margin-bottom: 10px;
     background: #ffe2ea;
     padding: 20px 25px;
-    border: 0px;
     margin-top: -24px;
     margin-left: -24px;
     margin-right: -24px;
-    border-radius: 10px;
+    border-radius: 5px;
 }
 
 .review-header h3 {
     color: #d94866;
+    font-size: 20px;
 }
 
 .review-user {
