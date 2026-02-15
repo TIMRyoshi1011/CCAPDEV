@@ -25,23 +25,22 @@ body {
     z-index: 100;
 }
 
-.sidebar-logo {
+.sidebar-logo { /* "feed" in white for logo */
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 30px;
     padding-left: 24px;
 }
 
-.sidebar-logo span {
+.sidebar-logo span {  /* "back" in pink for logo */
     color: #ff4458;
 }
 
 .sidebar-logo::after {
-    content: '🍽️';
-    margin-left: 5px;
+    content: '🍽️'; /* we can add the logo once we have it na for phase 2*/ 
 }
 
-.sidebar-user {
+.sidebar-user { /* User at the top of the sidebar */
     display: flex;
     align-items: center;
     gap: 10px;
@@ -51,7 +50,7 @@ body {
     margin: 0 16px 32px 8px;
 }
 
-.sidebar-avatar {
+.sidebar-avatar { /* User avatar circle in sidebar */
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -68,7 +67,7 @@ body {
     font-size: 14px;
 }
 
-.user-badge {
+.user-badge { /* Gold badge text for user tier */
     font-size: 11px;
     color: #ffd700;
 }
@@ -78,7 +77,7 @@ body {
     margin: 0 8px;
 }
 
-.sidebar-nav-item {
+.sidebar-nav-item { /* Navigation items (Feed, Profile, etc) */
     display: flex;
     align-items: center;
     gap: 10px;
@@ -97,7 +96,7 @@ body {
     background: #ff4458;
 }
 
-.notif-badge {
+.notif-badge { /* Red notification count badge */
     position: absolute;
     right: 15px;
     background: #ff4458;
@@ -112,7 +111,7 @@ body {
     font-weight: bold;
 }
 
-.sidebar-logout {
+.sidebar-logout { /* Logout button at bottom of sidebar */
     padding: 12px 15px;
     margin-top: auto;
     cursor: pointer;
@@ -125,14 +124,14 @@ body {
     padding: 30px;
 }
 
-.stats-grid {
+.stats-grid { /* Grid layout for statistics cards */
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 15px;
     margin-bottom: 25px;
 }
 
-.stat-card {
+.stat-card { /* Individual statistic card */
     background: white;
     padding: 20px;
     border-radius: 18px;
@@ -151,7 +150,7 @@ body {
 }
 
 /* ============= FILTERS ============= */
-.filters {
+.filters { /* Filter bar for sorting reviews */
     background: white;
     padding: 20px;
     border-radius: 18px;
@@ -177,7 +176,7 @@ body {
     font-size: 14px;
 }
 
-.write-review-btn {
+.write-review-btn { /* pink button to create new review */
     background: #ff4458;
     color: white;
     border: none;
@@ -208,20 +207,20 @@ body {
 }
 
 /* ============= REVIEWS ============= */
-.review-grid {
+.review-grid { /* two columns for the grid option for review cards */
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 
-.review-card {
+.review-card { /* Individual review card container */
     background: white;
     padding: 24px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
-.review-header {
+.review-header { /* Pink header with restaurant name */
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -236,11 +235,11 @@ body {
     font-size: 20px;
 }
 
-.options-container {
+.options-container { /* Container for three-dot menu */
     position: relative;
 }
 
-.options {
+.options { /* Three-dot menu button */
     color: #9b9b9b;
     font-weight: 600;
     cursor: pointer;
@@ -249,11 +248,9 @@ body {
     transition: background-color 0.2s;
 }
 
-.options:hover {
-    background-color: rgba(255, 255, 255, 0.6);
-}
 
-.options-dropdown {
+
+.options-dropdown { /* Dropdown menu for edit/delete */
     display: none;
     position: absolute;
     right: 0;
@@ -283,7 +280,7 @@ body {
     background-color: #f5f5f5;
 }
 
-.review-user {
+.review-user { /* User info section of review */
     display: flex;
     align-items: center;
     gap: 12px;
@@ -291,7 +288,7 @@ body {
 }
 
 .review-avatar,
-.comment-avatar {
+.comment-avatar { /* Avatar circles for reviews and comments */
     width: 45px;
     height: 45px;
     border-radius: 50%;
@@ -342,7 +339,7 @@ body {
     color: #333;
 }
 
-.badge {
+.badge { /* User tier badge (Gold/Platinum/Silver/Bronze) */
     font-size: 12px;
     padding: 4px 10px;
     border-radius: 999px;
@@ -369,7 +366,7 @@ body {
     color: #cd7f32;
 }
 
-.verified {
+.verified { /* Pink verified badge */
     background: #fde2e7;
     color: #d94866;
     font-size: 12px;
@@ -388,13 +385,13 @@ body {
     font-weight: 600;
 }
 
-.review-tags {
+.review-tags { /* Container for category tags */
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
 }
 
-.tag {
+.tag { /* Individual category tag pill */
     background: #f0f0f0;
     padding: 5px 12px;
     border-radius: 15px;
@@ -402,7 +399,7 @@ body {
     color: #666;
 }
 
-.review-scores {
+.review-scores { /* Food/Service/Ambience scores */
     font-size: 12px;
     color: #999;
     margin-bottom: 12px;
@@ -418,7 +415,7 @@ body {
     line-height: 1.6;
 }
 
-.review-actions {
+.review-actions { /* Like and comment action buttons */
     display: flex;
     align-items: center;
     gap: 20px;
@@ -429,7 +426,7 @@ body {
 }
 
 /* ============= COMMENTS ============= */
-.comments-section {
+.comments-section { /* Comments section (hidden by default) */
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid #f0f0f0;
@@ -447,13 +444,13 @@ body {
 }
 
 /* ============= NOTIFICATIONS ============= */
-.notifications-list {
+.notifications-list { /* List of notification items */
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.notification {
+.notification { /* Individual notification card */
     background: white;
     border-radius: 18px;
     padding: 20px;
@@ -463,7 +460,7 @@ body {
     cursor: pointer;
 }
 
-.unread {
+.unread { /* Unread notification with pink background */
     background: rgb(236, 195, 195);
     border-radius: 18px;
     padding: 20px;
@@ -472,7 +469,7 @@ body {
     cursor: pointer;
 }
 
-.unread-dot {
+.unread-dot { /* Small pink dot for unread notifications */
     width: 10px;
     height: 10px;
     background: #d94866;
