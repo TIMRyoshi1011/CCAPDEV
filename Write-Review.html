@@ -47,209 +47,50 @@
         </div>
     </div>
     <!--============= END OF SIDEBAR ============= -->
-
+    
     <div class="review-main-content">
-        <div class="review-breadcrumb">
-            <span class="breadcrumb-back" onclick="goToFeed()">← Back</span>
-            <span class="breadcrumb-step" id="step1-crumb">1. Find Restaurant</span>
-            <span class="breadcrumb-arrow">→</span>
-            <span class="breadcrumb-step" id="step2-crumb">2. Write Review</span>
-        </div>
-
         <div class="review-page-header">
             <h1>✍️ Write a Review</h1>
             <p>Share your experience and help the community discover great food</p>
         </div>
 
-        <!-- Step 1: Find Restaurant -->
-        <div class="review-step" id="step1-content">
-            <div class="review-card-container">
-                <h2>🔍 Find a Restaurant</h2>
-                <p class="review-subtitle">Search for the restaurant you want to review, or add a new one if it's not listed.</p>
-                
-                <div class="restaurant-search-box">
-                    <input type="text" id="restaurantSearch" placeholder="🔍 Search by name, cuisine, or location..." oninput="filterRestaurants()">
-                </div>
+        <div class="review-page-container">
+            <form onsubmit="alert('Review now published on BiteBack!'); window.Location='Feed.html'; return false;">
+                <h3>🔍 Select Restaurant</h3>
+                <select id="restaurant" required>
+                    <option value="">Choose a restaurant...</option>
+                    <option>Jollibee Timog</option>
+                    <option>Curry House PH</option>
+                    <option>Sukiyaki Central</option>
+                    <option>Seoul Garden BGC</option>
+                    <option>Pizza Roma Taguig</option>
+                </select>
 
-                <div class="restaurant-grid" id="restaurantGrid">
-                    <div class="restaurant-card" onclick="selectRestaurant('Jollibee Timog', 'Filipino', 'Quezon City', 3.7)">
-                        <div class="restaurant-image">JT</div>
-                        <div class="restaurant-info">
-                            <h3>Jollibee Timog</h3>
-                            <div class="restaurant-meta">
-                                <span class="cuisine-tag">Filipino</span>
-                                <span class="location-pin">📍 Quezon City</span>
-                            </div>
-                            <div class="restaurant-rating">
-                                ⭐⭐⭐⭐☆ <strong>3.7</strong> · 1 reviews
-                            </div>
-                        </div>
-                    </div>
+                <h3>⭐ Rate Your Experience</h3>
+                <label for="food-rating">Food Quality:</label>
+                <select id="food-rating" required>
+                    <option value="">Select rating...</option>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3">3 - Good</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Excellent</option>
+                </select>
 
-                    <div class="restaurant-card" onclick="selectRestaurant('Curry House PH', 'Indian', 'Makati', 4.7)">
-                        <div class="restaurant-image">CH</div>
-                        <div class="restaurant-info">
-                            <h3>Curry House PH</h3>
-                            <div class="restaurant-meta">
-                                <span class="cuisine-tag">Indian</span>
-                                <span class="location-pin">📍 Makati</span>
-                            </div>
-                            <div class="restaurant-rating">
-                                ⭐⭐⭐⭐⭐ <strong>4.7</strong> · 1 reviews
-                            </div>
-                        </div>
-                    </div>
+                <label for="service-rating">Service:</label>
+                <select id="service-rating" required>
+                    <option value="">Select rating...</option>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3">3 - Good</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Excellent</option>
+                </select>
 
-                    <div class="restaurant-card" onclick="selectRestaurant('Sukiyaki Central', 'Japanese', 'BGC', 3.3)">
-                        <div class="restaurant-image">SC</div>
-                        <div class="restaurant-info">
-                            <h3>Sukiyaki Central</h3>
-                            <div class="restaurant-meta">
-                                <span class="cuisine-tag">Japanese</span>
-                                <span class="location-pin">📍 BGC</span>
-                            </div>
-                            <div class="restaurant-rating">
-                                ⭐⭐⭐☆☆ <strong>3.3</strong> · 1 reviews
-                            </div>
-                        </div>
-                    </div>
+                <h3>📝 Write Your Review</h3>
+                <textarea id="review-text" rows="5" placeholder="Share your thoughts..." required></textarea>
 
-                    <div class="restaurant-card" onclick="selectRestaurant('Mang Tomas Warzone', 'Filipino', 'Quezon City', 3.3)">
-                        <div class="restaurant-image">MT</div>
-                        <div class="restaurant-info">
-                            <h3>Mang Tomas Warzone</h3>
-                            <div class="restaurant-meta">
-                                <span class="cuisine-tag">Filipino</span>
-                                <span class="location-pin">📍 Quezon City</span>
-                            </div>
-                            <div class="restaurant-rating">
-                                ⭐⭐⭐☆☆ <strong>3.3</strong> · 1 reviews
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="restaurant-card" onclick="selectRestaurant('Seoul Garden BGC', 'Korean', 'BGC', 5.0)">
-                        <div class="restaurant-image">SG</div>
-                        <div class="restaurant-info">
-                            <h3>Seoul Garden BGC</h3>
-                            <div class="restaurant-meta">
-                                <span class="cuisine-tag">Korean</span>
-                                <span class="location-pin">📍 BGC</span>
-                            </div>
-                            <div class="restaurant-rating">
-                                ⭐⭐⭐⭐⭐ <strong>5.0</strong> · 1 reviews
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="restaurant-card" onclick="selectRestaurant('Pizza Roma Taguig', 'Italian', 'Taguig', 2.3)">
-                        <div class="restaurant-image">PR</div>
-                        <div class="restaurant-info">
-                            <h3>Pizza Roma Taguig</h3>
-                            <div class="restaurant-meta">
-                                <span class="cuisine-tag">Italian</span>
-                                <span class="location-pin">📍 Taguig</span>
-                            </div>
-                            <div class="restaurant-rating">
-                                ⭐⭐☆☆☆ <strong>2.3</strong> · 1 reviews
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 2: Write Review -->
-        <div class="review-step" id="step2-content" style="display: none;">
-            <div class="review-card-container">
-                <div class="selected-restaurant">
-                    <div class="restaurant-image" id="selectedRestaurantImage">JT</div>
-                    <div class="restaurant-info">
-                        <h3 id="selectedRestaurantName">Jollibee Timog</h3>
-                        <div class="restaurant-meta">
-                            <span class="cuisine-tag" id="selectedCuisine">Filipino</span>
-                            <span class="location-pin" id="selectedLocation">📍 Quezon City</span>
-                        </div>
-                    </div>
-                    <button class="change-btn" onclick="changeRestaurant()">Change</button>
-                </div>
-
-                <div class="rating-section">
-                    <h3>⭐ Your Ratings</h3>
-                    
-                    <div class="rating-row">
-                        <label>Service</label>
-                        <div class="star-rating" data-rating="0" data-category="service">
-                            <span class="star" data-value="1">☆</span>
-                            <span class="star" data-value="2">☆</span>
-                            <span class="star" data-value="3">☆</span>
-                            <span class="star" data-value="4">☆</span>
-                            <span class="star" data-value="5">☆</span>
-                        </div>
-                        <span class="rating-value">0/5</span>
-                    </div>
-
-                    <div class="rating-row">
-                        <label>Taste</label>
-                        <div class="star-rating" data-rating="0" data-category="taste">
-                            <span class="star" data-value="1">☆</span>
-                            <span class="star" data-value="2">☆</span>
-                            <span class="star" data-value="3">☆</span>
-                            <span class="star" data-value="4">☆</span>
-                            <span class="star" data-value="5">☆</span>
-                        </div>
-                        <span class="rating-value">0/5</span>
-                    </div>
-
-                    <div class="rating-row">
-                        <label>Ambiance</label>
-                        <div class="star-rating" data-rating="0" data-category="ambiance">
-                            <span class="star" data-value="1">☆</span>
-                            <span class="star" data-value="2">☆</span>
-                            <span class="star" data-value="3">☆</span>
-                            <span class="star" data-value="4">☆</span>
-                            <span class="star" data-value="5">☆</span>
-                        </div>
-                        <span class="rating-value">0/5</span>
-                    </div>
-
-                    <div class="overall-rating">
-                        <label>Overall Rating:</label>
-                        <span class="overall-stars">☆☆☆☆☆</span>
-                        <span class="overall-value">0.0/5</span>
-                    </div>
-                </div>
-
-                <div class="review-form-section">
-                    <h3>📝 Your Review</h3>
-                    
-                    <div class="form-group">
-                        <label>Review Title</label>
-                        <input type="text" id="reviewTitle" placeholder="e.g. Best Adobo in QC">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Your Experience</label>
-                        <textarea id="reviewText" rows="6" placeholder="Share your honest thoughts about the food, service, atmosphere, value for money, and anything else that would help others decide whether to visit..."></textarea>
-                    </div>
-
-                    <div class="writing-tips">
-                        <h4>💡 Writing Tips</h4>
-                        <ul>
-                            <li>Be specific about what you ordered and how it tasted</li>
-                            <li>Mention the service quality and wait times</li>
-                            <li>Describe the atmosphere and ambiance</li>
-                            <li>Note the value for money</li>
-                            <li>Keep it honest and helpful for others</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="review-actions">
-                    <button class="cancel-btn" onclick="cancelReview()">Cancel</button>
-                    <button class="submit-review-btn" id="submitBtn" disabled onclick="submitReview()">Fill all fields to continue</button>
-                </div>
-            </div>
+                <button type="submit" class="submit-review-btn">Submit Review</button>
         </div>
     </div>
 </div>
