@@ -10,7 +10,7 @@ body {
     min-height: 100vh;
 }
 
-/* Sidebar */
+/* ============= SIDEBAR ============= */
 .sidebar {
     width: 240px;
     background: linear-gradient(180deg, #2d5016 0%, #1a3d0f 100%);
@@ -68,15 +68,14 @@ body {
     font-size: 14px;
 }
 
-.sidebar-user-info .user-badge {
+.user-badge {
     font-size: 11px;
     color: #ffd700;
 }
 
 .sidebar-nav {
     flex: 1;
-    margin-left: 8px;
-    margin-right: 8px;
+    margin: 0 8px;
 }
 
 .sidebar-nav-item {
@@ -98,7 +97,7 @@ body {
     background: #ff4458;
 }
 
-.sidebar-nav-item .notif-badge {
+.notif-badge {
     position: absolute;
     right: 15px;
     background: #ff4458;
@@ -120,11 +119,10 @@ body {
     opacity: 0.7;
 }
 
-
+/* ============= MAIN CONTENT ============= */
 .main-content {
     margin-left: 240px;
     padding: 30px;
-    flex: 1;
 }
 
 .stats-grid {
@@ -152,6 +150,7 @@ body {
     color: #333;
 }
 
+/* ============= FILTERS ============= */
 .filters {
     background: white;
     padding: 20px;
@@ -178,6 +177,17 @@ body {
     font-size: 14px;
 }
 
+.write-review-btn {
+    background: #ff4458;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
 .view-toggle {
     margin-left: auto;
     display: flex;
@@ -197,21 +207,7 @@ body {
     background: #f0f0f0;
 }
 
-.write-review-btn {
-    background: #ff4458;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* Review Grid */
+/* ============= REVIEWS ============= */
 .review-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -224,6 +220,7 @@ body {
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
+
 .review-header {
     display: flex;
     justify-content: space-between;
@@ -234,16 +231,16 @@ body {
     border-radius: 10px;
 }
 
-.review-card h3 {
+.review-header h3 {
     color: #d94866;
     font-size: 20px;
 }
 
-.review-header .options-container {
+.options-container {
     position: relative;
 }
 
-.review-header .options {
+.options {
     color: #9b9b9b;
     font-weight: 600;
     cursor: pointer;
@@ -252,7 +249,7 @@ body {
     transition: background-color 0.2s;
 }
 
-.review-header .options:hover {
+.options:hover {
     background-color: rgba(255, 255, 255, 0.6);
 }
 
@@ -268,7 +265,6 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     min-width: 140px;
     z-index: 100;
-    overflow: hidden;
 }
 
 .options-dropdown.show {
@@ -281,11 +277,11 @@ body {
     color: #333;
     font-size: 14px;
     transition: background-color 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
+.option-item:hover {
+    background-color: #f5f5f5;
+}
 
 .review-user {
     display: flex;
@@ -294,7 +290,8 @@ body {
     margin-bottom: 15px;
 }
 
-.review-avatar {
+.review-avatar,
+.comment-avatar {
     width: 45px;
     height: 45px;
     border-radius: 50%;
@@ -304,6 +301,12 @@ body {
     font-weight: bold;
     font-size: 14px;
     color: white;
+}
+
+.comment-avatar {
+    width: 35px;
+    height: 35px;
+    font-size: 12px;
 }
 
 .review-avatar.gold,
@@ -318,15 +321,16 @@ body {
     color: #333;
 }
 
+.review-avatar.silver,
+.comment-avatar.silver {
+    background: #f0f0f0;
+    color: #999;
+}
+
 .review-avatar.bronze,
 .comment-avatar.bronze {
     background: linear-gradient(135deg, #cd7f32, #b87333);
     color: white;
-}
-
-.comment-avatar.silver {
-    background: #f0f0f0;
-    color: #999;
 }
 
 .review-user-info {
@@ -336,7 +340,6 @@ body {
 .review-user-info highlight {
     font-size: 14px;
     color: #333;
-    margin-right: 5px;
 }
 
 .badge {
@@ -383,8 +386,6 @@ body {
 .review-rating {
     color: #d94866;
     font-weight: 600;
-    align-items: right;
-    justify-content: space-between;
 }
 
 .review-tags {
@@ -427,7 +428,7 @@ body {
     color: #999;
 }
 
-
+/* ============= COMMENTS ============= */
 .comments-section {
     margin-top: 20px;
     padding-top: 20px;
@@ -445,22 +446,7 @@ body {
     margin-bottom: 15px;
 }
 
-
-.comment-avatar {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    color: #333;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 12px;
-    flex-shrink: 0;
-}
-
 /* ============= NOTIFICATIONS ============= */
-
 .notifications-list {
     display: flex;
     flex-direction: column;
@@ -487,18 +473,15 @@ body {
 }
 
 .unread-dot {
-  width: 10px;
-  height: 10px;
-  background: #d94866;
-  border-radius: 50%;
-  display: inline-block;
-  margin-left: 12px;
-  align-self: center;
+    width: 10px;
+    height: 10px;
+    background: #d94866;
+    border-radius: 50%;
+    margin-left: 12px;
 }
 
 .icon {
     font-size: 24px;
-    flex-shrink: 0;
 }
 
 .notification-content {
@@ -523,8 +506,4 @@ body {
 .timestamp {
     font-size: 12px;
     color: #999;
-}
-
-#read:hover {
-    background-color: #fff0f3;
 }
