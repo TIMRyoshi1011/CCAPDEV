@@ -187,13 +187,13 @@ body {
     font-size: 14px;
 }
 
-.view-toggle {
+.view-toggle { /* Toggle buttons for grid/list view */
     margin-left: auto;
     display: flex;
     gap: 10px;
 }
 
-.view-toggle button {
+.view-toggle button { /* Individual toggle buttons for each */
     padding: 8px 12px;
     border: 1px solid #ddd;
     background: white;
@@ -264,7 +264,7 @@ body {
     z-index: 100;
 }
 
-.options-dropdown.show {
+.options-dropdown.show {  /* Show dropdown when .show class is added to see how it actually looks first */
     display: block;
 }
 
@@ -276,9 +276,6 @@ body {
     transition: background-color 0.2s;
 }
 
-.option-item:hover {
-    background-color: #f5f5f5;
-}
 
 .review-user { /* User info section of review */
     display: flex;
