@@ -638,6 +638,16 @@ body {
     box-shadow: 0 8px 20px rgba(0,0,0,0.05);
 }
 
+.review-page-container input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    margin-bottom: 16px;
+    font-family: Arial, sans-serif;
+}
+
 .review-page-container h3 {
     margin-top: 24px;
     margin-bottom: 12px;

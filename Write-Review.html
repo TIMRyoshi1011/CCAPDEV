@@ -55,16 +55,9 @@
         </div>
 
         <div class="review-page-container">
-            <form onsubmit="alert('Review now published on BiteBack!'); window.Location='Feed.html'; return false;">
+            <form onsubmit="alert('Review now published on BiteBack!'); window.location.href='Feed.html'; return false;">
                 <h3>🔍 Select Restaurant</h3>
-                <select id="restaurant" required>
-                    <option value="">Choose a restaurant...</option>
-                    <option>Jollibee Timog</option>
-                    <option>Curry House PH</option>
-                    <option>Sukiyaki Central</option>
-                    <option>Seoul Garden BGC</option>
-                    <option>Pizza Roma Taguig</option>
-                </select>
+                <input type="text" id="restaurant" placeholder="Enter restaurant name" required>
 
                 <h3>⭐ Rate Your Experience</h3>
                 <label for="food-rating">Food Quality:</label>
