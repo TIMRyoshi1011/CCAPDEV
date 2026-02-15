@@ -20,6 +20,7 @@ function submitForgotPassword() {
     const email = document.getElementById('forgot-email').value;
     alert('Password reset link has been sent to ' + email);
     closeForgotPasswordPopup();
+    openChangePassword();
     return false;
 }
 
@@ -49,6 +50,21 @@ function showAccountSuccess() {
 
 function closeAccountSuccess() {
     document.getElementById("accountCreatedPopup").classList.add("hidden");
+}
+
+function openChangePassword() {
+    document.getElementById("changePasswordPopup").classList.remove("hidden");
+}
+
+function closeChangePassword() {
+    document.getElementById("changePasswordPopup").classList.add("hidden");
+}
+
+function submitChangePassword() {
+    alert('Your password has been changed successfully!');
+    closeChangePassword();
+    openLoginPopup();
+    return false;
 }
 
 function openEditProfilePopup() {

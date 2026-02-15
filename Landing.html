@@ -74,6 +74,33 @@
         </div>
     </div>
 
+    <!-- Change Password Popup -->
+    <div id="changePasswordPopup" class="popup hidden">
+        <div class="popup-content">
+            <span class="close" onclick="closeChangePassword()">&times;</span>
+            <h2>Change Password</h2>
+            <h1>Please enter your new password below</h1>
+            
+            <form onsubmit="submitChangePassword(); return false;">
+                <div class="form-group">
+                    <label for="email-code">Code sent on your email</label>
+                    <input type="password" id="email-code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" id="new-password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm New Password</label>
+                    <input type="password" id="confirm-password" required>
+                </div>
+                <button type="submit" class="submit-btn">Change Password</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Sign Up Popup -->
     <div id="signupPopup" class="popup hidden">
         <div class="popup-content">
