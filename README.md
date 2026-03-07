@@ -27,6 +27,6 @@ merged all css files into style.css (balik nalang sa old one if may mali or some
 - [ ] signup/login details should be stored in mongodb
 - [ ] idk kung pati yung posts, ilalagay sa mongodb pero parang hindi yata (correct me if im wrong)
 <p></p>
-- Pag mali gawa ko sa structure/codes, I can retain the old one nalang <br>
-- Question: Pano pala hahatiin yung tasks? <br>
+Pag mali gawa ko sa structure/codes, I can retain the old one nalang <br>
+Question: Pano pala hahatiin yung tasks? <br>
 - Marcus
