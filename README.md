@@ -6,7 +6,8 @@ Execute these before running the server:
 - npm i mongodb (for mongodb)
 - npm i mongodb dotendv (make .env for data in db)
 <p></p>
-To Run Server: node app.mjs
+To Run Server: node app.mjs <br>
+Type <u>localhost:3000</u> to browser
 
 ### Notes:
 - made the structure for the web project
