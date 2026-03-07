@@ -1,2 +1,2 @@
-# CCAPDEV
+# CCAPDEV Web Application Project
 MCO
