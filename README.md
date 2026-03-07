@@ -15,9 +15,10 @@ To Run Server: node app.mjs
 - views is for the handlebars
 - app.mjs is the server
 
-### Extra note: 
+### Extra notes: 
 - merged all css files into style.css (balik nalang sa old one if may mali or somethin)
 - nasa Phase-1 branch yung old repo bago nitong update
+- halos wala pang laman yung ibang files
 
 ## TO DO
 (pa check if may kulang pa/may mali)
