@@ -5,5 +5,5 @@ Execute these before running the server
 - npm i express-handlebars (for handlebars)
 - npm i mongodb (for mongodb)
 - npm i mongodb dotendv (make .env for data in db)
-<p></p> <br>
-**To Run Server**: node app.mjs
+<p></p>
+To Run Server: node app.mjs
