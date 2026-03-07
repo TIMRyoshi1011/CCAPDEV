@@ -16,7 +16,8 @@ To Run Server: node app.mjs
 - app.mjs is the server
 
 ### Extra note: 
-merged all css files into style.css (balik nalang sa old one if may mali or somethin)
+- merged all css files into style.css (balik nalang sa old one if may mali or somethin)
+- nasa Phase-1 branch yung old repo bago nitong update
 
 ## TO DO
 (pa check if may kulang pa/may mali)
