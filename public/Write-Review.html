@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Write a Review</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <!-- <link rel="stylesheet" href="feed.css"> -->
+</head>
+
+<body>
+
+<div class="review-page">
+    <!--============= START OF SIDEBAR ============= -->
+    <div class="sidebar">
+        <div class="sidebar-logo" onclick="goToFeed()" style="cursor: pointer;">
+            Bite<span>Back</span>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">MS</div>
+            <div class="sidebar-user-info">
+                <h4>Mia Santos</h4>
+                <div class="user-badge">🏅 Gold</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-item" onclick="goToFeed()">
+                🏠 Feed
+            </div>
+            <div class="sidebar-nav-item" onclick="goToNotifications()">
+                🔔 Notifications
+                <span class="notif-badge">2</span>
+            </div>
+            <div class="sidebar-nav-item" onclick="goToProfile()">
+                👤 Profile
+            </div>
+            <div class="sidebar-nav-item" onclick="goToSettings()">
+                ⚙️ Settings
+            </div>
+        </div>
+
+        <div class="sidebar-logout" onclick="logout()">
+            🚪 Log Out
+        </div>
+    </div>
+    <!--============= END OF SIDEBAR ============= -->
+    
+    <div class="review-main-content">
+        <div class="review-page-header">
+            <h1>✍️ Write a Review</h1>
+            <p>Share your experience and help the community discover great food</p>
+        </div>
+
+        <div class="review-page-container">
+            <form onsubmit="alert('Review now published on BiteBack!'); window.location.href='Feed.html'; return false;">
+                <h3>🔍 Select Restaurant</h3>
+                <input type="text" id="restaurant" placeholder="Enter restaurant name" required>
+
+                <h3>⭐ Rate Your Experience</h3>
+                <label for="food-rating">Food Quality:</label>
+                <select id="food-rating" required>
+                    <option value="">Select rating...</option>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3">3 - Good</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Excellent</option>
+                </select>
+
+                <label for="service-rating">Service:</label>
+                <select id="service-rating" required>
+                    <option value="">Select rating...</option>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3">3 - Good</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Excellent</option>
+                </select>
+
+                <h3>📝 Write Your Review</h3>
+                <textarea id="review-text" rows="5" placeholder="Share your thoughts..." required></textarea>
+
+                <button type="submit" class="submit-review-btn">Submit Review</button>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+
+</html>

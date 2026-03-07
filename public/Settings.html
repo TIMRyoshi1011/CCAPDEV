@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <!-- <link rel="stylesheet" href="feed.css"> -->
+</head>
+
+<style>
+    :root {
+        --bg-body: #F9F8F6;
+        --card-bg: #ffffff;
+        --text-dark: #333333;
+        --text-muted: #8e8e8e;
+        --brand-pink: #E94E66;
+        --brand-blue: #4A60A1;
+        --border: #eeeeee;
+    }
+
+    body {
+        background-color: var(--bg-body);
+    }
+
+    .main-content {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: var(--text-dark);
+        line-height: 1.5;
+        padding: 40px 20px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .account,
+    .about-me,
+    .notifications,
+    .others,
+    .tier-system {
+        /* Cards for eacy sections in the settings category */
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    h3 {
+        margin-top: 0;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--brand-blue);
+    }
+
+    /* Account Section Layout */
+    .account {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .account h3 {
+        grid-column: 1 / -1;
+    }
+
+    .profile-pic {
+        width: 60px;
+        height: 60px;
+        background: #d94866;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    .user-info .name {
+        display: block;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    .user-info .username {
+        color: var(--text-muted);
+        font-size: 14px;
+    }
+
+    .membership-status {
+        text-align: right;
+    }
+
+    .status {
+        background: #2061a3;
+        color: #b6d9ff;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    .member-date {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 5px;
+    }
+
+    /* Stats (Tier/Points) */
+    .current-tier,
+    .points,
+    .next-tier {
+        background: #fcfcfc;
+        border: 1px solid var(--border);
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .label {
+        display: block;
+        font-size: 14px;
+        font-weight: bold;
+        color: #000000;
+        margin-bottom: 2px;
+    }
+
+    .value {
+        font-size: 14px;
+    }
+
+    .points .value {
+        color: var(--brand-pink);
+    }
+
+    /* Forms & Inputs */
+    textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        box-sizing: border-box;
+        font-family: inherit;
+        resize: vertical;
+    }
+
+    input[type="submit"],
+    button {
+        background: var(--brand-pink);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: opacity 0.2s;
+    }
+
+    #delete-account {
+        background: var(--brand-pink);
+    }
+
+    button:hover {
+        opacity: 0.8;
+    }
+
+    /* Notifications & Toggles */
+    .public-profile,
+    .show-tier {
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f9f9f9;
+    }
+
+    .description {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: block;
+    }
+
+    /* The Toggle Switch */
+    .switch {
+        position: relative;
+        align-items: auto;
+        display: flex;
+        width: 44px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked+.slider {
+        background-color: var(--brand-pink);
+    }
+
+    input:checked+.slider:before {
+        transform: translateX(20px);
+    }
+
+    /* Tier System Info Box */
+    .tier-system {
+        background: #FFF0F2;
+        border-color: #FFE5E9;
+    }
+
+    .tier-system .label {
+        color: var(--brand-pink);
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .tier-system .description {
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .tier-system .description::before {
+        content: "• ";
+        color: var(--brand-pink);
+    }
+
+    /* Other Settings */
+    .others .description {
+        margin-top: 5px;
+    }
+</style>
+
+<body>
+    <!--MAIN SIDEBAR-->
+    <div class="sidebar">
+        <div class="sidebar-logo" onclick="goToFeed()" style="cursor: pointer;">
+            Bite<span>Back</span>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">MS</div>
+            <div class="sidebar-user-info">
+                <h4>Mia Santos</h4>
+                <div class="user-badge">💎 Platinum</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-item" onclick="goToFeed()">
+                🏠 Feed
+            </div>
+            <div class="sidebar-nav-item" onclick="goToNotifications()">
+                🔔 Notifications
+                <span class="notif-badge">2</span>
+            </div>
+            <div class="sidebar-nav-item" onclick="goToProfile()">
+                👤 Profile
+            </div>
+            <div class="sidebar-nav-item active" onclick="goToSettings()">
+                ⚙️ Settings
+            </div>
+        </div>
+
+        <div class="sidebar-logout" onclick="logout()">
+            🚪 Log Out
+        </div>
+    </div>
+    <!--============= END OF SIDEBAR ============= -->
+
+    <div class="main-content-2">
+        <div class="account">
+            <h3>Account</h3>
+            <div class="profile-pic">
+                MS
+            </div>
+            <div class="user-info">
+                <span class="name">Mia Santos</span>
+                <span class="username">@Foodie26</span>
+            </div>
+            <div class="membership-status">
+                <span class="status">Platinum Member</span>
+                <p class="member-date">Member since January 2023</p>
+            </div>
+            <div class="current-tier">
+                <span class="label">Current Tier:</span>
+                <span class="value">💎 Platinum</span>
+            </div>
+            <div class="points">
+                <span class="label">Points:</span>
+                <span class="value">500</span>
+            </div>
+            <div class="next-tier">
+                <span class="label">Next Tier:</span>
+                <span class="value">N/A</span>
+            </div>
+            <!-- Account -->
+        </div>
+
+        <div class="about-me">
+            <h3>About Me</h3>
+            <textarea id="about-me" name="about-me" rows="5" cols="50"
+                placeholder="Tell us about yourself..."></textarea> <br>
+            <input type="submit" value="Submit">
+            <!-- Bio -->
+        </div>
+
+        <div class="notifications">
+            <h3>Notifications</h3>
+            <div class="public-profile">
+                <span class="label">Public Profile</span>
+                <span class="description">Allow others to view your profile page </span>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+                <div class="show-tier">
+                    <span class="label">Show Tier Badge</span>
+                    <span class="description">Display your tier on reviews and comments</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <!-- Notifications and Privacy -->
+            </div>
+
+            <div class="tier-system">
+                <span class="label">How Points and Tiers Work</span>
+                <span class="description">Post a restaurant review -> others upvote or downvote</span>
+                <span class="description">Every 10 upvotes -> you earn +10 points</span>
+                <span class="description">Reach tier thresholds -> unlock higher tiers & a Verified badge</span>
+                <span class="description">Verified users (Silver+) appear more credible in the community</span>
+            </div>
+
+            <div class="others">
+                <h3>Other Settings</h3>
+                <div class="logout">
+                    <br> <button id="logout" onclick="logout()">Log Out</button>
+                    <label for="logout" class="description">Clicking this will log you out of your account on this
+                        device. You
+                        can log back in anytime.</label>
+                </div>
+                <div class="delete-account">
+                    <br> <button id="delete-account">Delete Account</button>
+                    <label for="delete" class="description">Clicking this will permanently delete your account and all
+                        associated data. This action cannot be undone.</label> <br>
+                </div>
+                <!-- Logging out and deletion of account -->
+            </div>
+        </div>
+
+        <script src="script.js"></script>
+</body>
+
+</html>
