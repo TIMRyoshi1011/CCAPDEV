@@ -29,4 +29,5 @@ merged all css files into style.css (balik nalang sa old one if may mali or some
 <p></p>
 Pag mali gawa ko sa structure/codes, I can retain the old one nalang <br>
 Question: Pano pala hahatiin yung tasks? <br>
-- マルクース
+- マルクース <br>
+(PS. delete nalang lahat ito except kung paano I-launch yung server since kailangan rin ipasa tong readme sa canvas)
