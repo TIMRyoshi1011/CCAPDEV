@@ -17,7 +17,8 @@ Type <ins>localhost:3000</ins> to browser
 - app.mjs is the server
 
 ### Extra notes: 
-- merged all css files into style.css (balik nalang sa old one if may mali or somethin)
+- merged all css files into style.css (balik nalang sa old one if may mali or somethin) 
+- pa check/compare nalang with the old one if may mali (pina check ko lang kay chatGPT yung duplicates)
 - nasa Phase-1 branch yung old repo bago nitong update
 - if you guys want to see the changes, I can commit nalang on the Phase-1 branch to view the changes
 - halos wala pang laman yung ibang files
