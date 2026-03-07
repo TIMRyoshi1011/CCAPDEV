@@ -18,6 +18,7 @@ To Run Server: node app.mjs
 ### Extra notes: 
 - merged all css files into style.css (balik nalang sa old one if may mali or somethin)
 - nasa Phase-1 branch yung old repo bago nitong update
+- if you guys want to see the changes, I can commit nalang on the Phase-1 branch to view the changes
 - halos wala pang laman yung ibang files
 
 ## TO DO
