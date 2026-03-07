@@ -29,4 +29,4 @@ merged all css files into style.css (balik nalang sa old one if may mali or some
 <p></p>
 Pag mali gawa ko sa structure/codes, I can retain the old one nalang <br>
 Question: Pano pala hahatiin yung tasks? <br>
-- Marcus
+- マルクス
