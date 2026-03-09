@@ -25,12 +25,12 @@ Type <ins>localhost:3000</ins> to browser
 
 ## TO DO
 (pa check if may kulang pa/may mali)
-- [ ] update server.mjs para sa sign up and login (may code nako dito from chatGPT haha pero di ko pa nilagay dito)
+- [ ] update server.mjs para sa sign up and login 
 - [ ] pagka signup/login, dapat updated details like yung profile, feed, etc.
 - [ ] dapat siguro blank pa yung feed?
 - [ ] pag nag post sa page, handled ng handlebars para may update yung html (I think)
-- [ ] signup/login details should be stored in mongodb (may code na rin ako dito pero wala na dito)
-- [ ] idk kung pati yung posts, ilalagay sa mongodb pero parang hindi yata (correct me if im wrong)
+- [ ] signup/login details should be stored in mongodb
+- [ ] pati yung posts, ilalagay sa mongodb
 <p></p>
 Pag mali gawa ko sa structure/codes, I can retain the old one nalang <br>
 Question: Pano pala hahatiin yung tasks? <br>
