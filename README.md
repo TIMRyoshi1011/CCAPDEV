@@ -29,7 +29,7 @@ Type <ins>localhost:3000</ins> to browser
 - [ ] pagka signup/login, dapat updated details like yung profile, feed, etc.
 - [ ] dapat siguro blank pa yung feed?
 - [ ] pag nag post sa page, handled ng handlebars para may update yung html (I think)
-- [ ] signup/login details should be stored in mongodb
+- [ ] signup/login details should be stored in mongodb (may code na rin ako dito pero wala na dito)
 - [ ] idk kung pati yung posts, ilalagay sa mongodb pero parang hindi yata (correct me if im wrong)
 <p></p>
 Pag mali gawa ko sa structure/codes, I can retain the old one nalang <br>
