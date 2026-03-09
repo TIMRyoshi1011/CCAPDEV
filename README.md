@@ -1,6 +1,5 @@
 # CCAPDEV Web Application Project
 Execute these before running the server:
-- npm init (create package.json file)
 - npm i express (for express)
 - npm i express-handlebars (for handlebars)
 - npm i mongodb (for mongodb)
