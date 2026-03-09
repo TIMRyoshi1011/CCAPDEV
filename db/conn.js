@@ -1,3 +1,4 @@
+// handle connection to the database (MonogDB)
 import { MongoClient } from "mongodb";
 
 // const mongo_URI = "mongo_db://localhost:27017";
@@ -28,4 +29,5 @@ function signalHandler() {
 
 process.on('SIGINT', signalHandler);
 process.on('SIGTERM', signalHandler);
+
 process.on('SIGQUIT', signalHandler);
