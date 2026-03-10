@@ -3,7 +3,7 @@ Execute these before running the server:
 - npm i express (for express)
 - npm i express-handlebars (for handlebars)
 - npm i mongodb (for mongodb)
-- npm i dotendv (make .env for data in db)
+- npm i dotendv (for .env)
 <p></p>
 To Run Server: node app.mjs <br>
 Type <ins>localhost:3000</ins> to browser
