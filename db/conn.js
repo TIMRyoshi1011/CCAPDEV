@@ -17,7 +17,7 @@ export function connectToMongo(callback) {
     });
 }
 
-export function getDb(dbName = process.env.DB_NAME) {
+export function getDb(dbName = "accounts") { // put "accounts" in .env and replace after = process.env.DB_NAME
     return client.db(dbName);
 }
 
@@ -31,3 +31,4 @@ process.on('SIGINT', signalHandler);
 process.on('SIGTERM', signalHandler);
 
 process.on('SIGQUIT', signalHandler);
+
