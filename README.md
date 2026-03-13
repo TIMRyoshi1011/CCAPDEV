@@ -6,6 +6,7 @@ Execute these before running the server:
 - npm i mongoose dotenv (for .env)
 <p></p>
 To Run Server: node app.mjs <br>
+To Run Server w/ updates: node --watch app.mjs <br>
 Type <ins>localhost:3000</ins> to browser
 
 ### Notes:
