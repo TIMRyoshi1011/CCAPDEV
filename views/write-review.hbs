@@ -1,0 +1,39 @@
+<div class="review-main-content">
+    <div class="review-page-header">
+        <h1>✍️ Write a Review</h1>
+        <p>Share your experience and help the community discover great food</p>
+    </div>
+
+    <div class="review-page-container">
+        <form action="/write-review" method="POST">
+            <h3>🔍 Select Restaurant</h3>
+            <input type="text" name="restaurant" placeholder="Enter restaurant name" required>
+
+            <h3>⭐ Rate Your Experience</h3>
+            <label for="food-rating">Food Quality:</label>
+            <select name="foodRating" required>
+                <option value="">Select rating...</option>
+                <option value="1">1 - Poor</option>
+                <option value="2">2 - Fair</option>
+                <option value="3">3 - Good</option>
+                <option value="4">4 - Very Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
+
+            <label for="service-rating">Service:</label>
+            <select name="serviceRating" required>
+                <option value="">Select rating...</option>
+                <option value="1">1 - Poor</option>
+                <option value="2">2 - Fair</option>
+                <option value="3">3 - Good</option>
+                <option value="4">4 - Very Good</option>
+                <option value="5">5 - Excellent</option>
+            </select>
+
+            <h3>📝 Write Your Review</h3>
+            <textarea name="content" rows="5" placeholder="Share your thoughts..." required></textarea>
+
+            <button type="submit" class="submit-review-btn">Submit Review</button>
+        </form>
+    </div>
+</div>

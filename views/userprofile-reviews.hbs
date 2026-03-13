@@ -1,0 +1,198 @@
+<div class="dashboard" style="margin-top: 40px; margin-left: 280px;">
+    <!-- Left Panel -->
+    <div>
+        <!-- Profile -->
+        <div class="profile-card" style="padding: 0;">
+            <div class="profile-header"></div>
+            <div class="profile-avatar">{{user.avatar}}</div>
+
+            <div class="profile-content">
+                <h2>
+                    {{user.name}}
+                    <span class="badge platinum">{{user.tierIcon}} {{user.tier}}
+                    </span>
+
+                    {{#if user.verified}}
+                    <span class="badge verified">Verified</span>
+                    {{/if}}
+                </h2>
+
+                <p>@{{user.username}}</p>
+                <br>
+
+                <p>{{user.bio}}</p>
+                <p>📅 Joined {{user.memberSince}}</p>
+
+                <br>
+                <hr>
+
+                <button class="edit-btn" onclick="openEditProfilePopup()">Edit Profile</button>
+
+                <div class="stats-row">
+                    <div><strong>{{stats.totalReviews}}</strong><br>Reviews</div>
+                    <div><strong>{{stats.comments}}</strong><br>Comments</div>
+                    <div><strong>{{stats.points}}</strong><br>Points</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Popup -->
+        <div id="editProfilePopup" class="popup hidden">
+            <div class="popup-content">
+                <span class="close" onclick="closeEditProfilePopup()">&times;</span>
+                <h2>Edit Profile</h2>
+                <br>
+                <form method="POST" action="/profile/update">
+                    <div class="form-group">
+                        <label>Change Display Name</label>
+                        <input type="text" name="name" value="{{user.name}}">
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label>Change Username</label>
+                        <input type="text" name="username" value="{{user.username}}">
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label>Change Email</label>
+                        <input type="email" name="email" value="{{user.email}}">
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label>Edit Description</label>
+                        <input type="text" name="description" value="{{user.description}}">
+                    </div>
+                    <br>
+                    <button type="submit" class="submit-btn">Update Profile</button>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="profile-card">
+            <h3>📊 Stats</h3>
+
+            <p>Avg Rating ⭐ {{stats.avgRating}}</p>
+            <p>Total Upvotes 👍 {{stats.upvotes}}</p>
+            <p>Total Downvotes 👎 {{stats.downvotes}}</p>
+
+            <br>
+            <hr>
+            <br>
+
+            <h4>Top Cuisines</h4>
+
+            <ul style="padding:10px;">
+                {{#each stats.topCuisines}}
+                <li>{{name}} ({{count}})</li>
+                {{/each}}
+            </ul>
+
+            <br>
+            <hr>
+            <br>
+
+            <h4>Top Locations</h4>
+
+            <ul style="padding:10px;">
+                {{#each stats.topLocations}}
+                <li>{{name}} ({{count}})</li>
+                {{/each}}
+            </ul>
+        </div>
+
+        <!-- Achievements -->
+        <div class="profile-card">
+            <h3>🏅 Achievements</h3>
+
+            {{#each stats.achievements}}
+            <p>{{this}}</p>
+            {{/each}}
+
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div>
+
+        <div class="tabs">
+            <span class="active">Reviews</span>
+            <span onclick="goToActivity()">Activity</span>
+        </div>
+        {{#each reviews}}
+
+        <div class="review-card-3">
+
+            <div class="review-header-3">
+                <h3>{{restaurant}}</h3>
+
+                {{#if ownPost}}
+                <div class="options-container-3">
+                    <div class="options">...</div>
+
+                    <div class="options-dropdown-3">
+                        <div class="option-item-3">✏️ Edit</div>
+                        <div class="option-item-3">🗑️ Delete</div>
+                    </div>
+                </div>
+                {{/if}}
+            </div>
+            <div class="review-user-3">
+
+                <div class="small-avatar">{{../user.avatar}}</div>
+
+                <div>
+                    <strong>{{../user.name}}</strong>
+
+                    <span class="badge platinum">
+                        {{../user.tierIcon}} {{../user.tier}}
+                    </span>
+
+                    {{#if ../user.verified}}
+                    <span class="badge verified">✔ Verified</span>
+                    {{/if}}
+
+                    <div style="font-size:12px; color:#777;">
+                        {{date}}
+                    </div>
+                </div>
+
+                <div class="rating-3">
+                    ★★★★★ {{rating}}
+                </div>
+            </div>
+
+            <br>
+
+            <span class="badge country">{{cuisine}}</span>
+            <span class="badge location">📍 {{location}}</span>
+
+            <br>
+            <br>
+
+            <span style="font-size:15px; color:#777;">
+                Service: {{service}}
+                Taste: {{taste}}
+                Ambiance: {{ambiance}}
+            </span>
+
+            <div class="review-title-3">
+                {{title}}
+            </div>
+
+            <div class="review-text-3">
+                {{content}}
+            </div>
+            <br>
+            <hr>
+            <br>
+            <div class="comments">
+                💬 {{comments}} Comments ▼
+            </div>
+        </div>
+        {{/each}}
+
+    </div>
+
+</div>

@@ -1,0 +1,137 @@
+<div class="main-content-2">
+    <!-- STATS CARDS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h4>📝Total Reviews</h4>
+            <h2>{{stats.totalReviews}}</h2>
+        </div>
+        <div class="stat-card">
+            <h4>🍽️ TOP CUISINE</h4>
+            <h2>{{stats.topCuisine}}</h2>
+        </div>
+        <div class="stat-card">
+            <h4>⭐ AVG RATING</h4>
+            <h2>{{stats.avgRating}}★</h2>
+        </div>
+        <div class="stat-card">
+            <h4>📍 LOCATIONS</h4>
+            <h2>{{stats.locations}}</h2>
+        </div>
+        <div class="stat-card">
+            <h4>🔥 Top Rated</h4>
+            <h2>{{stats.topRated}}</h2>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <div class="filter-group">
+            <span>🍽️</span>
+            <select>
+                <option>Cuisine: All</option>
+                {{#each cuisines}}
+                <option>{{this}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <span>📍</span>
+            <select>
+                <option>Location: All</option>
+                {{#each locations}}
+                <option>{{this}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <span>🕒</span>
+            <select>
+                {{#each sortOptions}}
+                <option>{{this}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <button class="write-review-btn" onclick="window.location.href='/write-review'">
+            ✏️ Write a Review
+        </button>
+
+        <div class="view-toggle">
+            <button class="active">◼️ Grid</button>
+            <button>☰ List</button>
+        </div>
+    </div>
+
+    <!-- Reviews -->
+    <div class="review-grid-2">
+        {{#each posts}}
+        <div class="review-card-2">
+            <div class="review-header">
+                <h3>{{restaurant}}</h3>
+                <div class="options-container">
+                    {{#if ownPost}}
+                    <div class="options" data-own-post="true">...</div>
+                    {{!-- <div class="options-dropdown show">
+                        <div class="option-item">✏️ Edit</div>
+                        <div class="option-item">🗑️ Delete</div>
+                    </div> --}}
+                    {{else}}
+                    <div class="options" data-own-post="false">...</div>
+                    <div class="options-dropdown show">
+                        <div class="option-item">🚩 Report</div>
+                    </div>
+                    {{/if}}
+                </div>
+            </div>
+
+            <div class="review-user-2">
+                <div class="review-avatar {{user.rankClass}}">{{user.avatar}}</div>
+                <div class="review-user-info">
+                    <div>
+                        <highlight>{{user.name}}</highlight>
+                        <span class="badge {{user.rankClass}}">{{user.badge}}</span>
+                        {{#if user.verified}}
+                        <span class="verified-2">✔ Verified</span>
+                        {{/if}}
+                    </div>
+                    <div class="review-date">{{date}}</div>
+                </div>
+                <div class="review-rating">{{ratingStars}} {{ratingValue}}</div>
+            </div>
+
+            <div class="review-tags">
+                {{#each tags}}
+                <span class="tag-2">{{this}}</span>
+                {{/each}}
+            </div>
+
+            <div class="review-scores">
+                Service: {{scores.service}} &nbsp; Taste: {{scores.taste}} &nbsp; Ambiance: {{scores.ambiance}}
+            </div>
+
+            <div class="review-title-2">{{title}}</div>
+            <div class="review-text-2">{{content}}</div>
+
+            <div class="review-actions">
+                <span>👍 {{likes}}</span>
+                <span>👎 {{dislikes}}</span>
+                <span class="toggle-comments">💬 {{comments.length}} Comments ▶</span>
+            </div>
+
+            <div class="comments-section">
+                {{#each comments}}
+                <div class="comment-item">
+                    <div class="comment-avatar {{user.rankClass}}">{{user.initials}}</div>
+                    <div class="review-user-info">
+                        <highlight>{{user.name}} <span class="review-date">· {{date}}</span></highlight>
+                        <div class="review-text-2">{{text}}</div>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</div>

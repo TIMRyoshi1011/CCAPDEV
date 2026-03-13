@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{pageTitle}} - BiteBack</title>
+    <link rel="stylesheet" href="/style.css">
+    <!-- <link rel="stylesheet" href="feed.css"> -->
+</head>
+
+<body>
+    <!--MAIN SIDEBAR (COPY THIS STYLE FOR THE REST OF THE PAGES)-->
+    <div class="sidebar">
+        <div class="sidebar-logo" onclick="goToFeed()" style="cursor: pointer;">
+            Bite<span>Back</span>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">{{user.avatar}}</div>
+            <div class="sidebar-user-info">
+                <h4>{{user.name}}</h4>
+                <div class="user-badge">{{user.badge}}</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="sidebar-nav-item {{#if (eq activePage 'feed')}}active{{/if}}" onclick="goToFeed()">
+                🏠 Feed
+            </div>
+            <div class="sidebar-nav-item {{#if (eq activePage 'notifs')}}active{{/if}}" onclick="goToNotifications()">
+                🔔 Notifications
+                {{#if notifications}}
+                <span class="notif-badge">{{notifications}}</span> 
+                {{/if}}
+            </div>
+            <div class="sidebar-nav-item {{#if (eq activePage 'profile')}}active{{/if}}" onclick="goToProfile()">
+                👤 Profile
+            </div>
+            <div class="sidebar-nav-item {{#if (eq activePage 'settings')}}active{{/if}}" onclick="goToSettings()">
+                ⚙️ Settings
+            </div>
+        </div>
+
+        <div class="sidebar-logout" onclick="logout()">
+            🚪 Log Out
+        </div>
+    </div>
+    <!--============= END OF SIDEBAR ============= -->
+
+    {{{body}}}
+
+    <script src="/script.js"></script>
+</body>
+
+</html>

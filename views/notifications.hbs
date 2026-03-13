@@ -1,0 +1,33 @@
+<div class="main-content-2">
+    <!-- Notifications Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1 style="color: #1a1a1a; font-size: 28px; margin: 0;">Notifications</h1>
+        <button id="read"
+            style="background: none; border: none; color: #d94866; font-weight: 600; cursor: pointer; font-size: 14px; padding: 8px 16px; border-radius: 8px; transition: background-color 0.2s;">
+            Mark all as read
+        </button>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="notifications-list">
+
+        {{#each notifications}}
+
+        <div class="{{#if unread}}unread{{else}}notification{{/if}}">
+            <span class="icon">{{icon}}</span>
+
+            <div class="notification-content">
+                <p>
+                    {{{message}}}
+                </p>
+                <span class="timestamp">{{timestamp}}</span>
+            </div>
+
+            {{#if unread}}
+            <span class="unread-dot"></span>
+            {{/if}}
+        </div>
+        {{/each}}
+
+    </div>
+</div>

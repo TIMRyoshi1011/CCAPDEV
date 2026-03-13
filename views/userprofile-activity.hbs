@@ -1,0 +1,128 @@
+<div class="dashboard" style="margin-top: 40px; margin-left: 280px;">
+    <!-- Left Panel -->
+    <div>
+        <!-- Profile -->
+        <div class="profile-card" style="padding: 0;">
+            <div class="profile-header"></div>
+            <div class="profile-avatar">{{user.avatar}}</div>
+
+            <div class="profile-content">
+                <h2>
+                    {{user.name}}
+                    <span class="badge platinum">{{user.tierIcon}} {{user.tier}}</span>
+                    {{#if user.verified}}
+                    <span class="badge verified">Verified</span>
+                    {{/if}}
+                </h2>
+
+                <p>@{{user.username}}</p><br>
+                <p>{{user.bio}}</p>
+                <p>📅 Joined {{user.memberSince}}</p><br>
+                <hr>
+
+                <button class="edit-btn" onclick="openEditProfilePopup()">Edit Profile</button>
+
+                <div class="stats-row">
+                    <div><strong>{{stats.totalReviews}}</strong><br>Reviews</div>
+                    <div><strong>{{stats.comments}}</strong><br>Comments</div>
+                    <div><strong>{{stats.points}}</strong><br>Points</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Popup -->
+        <div id="editProfilePopup" class="popup hidden">
+            <div class="popup-content">
+                <span class="close" onclick="closeEditProfilePopup()">&times;</span>
+                <h2>Edit Profile</h2><br>
+                <form method="POST" action="/profile/update">
+                    <div class="form-group">
+                        <label>Change Display Name</label>
+                        <input type="text" name="name" value="{{user.name}}">
+                    </div><br>
+                    <div class="form-group">
+                        <label>Change Username</label>
+                        <input type="text" name="username" value="{{user.username}}">
+                    </div><br>
+                    <div class="form-group">
+                        <label>Change Email</label>
+                        <input type="email" name="email" value="{{user.email}}">
+                    </div><br>
+                    <div class="form-group">
+                        <label>Edit Description</label>
+                        <input type="text" name="description" value="{{user.description}}">
+                    </div><br>
+                    <button type="submit" class="submit-btn">Update Profile</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="profile-card">
+            <h3>📊 Stats</h3>
+            <p>Avg Rating ⭐ {{stats.avgRating}}</p>
+            <p>Total Upvotes 👍 {{stats.upvotes}}</p>
+            <p>Total Downvotes 👎 {{stats.downvotes}}</p><br>
+            <hr><br>
+            <h4>Top Cuisines</h4>
+            <ul style="padding: 10px;">
+                {{#each stats.topCuisines}}
+                <li>{{name}} ({{count}})</li>
+                {{/each}}
+            </ul><br>
+            <hr><br>
+            <h4>Top Locations</h4>
+            <ul style="padding: 10px;">
+                {{#each stats.topLocations}}
+                <li>{{name}} ({{count}})</li>
+                {{/each}}
+            </ul>
+        </div>
+
+        <!-- Achievements -->
+        <div class="profile-card">
+            <h3>🏅 Achievements</h3>
+            {{#each stats.achievements}}
+            <p>{{this}}</p>
+            {{/each}}
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div>
+        <div class="tabs">
+            <span onclick="goToProfile()">Reviews</span>
+            <span class="active">Activity</span>
+        </div>
+
+        {{#each activities}}
+        <div class="activity-card">
+            <div class="activity-header">
+                <div class="icon-3">{{icon}}</div>
+                <div>
+                    <div class="title">{{title}}</div>
+                    <div class="date">{{date}}</div>
+                </div>
+                {{#if rating}}
+                <div class="rating">
+                    {{stars}} <span class="rating-score">{{rating}}</span>
+                </div>
+                {{/if}}
+            </div>
+
+            {{#if reviewTitle}}
+            <div class="review-title">{{reviewTitle}}</div>
+            {{/if}}
+
+            <p class="activity-text">{{content}}</p><br>
+
+            {{#if footer}}
+            <div class="activity-footer">
+                <span>👍 {{footer.likes}} . </span>
+                <span>💬 {{footer.comments}}</span>
+            </div>
+            {{/if}}
+        </div>
+        {{/each}}
+    </div>
+</div>
