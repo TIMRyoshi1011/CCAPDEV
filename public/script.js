@@ -16,14 +16,6 @@ function closeForgotPasswordPopup() {
     document.getElementById('forgotPasswordPopup').classList.add('hidden');
 }
 
-function submitForgotPassword() {
-    const email = document.getElementById('forgot-email').value;
-    alert('Password reset link has been sent to ' + email);
-    closeForgotPasswordPopup();
-    openChangePassword();
-    return false;
-}
-
 function openSignUpPopup() {
     document.getElementById("signupPopup").classList.remove("hidden");
     document.getElementById("loginPopup").classList.add("hidden");
@@ -58,13 +50,6 @@ function openChangePassword() {
 
 function closeChangePassword() {
     document.getElementById("changePasswordPopup").classList.add("hidden");
-}
-
-function submitChangePassword() {
-    alert('Your password has been changed successfully!');
-    closeChangePassword();
-    openLoginPopup();
-    return false;
 }
 
 function openEditProfilePopup() {
@@ -124,6 +109,52 @@ function goToLanding() {
 function logout() {
 
     window.location.href = "Landing.html";
+}
+
+// Forgot Password
+async function submitForgotPassword() {
+    const email = document.getElementById("forgot-email").value;
+    const response = await fetch("/forgot-password", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+        window.resetEmail = email; 
+        closeForgotPasswordPopup();
+        openChangePassword();
+    } else {
+        alert(data.message);
+    }
+}
+
+// Change Password
+async function submitChangePassword() {
+    const newPassword = document.getElementById("new-password").value;
+    const confirmPassword = document.getElementById("confirm-password").value;
+
+    if (newPassword !== confirmPassword) {
+        alert("Passwords do not match");
+        return;
+    }
+    const response = await fetch("/change-password", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: window.resetEmail,
+            newPassword: newPassword
+        })
+    });
+    const data = await response.json();
+    alert(data.message);
+    closeChangePassword();
+    openLoginPopup();
 }
 
 // Sign Up

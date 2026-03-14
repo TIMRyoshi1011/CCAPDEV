@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import exphbs from "express-handlebars";
 import { connectToMongo, getDb } from "./db/conn.js";
-// import 'dotenv/config';
 
 const app = express();
 const port = 3000;
@@ -16,9 +15,6 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-// handlebars
-let posts = [];
-
 let cuisines = ["Filipino", "Korean", "Indian", "Japanese"];
 let locations = ["BGC", "Makati", "Quezon City", "Taguig"];
 let sortOptions = ["Recent", "Top Rated", "Most Commented"];
@@ -26,6 +22,10 @@ let sortOptions = ["Recent", "Top Rated", "Most Commented"];
 // current active user
 let currentUser = {};
 
+// current posts
+let posts = [];
+
+// handlebars
 app.engine("hbs", exphbs.engine({
     extname: ".hbs",
     defaultLayout: "main",
@@ -111,7 +111,6 @@ app.post("/signup", async (req, res) => {
 
         // update the currentUser object
         currentUser = newUser;
-        // console.log(currentUser);
 
         // insert user
         const result = await users.insertOne(newUser); 
@@ -139,7 +138,6 @@ app.post("/login", async (req, res) => {
         if (!acc) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
-
         currentUser = acc;
 
         res.json({ message: "Login successful" });
@@ -149,13 +147,58 @@ app.post("/login", async (req, res) => {
     }
 });
 
+// Forgot Password
+app.post("/forgot-password", async (req, res) => {
+    const { email } = req.body;
+    try {
+        const db = getDb();
+        const users = db.collection("profile");
+
+        const user = await users.findOne({ email: email });
+
+        if (!user) {
+            return res.json({
+                success: false,
+                message: "Email not found."
+            });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+// Change Password
+app.post("/change-password", async (req, res) => {
+    const { email, newPassword } = req.body;
+
+    try {
+        const db = getDb();
+        const users = db.collection("profile");
+
+        const result = await users.updateOne(
+            { email: email },
+            { $set: { password: newPassword } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.json({ message: "User not found." });
+        }
+        res.json({ message: "Password updated successfully!" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error." });
+    }
+});
+
 // After login, redirect to feed
 app.get("/feed", async (req, res) => {
     try {
-        const db = getDb(); // or getDbPosts() depending on your setup
+        const db = getDb(); 
         const allPosts = db.collection("posts");
 
-        // get all posts from MongoDB
         posts = await allPosts.find({}).toArray();
 
         res.render("feed", {
@@ -208,7 +251,7 @@ app.post('/write-review', async (req, res) => {
                 comments: []
             };
 
-            posts.unshift(newPost);     // pushing in post, to delete 
+            posts.unshift(newPost);
 
             const rev = await uploadPost.insertOne(newPost); 
             console.log("User created:", rev.insertedId);
@@ -216,7 +259,6 @@ app.post('/write-review', async (req, res) => {
             let nReviews = currentUser.totalReviews + 1;
             currentUser.totalReviews += 1;
 
-            // const { email, totalReviews } = req.body;
             const result = await users.updateOne(
                 { email: currentUser.email },        
                 { $set: { totalReviews: nReviews } } 
@@ -226,7 +268,7 @@ app.post('/write-review', async (req, res) => {
                 console.error("Failed to update totalReviews in the database.");
                 return res.status(500).json({ message: "Failed to update reviews count." });
             }
-            return res.redirect('/feed');  // Redirect to the feed after successful review submission
+            return res.redirect('/feed'); 
         } else {
             return res.status(400).json({ message: "Content is required." });
         }
