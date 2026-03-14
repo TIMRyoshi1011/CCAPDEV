@@ -1,7 +1,7 @@
 // handle connection to the database (MongoDB)
 import { MongoClient } from "mongodb";
 
-const mongo_URI = "mongodb://localhost:27017"; // <-- change this from MongoDB atlas
+const mongo_URI = "mongodb+srv://adminUser:adminUserPassword@cluster0.ccrzj8t.mongodb.net/?appName=Cluster0"; // <-- change this from MongoDB atlas
 const client = new MongoClient(mongo_URI);
 
 export function connectToMongo(callback) {
