@@ -4,28 +4,28 @@
         <!-- Profile -->
         <div class="profile-card" style="padding: 0;">
             <div class="profile-header"></div>
-            <div class="profile-avatar">{{user.avatar}}</div>
+            <div class="profile-avatar">{{currentUser.avatar}}</div>
 
             <div class="profile-content">
                 <h2>
-                    {{user.name}}
-                    <span class="badge platinum">{{user.tierIcon}} {{user.tier}}</span>
-                    {{#if user.verified}}
+                    {{currentUser.name}}
+                    <span class="badge platinum">{{currentUser.tierIcon}} {{currentUser.tier}}</span>
+                    {{#if currentUser.verified}}
                     <span class="badge verified">Verified</span>
                     {{/if}}
                 </h2>
 
-                <p>@{{user.username}}</p><br>
-                <p>{{user.bio}}</p>
-                <p>📅 Joined {{user.memberSince}}</p><br>
+                <p>@{{currentUser.username}}</p><br>
+                <p>{{currentUser.bio}}</p>
+                <p>📅 Joined {{currentUser.memberSince}}</p><br>
                 <hr>
 
                 <button class="edit-btn" onclick="openEditProfilePopup()">Edit Profile</button>
 
                 <div class="stats-row">
-                    <div><strong>{{stats.totalReviews}}</strong><br>Reviews</div>
-                    <div><strong>{{stats.comments}}</strong><br>Comments</div>
-                    <div><strong>{{stats.points}}</strong><br>Points</div>
+                    <div><strong>{{currentUser.totalReviews}}</strong><br>Reviews</div>
+                    <div><strong>{{currentUser.comments}}</strong><br>Comments</div>
+                    <div><strong>{{currentUser.points}}</strong><br>Points</div>
                 </div>
             </div>
         </div>
@@ -38,19 +38,19 @@
                 <form method="POST" action="/profile/update">
                     <div class="form-group">
                         <label>Change Display Name</label>
-                        <input type="text" name="name" value="{{user.name}}">
+                        <input type="text" name="name" value="{{currentUser.name}}">
                     </div><br>
                     <div class="form-group">
                         <label>Change Username</label>
-                        <input type="text" name="username" value="{{user.username}}">
+                        <input type="text" name="username" value="{{currentUser.username}}">
                     </div><br>
                     <div class="form-group">
                         <label>Change Email</label>
-                        <input type="email" name="email" value="{{user.email}}">
+                        <input type="email" name="email" value="{{currentUser.email}}">
                     </div><br>
                     <div class="form-group">
                         <label>Edit Description</label>
-                        <input type="text" name="description" value="{{user.description}}">
+                        <input type="text" name="description" value="{{currentUser.description}}">
                     </div><br>
                     <button type="submit" class="submit-btn">Update Profile</button>
                 </form>
@@ -60,20 +60,20 @@
         <!-- Stats -->
         <div class="profile-card">
             <h3>📊 Stats</h3>
-            <p>Avg Rating ⭐ {{stats.avgRating}}</p>
-            <p>Total Upvotes 👍 {{stats.upvotes}}</p>
-            <p>Total Downvotes 👎 {{stats.downvotes}}</p><br>
+            <p>Avg Rating ⭐ {{currentUser.avgRating}}</p>
+            <p>Total Upvotes 👍 {{currentUser.upvotes}}</p>
+            <p>Total Downvotes 👎 {{currentUser.downvotes}}</p><br>
             <hr><br>
             <h4>Top Cuisines</h4>
             <ul style="padding: 10px;">
-                {{#each stats.topCuisines}}
+                {{#each currentUser.topCuisines}}
                 <li>{{name}} ({{count}})</li>
                 {{/each}}
             </ul><br>
             <hr><br>
             <h4>Top Locations</h4>
             <ul style="padding: 10px;">
-                {{#each stats.topLocations}}
+                {{#each currentUser.topLocations}}
                 <li>{{name}} ({{count}})</li>
                 {{/each}}
             </ul>
@@ -82,7 +82,7 @@
         <!-- Achievements -->
         <div class="profile-card">
             <h3>🏅 Achievements</h3>
-            {{#each stats.achievements}}
+            {{#each currentUser.achievements}}
             <p>{{this}}</p>
             {{/each}}
         </div>

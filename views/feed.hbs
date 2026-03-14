@@ -3,23 +3,23 @@
     <div class="stats-grid">
         <div class="stat-card">
             <h4>📝Total Reviews</h4>
-            <h2>{{stats.totalReviews}}</h2>
+            <h2>{{currentUser.totalReviews}}</h2>
         </div>
         <div class="stat-card">
             <h4>🍽️ TOP CUISINE</h4>
-            <h2>{{stats.topCuisine}}</h2>
+            <h2>{{currentUser.topCuisine}}</h2>
         </div>
         <div class="stat-card">
             <h4>⭐ AVG RATING</h4>
-            <h2>{{stats.avgRating}}★</h2>
+            <h2>{{currentUser.avgRating}}★</h2>
         </div>
         <div class="stat-card">
             <h4>📍 LOCATIONS</h4>
-            <h2>{{stats.locations}}</h2>
+            <h2>{{currentUser.locations}}</h2>
         </div>
         <div class="stat-card">
             <h4>🔥 Top Rated</h4>
-            <h2>{{stats.topRated}}</h2>
+            <h2>{{currentUser.topRated}}</h2>
         </div>
     </div>
 
@@ -87,12 +87,12 @@
             </div>
 
             <div class="review-user-2">
-                <div class="review-avatar {{user.rankClass}}">{{user.avatar}}</div>
+                <div class="review-avatar {{currentUser.rankClass}}">{{currentUser.avatar}}</div>
                 <div class="review-user-info">
                     <div>
-                        <highlight>{{user.name}}</highlight>
-                        <span class="badge {{user.rankClass}}">{{user.badge}}</span>
-                        {{#if user.verified}}
+                        <highlight>{{currentUser.name}}</highlight>
+                        <span class="badge {{currentUser.rankClass}}">{{currentUser.badge}}</span>
+                        {{#if currentUser.verified}}
                         <span class="verified-2">✔ Verified</span>
                         {{/if}}
                     </div>
@@ -123,9 +123,9 @@
             <div class="comments-section">
                 {{#each comments}}
                 <div class="comment-item">
-                    <div class="comment-avatar {{user.rankClass}}">{{user.initials}}</div>
+                    <div class="comment-avatar {{currentUser.rankClass}}">{{currentUser.initials}}</div>
                     <div class="review-user-info">
-                        <highlight>{{user.name}} <span class="review-date">· {{date}}</span></highlight>
+                        <highlight>{{currentUser.name}} <span class="review-date">· {{date}}</span></highlight>
                         <div class="review-text-2">{{text}}</div>
                     </div>
                 </div>

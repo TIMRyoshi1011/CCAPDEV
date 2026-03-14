@@ -254,32 +254,32 @@
         <h3>Account</h3>
 
         <div class="profile-pic">
-            {{user.avatar}}
+            {{currentUser.avatar}}
         </div>
 
         <div class="user-info">
-            <span class="name">{{user.name}}</span>
-            <span class="username">@{{user.username}}</span>
+            <span class="name">{{currentUser.name}}</span>
+            <span class="username">@{{currentUser.username}}</span>
         </div>
 
         <div class="membership-status">
-            <span class="status">{{user.tier}} Member</span>
-            <p class="member-date">Member since {{user.memberSince}}</p>
+            <span class="status">{{currentUser.tier}} Member</span>
+            <p class="member-date">Member since {{currentUser.memberSince}}</p>
         </div>
 
         <div class="current-tier">
             <span class="label">Current Tier:</span>
-            <span class="value">{{user.tierIcon}} {{user.tier}}</span>
+            <span class="value">{{currentUser.tierIcon}} {{currentUser.tier}}</span>
         </div>
 
         <div class="points">
             <span class="label">Points:</span>
-            <span class="value">{{user.points}}</span>
+            <span class="value">{{currentUser.points}}</span>
         </div>
 
         <div class="next-tier">
             <span class="label">Next Tier:</span>
-            <span class="value">{{user.nextTier}}</span>
+            <span class="value">{{currentUser.nextTier}}</span>
         </div>
     </div>
 
@@ -288,7 +288,7 @@
         <h3>About Me</h3>
 
         <textarea id="about-me" name="about-me" rows="5" cols="50"
-            placeholder="Tell us about yourself...">{{user.bio}}</textarea>
+            placeholder="Tell us about yourself...">{{currentUser.bio}}</textarea>
         <br>
 
         <input type="submit" value="Submit">
