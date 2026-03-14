@@ -4,8 +4,8 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import exphbs from "express-handlebars";
+import { connectToMongo, getDb } from "./db/conn.js";
 // import 'dotenv/config';
-// import { connectToMongo, getDb } from "./db/conn.js";
 
 const app = express();
 const port = 3000;
@@ -23,44 +23,8 @@ let cuisines = ["Filipino", "Korean", "Indian", "Japanese"];
 let locations = ["BGC", "Makati", "Quezon City", "Taguig"];
 let sortOptions = ["Recent", "Top Rated", "Most Commented"];
 
-let user = {
-            name: "Marcus Ramos",  
-            username: "marcus_ramos",
-            avatar: "MR",      
-            badge: "🥉 Bronze",   
-            membership: "Bronze",
-            memberSince: "March 2026",
-            tier: "Bronze",
-            tierIcon: "🥉",
-            points: 0,
-            nextTier: "N/A",
-            verified: false,
-            bio: "Bio",
-            rankClass: "bronze"
-        };
-
-let stats = {
-            totalReviews: 0,        // default values
-            topCuisine: 'None',  
-            avgRating: 0,      
-            locations: 0,        
-            topRated: 'None',       
-            comments: 0,
-            points: 0,
-            upvotes: 0,
-            downvotes: 0,
-            // achievements: ["✍ First Review", "👍 Community Fave", "🔥 Viral Post"]
-
-            // topCuisines: [
-            // { name: "Indian", count: 1 },
-            // { name: "Japanese", count: 1 }
-            // ],
-
-            // topLocations: [
-            // { name: "Makati", count: 1 },
-            // { name: "BGC", count: 1 }
-            // ]
-        };
+// current active user
+let currentUser = {};
 
 app.engine("hbs", exphbs.engine({
     extname: ".hbs",
@@ -81,63 +45,196 @@ app.get('/', (req, res) => {
 });
 
 // for MongoDB Connection
-// connectToMongo((err) => {
-//     if(err) {
-//         console.log("error occurred");
-//         console.error(err);
-//         process.exit();
-//     }
-//     console.log("Connected to MongoDB server");
-// });
+connectToMongo((err) => {
+    if(err) {
+        console.log("error occurred");
+        console.error(err);
+        process.exit();
+    }
+    console.log("Connected to MongoDB server");
+});
+
+// Sign Up
+app.post("/signup", async (req, res) => {
+    try {
+        const db = getDb();
+        const users = db.collection("profile");
+        const { name, email, password } = req.body;
+
+        // check if user already exists
+        const existingUser = await users.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        const newUser = {
+            name: name,   
+            username: name.toLowerCase().replace(/\s+/g, '_'),
+            avatar: name.split(' ').map(word => word[0].toUpperCase()).join(''),
+            email: email,
+            password: password,         
+            badge: "🥉 Bronze", 
+            membership: "Bronze",
+            memberSince: new Date().toLocaleDateString('en-US', {
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric'  
+            }),
+            tier: "Bronze",
+            tierIcon: "🥉",
+            points: 0,
+            nextTier: "N/A",
+            verified: false,
+            bio: "Bio",
+            rankClass: "bronze",
+            totalReviews: 0,  
+            topCuisine: 'None',   
+            avgRating: 0,    
+            locations: 0,    
+            topRated: 'None',    
+            comments: 0,
+            points: 0,
+            upvotes: 0,
+            downvotes: 0
+            // achievements: ["✍ First Review", "👍 Community Fave", "🔥 Viral Post"]
+
+            // topCuisines: [
+            // { name: "Indian", count: 1 },
+            // { name: "Japanese", count: 1 }
+            // ],
+
+            // topLocations: [
+            // { name: "Makati", count: 1 },
+            // { name: "BGC", count: 1 }
+            // ]
+        };
+
+        // update the currentUser object
+        currentUser = newUser;
+        // console.log(currentUser);
+
+        // insert user
+        const result = await users.insertOne(newUser); 
+
+        console.log("User created:", result.insertedId);
+        res.json({ message: "Signup successful" });
+    } catch (err) {
+        console.error("Signup error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Login
+app.post("/login", async (req, res) => {
+    try {
+        const db = getDb();
+        const users = db.collection("profile");
+
+        const { email, password } = req.body;
+        const acc = await users.findOne({
+            email: email,
+            password: password
+        });
+
+        if (!acc) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        currentUser = acc;
+
+        res.json({ message: "Login successful" });
+    } catch (err) {
+        console.error("Login error:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
 // After login, redirect to feed
-app.get("/feed", (req, res) => {
-    res.render("feed", {
-        cuisines,
-        locations,
-        sortOptions,
-        pageTitle: "Feed",
-        activePage: "feed",
-        user,
-        stats,
-        notifications: 0,
-        posts
-    });
+app.get("/feed", async (req, res) => {
+    try {
+        const db = getDb(); // or getDbPosts() depending on your setup
+        const allPosts = db.collection("posts");
+
+        // get all posts from MongoDB
+        posts = await allPosts.find({}).toArray();
+
+        res.render("feed", {
+            cuisines,
+            locations,
+            sortOptions,
+            pageTitle: "Feed",
+            activePage: "feed",
+            currentUser,
+            notifications: 0,
+            posts
+        });
+
+    } catch (err) {
+        console.error("Error loading feed:", err);
+        res.status(500).send("Server error");
+    }
 });
 
 // writing a review
 app.get("/write-review", (req, res) => {
     res.render("write-review", {
         pageTitle: "Write Review",
-        user
+        currentUser
     });
 });
 
 // posting the review
-app.post('/write-review', (req, res) => {
-    const { restaurant, content, foodRating, serviceRating } = req.body;
+app.post('/write-review', async (req, res) => {
+    try {
+        const db = getDb();
+        const users = db.collection("profile");
+        const uploadPost = db.collection("posts");
+        const { restaurant, content, foodRating, serviceRating } = req.body;
 
-    if (content && content.trim() !== '') {
-        const newPost = {
-            restaurant,
-            title: `${restaurant} Review`,
-            content,
-            date: new Date().toLocaleDateString(),
-            ratingStars: "⭐".repeat(foodRating),
-            ratingValue: foodRating,
-            user,
-            ownPost: true,
-            tags: [],
-            scores: { service: serviceRating, taste: foodRating, ambiance: 5 },
-            likes: 0,
-            dislikes: 0,
-            comments: []
-        };
-        posts.unshift(newPost);
-        stats.totalReviews = posts.length;
+        if (content && content.trim() !== '') {
+            const newPost = {
+                currentUser,
+                restaurant,
+                title: `${restaurant} Review`,
+                content,
+                date: new Date().toLocaleDateString(),
+                ratingStars: "⭐".repeat(foodRating),
+                ratingValue: foodRating,
+                ownPost: true,
+                tags: [],
+                scores: { service: serviceRating, taste: foodRating, ambiance: 5 }, // papalitan nalang ng ambiance
+                likes: 0,
+                dislikes: 0,
+                comments: []
+            };
+
+            posts.unshift(newPost);     // pushing in post, to delete 
+
+            const rev = await uploadPost.insertOne(newPost); 
+            console.log("User created:", rev.insertedId);
+
+            let nReviews = currentUser.totalReviews + 1;
+            currentUser.totalReviews += 1;
+
+            // const { email, totalReviews } = req.body;
+            const result = await users.updateOne(
+                { email: currentUser.email },        
+                { $set: { totalReviews: nReviews } } 
+            );
+
+            if (result.modifiedCount === 0) {
+                console.error("Failed to update totalReviews in the database.");
+                return res.status(500).json({ message: "Failed to update reviews count." });
+            }
+            return res.redirect('/feed');  // Redirect to the feed after successful review submission
+        } else {
+            return res.status(400).json({ message: "Content is required." });
+        }
+        res.redirect('/feed');
+    } catch (err) {
+        console.error("Error writing review:", err);
+        return res.status(500).json({ message: "Server error." });
     }
-
-    res.redirect('/feed');
 });
 
 // Notifications
@@ -145,7 +242,7 @@ app.get('/notifications', (req, res) => {
     res.render("notifications", {
         pageTitle: "Notifications",
         activePage: "notifs",
-        user,
+        currentUser,
         // notifications: [
         //     {
         //     icon: "🖋",
@@ -192,8 +289,7 @@ app.get('/userprofile-reviews', (req, res) => {
     res.render("userprofile-reviews", {
         pageTitle: "Profile-Reviews",
         activePage: "profile",
-        user, 
-        stats
+        currentUser
         // reviews: [
         //     {
         //     restaurant: "Yabu",
@@ -232,8 +328,7 @@ app.get('/userprofile-activity', (req, res) => {
     res.render("userprofile-activity", {
         pageTitle: "Profile-Activity",
         activePage: "profile",
-        user, 
-        stats
+        currentUser
         // activities: [
         //     {
         //         icon: "💬",
@@ -259,7 +354,7 @@ app.get('/settings', (req, res) => {
     res.render("settings", {
     pageTitle: 'Settings',
     activePage: "settings",
-    user, 
+    currentUser,
     settings: {
         publicProfile: true,
         showTierBadge: true
