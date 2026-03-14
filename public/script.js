@@ -125,3 +125,69 @@ function logout() {
 
     window.location.href = "Landing.html";
 }
+
+// Sign Up
+signupForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const name = document.getElementById("signup-name").value;
+    const email = document.getElementById("signup-email").value;
+    const password = document.getElementById("signup-password").value;
+    const confirm = document.getElementById("signup-confirm").value;
+
+    if (password !== confirm) {
+        alert("Passwords do not match!");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:3000/signup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password }) 
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            document.getElementById("accountName").textContent = name;
+
+            showAccountSuccess();
+        } else {
+            alert(data.message); 
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Something went wrong. Please try again.");
+    }
+});
+
+// Login
+const loginForm = document.getElementById("loginForm");
+
+loginForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+
+    try {
+        const response = await fetch("http://localhost:3000/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            closeLoginPopup();
+            window.location.href = "/feed";
+        } else {
+            alert(data.message); 
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Something went wrong. Please try again.");
+    }
+});

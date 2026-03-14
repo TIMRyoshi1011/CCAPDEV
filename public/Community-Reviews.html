@@ -26,7 +26,7 @@
             <span class="close" onclick="closeLoginPopup()">&times;</span>
             <h2>Sign in to Bite<span>Back</span></h2>
             <h1>Please Enter your Login Details Below</h1>
-            <form onsubmit="window.location.href='/feed'; return false;">
+            <form id="loginForm">
                 <div class="form-group">
                     <label for="login-email">Email</label>
                     <input type="email" id="login-email" required>
@@ -109,7 +109,7 @@
             <span class="close" onclick="closeSignUpPopup()">&times;</span>
             <h2>Register for your Bite<span>Back</span> <span style="display:block;text-align:center;">Account</span>
             </h2>
-            <form onsubmit="showAccountSuccess(); return false;">
+            <form id="signupForm">
                 <div class="form-group">
                     <label for="signup-name">Full Name</label>
                     <input type="text" id="signup-name" required>
@@ -143,7 +143,7 @@
     <div id="accountCreatedPopup" class="popup hidden">
         <div class="popup-content popup-success">
             <span class="close" onclick="closeAccountSuccess()">&times;</span>
-            <h2>Hello <span>Mia</span>!</h2>
+            <h2>Hello <span id="accountName"></span>!</h2>
             <h1 class="success-welcome">Welcome to <span>Bite</span>Back</h1>
             <p class="success-subtitle">Your account has been created successfully.</p>
             <button class="submit-btn" onclick="goToFeed()">Go to Feed</button>
