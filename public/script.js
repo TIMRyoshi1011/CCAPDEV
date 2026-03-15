@@ -1,15 +1,79 @@
+// --- Custom System Dialogs using Existing Popups ---
+let alertResolve = null;
+let confirmResolve = null;
+
+function showCustomAlert(message) {
+    return new Promise((resolve) => {
+        alertResolve = resolve;
+        const msgEl = document.getElementById('customAlertMessage');
+        if (msgEl) msgEl.textContent = message;
+        
+        const popup = document.getElementById('customAlertPopup');
+        if (popup) popup.classList.remove('hidden');
+    });
+}
+
+function closeCustomAlert() {
+    const popup = document.getElementById('customAlertPopup');
+    if (popup) popup.classList.add('hidden');
+    if (alertResolve) {
+        alertResolve(true);
+        alertResolve = null;
+    }
+}
+
+function showCustomConfirm(message) {
+    return new Promise((resolve) => {
+        confirmResolve = resolve;
+        const msgEl = document.getElementById('customConfirmMessage');
+        if (msgEl) msgEl.textContent = message;
+        
+        const popup = document.getElementById('customConfirmPopup');
+        if (popup) popup.classList.remove('hidden');
+    });
+}
+
+function closeCustomConfirm(result) {
+    const popup = document.getElementById('customConfirmPopup');
+    if (popup) popup.classList.add('hidden');
+    if (confirmResolve) {
+        confirmResolve(result);
+        confirmResolve = null;
+    }
+}
+// --- Inline Error Helpers ---
+function showInlineError(elementId, message) {
+    const errEl = document.getElementById(elementId);
+    if (errEl) {
+        errEl.textContent = message;
+        errEl.classList.add("show");
+    }
+}
+
+function hideInlineError(elementId) {
+    const errEl = document.getElementById(elementId);
+    if (errEl) {
+        errEl.classList.remove("show");
+        errEl.textContent = "";
+    }
+}
+// --- End Custom form Dialogs ---
+
 function openLoginPopup() {
     document.getElementById("loginPopup").classList.remove("hidden");
     document.getElementById("signupPopup").classList.add("hidden");
+    hideInlineError("login-error-msg");
 }
 
 function closeLoginPopup() {
     document.getElementById("loginPopup").classList.add("hidden");
+    hideInlineError("login-error-msg");
 }
 
 function openForgotPasswordPopup() {
     closeLoginPopup();
     document.getElementById('forgotPasswordPopup').classList.remove('hidden');
+    hideInlineError("forgot-error-msg");
 }
 
 function closeForgotPasswordPopup() {
@@ -19,10 +83,12 @@ function closeForgotPasswordPopup() {
 function openSignUpPopup() {
     document.getElementById("signupPopup").classList.remove("hidden");
     document.getElementById("loginPopup").classList.add("hidden");
+    hideInlineError("signup-error-msg");
 }
 
 function closeSignUpPopup() {
     document.getElementById("signupPopup").classList.add("hidden");
+    hideInlineError("signup-error-msg");
 }
 
 function switchToSignUp() {
@@ -46,6 +112,7 @@ function closeAccountSuccess() {
 
 function openChangePassword() {
     document.getElementById("changePasswordPopup").classList.remove("hidden");
+    hideInlineError("change-pw-error-msg");
 }
 
 function closeChangePassword() {
@@ -114,6 +181,9 @@ function logout() {
 // Forgot Password
 async function submitForgotPassword() {
     const email = document.getElementById("forgot-email").value;
+    
+    hideInlineError("forgot-error-msg");
+
     const response = await fetch("/forgot-password", {
         method: "POST",
         headers: {
@@ -128,7 +198,7 @@ async function submitForgotPassword() {
         closeForgotPasswordPopup();
         openChangePassword();
     } else {
-        alert(data.message);
+        showInlineError("forgot-error-msg", data.message);
     }
 }
 
@@ -137,8 +207,10 @@ async function submitChangePassword() {
     const newPassword = document.getElementById("new-password").value;
     const confirmPassword = document.getElementById("confirm-password").value;
 
+    hideInlineError("change-pw-error-msg");
+
     if (newPassword !== confirmPassword) {
-        alert("Passwords do not match");
+        showInlineError("change-pw-error-msg", "Passwords do not match");
         return;
     }
     const response = await fetch("/change-password", {
@@ -152,7 +224,7 @@ async function submitChangePassword() {
         })
     });
     const data = await response.json();
-    alert(data.message);
+    await showCustomAlert(data.message);
     closeChangePassword();
     openLoginPopup();
 }
@@ -168,8 +240,10 @@ if (signupForm) {
         const password = document.getElementById("signup-password").value;
         const confirm = document.getElementById("signup-confirm").value;
 
+        hideInlineError("signup-error-msg");
+
         if (password !== confirm) {
-            alert("Passwords do not match!");
+            showInlineError("signup-error-msg", "Passwords do not match!");
             return;
         }
 
@@ -187,11 +261,11 @@ if (signupForm) {
 
                 showAccountSuccess();
             } else {
-                alert(data.message); 
+                showInlineError("signup-error-msg", data.message); 
             }
         } catch (err) {
             console.error(err);
-            alert("Something went wrong. Please try again.");
+            showInlineError("signup-error-msg", "Something went wrong. Please try again.");
         }
     });
 }
@@ -205,7 +279,7 @@ if (loginForm) {
 
         const email = document.getElementById("login-email").value;
         const password = document.getElementById("login-password").value;
-
+        hideInlineError("login-error-msg");
         try {
             const response = await fetch("http://localhost:3000/login", {
                 method: "POST",
@@ -219,11 +293,11 @@ if (loginForm) {
                 closeLoginPopup();
                 window.location.href = "/feed";
             } else {
-                alert(data.message); 
+                showInlineError("login-error-msg", data.message); 
             }
         } catch (err) {
             console.error(err);
-            alert("Something went wrong. Please try again.");
+            showInlineError("login-error-msg", "Something went wrong. Please try again.");
         }
     });
 }
@@ -269,7 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Post Actions
 async function deleteReview(id) {
-    if (confirm("Are you sure you want to delete this review?")) {
+    const isConfirmed = await showCustomConfirm("Are you sure you want to delete this review?");
+    if (isConfirmed) {
         try {
             const response = await fetch(`/delete-review/${id}`, {
                 method: 'DELETE'
@@ -281,11 +356,11 @@ async function deleteReview(id) {
                 window.location.reload();
             } else {
                 const data = await response.json();
-                alert(data.message || "Failed to delete review");
+                showCustomAlert(data.message || "Failed to delete review");
             }
         } catch (err) {
             console.error(err);
-            alert("Error deleting review");
+            showCustomAlert("Error deleting review");
         }
     }
 }
@@ -297,7 +372,7 @@ function editReview(id) {
 
 function reportReview(id) {
     // For now, simple alert
-    alert(`Review ${id} has been reported to the moderators.`);
+    showCustomAlert(`Review ${id} has been reported to the moderators.`);
 }
 
 // Toggle Custom Input Fields for Write Review

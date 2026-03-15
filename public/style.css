@@ -487,6 +487,21 @@ body {
     font-size: 13px;
 }
 
+.form-error-message {
+    background-color: #fff0f0;
+    color: #e53e3e;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 18px;
+    display: none;
+    text-align: left;
+}
+
+.form-error-message.show {
+    display: block;
+}
+
 .login-options {
     display: flex;
     justify-content: space-between;
