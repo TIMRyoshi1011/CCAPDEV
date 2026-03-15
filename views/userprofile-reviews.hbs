@@ -33,6 +33,21 @@
                     <div><strong>{{currentUser.comments}}</strong><br>Comments</div>
                     <div><strong>{{currentUser.points}}</strong><br>Points</div>
                 </div>
+
+                <!-- Tier Progress Bar -->
+                <div class="tier-progress">
+                    <div class="tier-info">
+                        <span class="tier-badge">{{currentUser.currentTierIcon}} {{currentUser.currentTier}}</span>
+                        {{#if currentUser.nextTier}}
+                        <span class="tier-next">{{currentUser.pointsToNext}} points to {{currentUser.nextTierIcon}} {{currentUser.nextTier}}</span>
+                        {{else}}
+                        <span class="tier-max">Max Tier Reached!</span>
+                        {{/if}}
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{currentUser.progress}}%"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -42,7 +57,7 @@
                 <span class="close" onclick="closeEditProfilePopup()">&times;</span>
                 <h2>Edit Profile</h2>
                 <br>
-                <form method="POST" action="/profile/update">
+                <form onsubmit="submitProfileUpdate(event)">
                     <div class="form-group">
                         <label>Change Display Name</label>
                         <input type="text" name="name" value="{{currentUser.name}}">
@@ -59,8 +74,8 @@
                     </div>
                     <br>
                     <div class="form-group">
-                        <label>Edit Description</label>
-                        <input type="text" name="description" value="{{currentUser.description}}">
+                        <label>Edit Bio</label>
+                        <input type="text" name="bio" value="{{currentUser.bio}}">
                     </div>
                     <br>
                     <button type="submit" class="submit-btn">Update Profile</button>
@@ -133,7 +148,8 @@
 
                     <div class="options-dropdown-3">
                         <div class="option-item-3" onclick="editReview('{{_id}}')">✏️ Edit</div>
-                        <div class="option-item-3" onclick="deleteReview('{{_id}}')">🗑️ Delete</div>                        <div class="option-item-3" onclick="deleteReview('{{_id}}')">🗑️ Delete</div>                    </div>
+                        <div class="option-item-3" onclick="deleteReview('{{_id}}')">🗑️ Delete</div>
+                    </div>
                 </div>
                 {{/if}}
             </div>
@@ -184,14 +200,17 @@
                     </div>
                 </div>
                 <div class="score-item">
-                        <span class="score-label">Taste:</span>
-                        <div class="star-rating small">
-                            {{{renderStars scores.taste}}}
-                        </div>
+                    <span class="score-label">Taste:</span>
+                    <div class="star-rating small">
+                        {{{renderStars scores.taste}}}
+                    </div>
                 </div>
                 <div class="score-item">
                     <span class="score-label">Ambiance:</span>
                     <div class="star-rating small">
+                        {{{renderStars scores.ambiance}}}
+                    </div>
+                </div>
             </div>
 
             <div class="review-title-3">
@@ -204,8 +223,35 @@
             <br>
             <hr>
             <br>
-            <div class="comments">
-                💬 {{comments.length}} Comments ▼
+            <div class="review-actions">
+                <button class="vote-btn upvote-btn {{userVoteClass this}}" data-post-id="{{toString _id}}" data-action="upvote">👍 {{likes}}</button>
+                <button class="vote-btn downvote-btn {{userVoteClass this 'downvote'}}" data-post-id="{{toString _id}}" data-action="downvote">👎 {{dislikes}}</button>
+                <span class="toggle-comments">💬 {{comments.length}} Comments ▶</span>
+            </div>
+
+            <div class="comments-section">
+                {{#each comments}}
+                <div class="comment-item">
+                    <div class="comment-avatar {{currentUser.rankClass}}">{{currentUser.initials}}</div>
+                    <div class="review-user-info">
+                        <highlight>{{currentUser.name}} <span class="review-date">· {{date}}</span></highlight>
+                        <div class="review-text-2">{{text}}</div>
+                    </div>
+                </div>
+                {{/each}}
+
+                <!-- Add Comment Form -->
+                <div class="add-comment">
+                    {{#if ../currentUser.name}}
+                    <div class="comment-avatar {{../currentUser.rankClass}}">{{../currentUser.avatar}}</div>
+                    {{else}}
+                    <div class="comment-avatar">?</div>
+                    {{/if}}
+                    <div class="comment-input-container">
+                        <input type="text" class="comment-input" placeholder="Write a comment..." data-post-id="{{toString _id}}">
+                        <button class="comment-submit-btn" data-post-id="{{toString _id}}">Post</button>
+                    </div>
+                </div>
             </div>
         </div>
         {{/each}}

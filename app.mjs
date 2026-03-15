@@ -20,6 +20,14 @@ let cuisines = ["Filipino", "Chinese", "Japanese", "Korean", "Thai", "Vietnamese
 let locations = ["BGC", "Makati", "Quezon City", "Taguig"];
 let sortOptions = ["Recent", "Top Rated", "Most Commented"];
 
+// Points system constants <- !!check vals if ok na
+const POINTS = {
+    WRITE_REVIEW: 10,
+    RECEIVE_UPVOTE: 2,
+    RECEIVE_DOWNVOTE: -1,
+    RECEIVE_COMMENT: 1
+};
+
 // current active user
 let currentUser = {};
 
@@ -558,6 +566,14 @@ app.post('/write-review', async (req, res) => { //!CHECK
                 console.error("Failed to update totalReviews in the database.");
                 return res.status(500).json({ message: "Failed to update reviews count." });
             }
+
+            // Award points for writing review
+            await users.updateOne(
+                { email: currentUser.email },
+                { $inc: { points: POINTS.WRITE_REVIEW } }
+            );
+            currentUser.points = (currentUser.points || 0) + POINTS.WRITE_REVIEW;
+
             return res.redirect('/feed'); 
         } else {
             return res.status(400).json({ message: "Content is required." });
@@ -752,6 +768,7 @@ app.post('/vote', async (req, res) => {
     try {
         const db = getDb();
         const postsCollection = db.collection("posts");
+        const votesCollection = db.collection("votes");
         const users = db.collection("profile");
         const { postId, action } = req.body;
 
@@ -838,6 +855,30 @@ app.post('/vote', async (req, res) => {
             return res.status(500).json({ message: "Failed to update vote" });
         }
 
+        // Update votes collection
+        const currentVote = post.userVotes[userEmail];
+        if (currentVote) {
+            // User has a vote - save or update in votes collection
+            await votesCollection.updateOne(
+                { userId: currentUser._id, postId: new ObjectId(postId) },
+                { 
+                    $set: { 
+                        userId: currentUser._id, 
+                        postId: new ObjectId(postId), 
+                        type: currentVote,
+                        userEmail: userEmail // for easier querying
+                    }
+                },
+                { upsert: true }
+            );
+        } else {
+            // User removed their vote - delete from votes collection
+            await votesCollection.deleteOne({
+                userId: currentUser._id,
+                postId: new ObjectId(postId)
+            });
+        }
+
         
         if (userVoteChange !== 0) {
             const userUpdateField = action === 'upvote' ? 'upvotes' : 'downvotes';
@@ -862,6 +903,15 @@ app.post('/vote', async (req, res) => {
             );
             currentUser[oldField] = (currentUser[oldField] || 0) - 1;
             currentUser[newField] = (currentUser[newField] || 0) + 1;
+        }
+
+        // Award points to post owner (if not voting on own post)
+        if (post.currentUser.email !== currentUser.email && userVoteChange !== 0) {
+            const pointsToAward = action === 'upvote' ? POINTS.RECEIVE_UPVOTE : POINTS.RECEIVE_DOWNVOTE;
+            await users.updateOne(
+                { email: post.currentUser.email },
+                { $inc: { points: pointsToAward } }
+            );
         }
 
         // Get updated post data
@@ -986,16 +1036,162 @@ app.get('/notifications', (req, res) => {
         });
 });
 
+// compute user stats
+async function computeUserStats(userEmail) {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const users = db.collection("profile");
+
+        // Get user
+        const userData = await users.findOne({ email: userEmail });
+        if (!userData) return null;
+
+        // Get all reviews by user
+        const userReviews = await postsCollection.find({ "currentUser.email": userEmail }).toArray();
+
+        // Get all posts where user commented
+        const commentedPosts = await postsCollection.find({
+            "comments.currentUser.name": userData.name
+        }).toArray();
+
+        // Calculate stats
+        const totalReviews = userReviews.length;
+        const totalComments = commentedPosts.reduce((sum, post) => {
+            return sum + post.comments.filter(comment => comment.currentUser.name === userData.name).length;
+        }, 0);
+
+        const avgRating = totalReviews > 0 ?
+            userReviews.reduce((sum, review) => sum + review.ratingValue, 0) / totalReviews : 0;
+
+        // Count cuisines
+        const cuisineCount = {};
+        userReviews.forEach(review => {
+            if (review.cuisine) {
+                cuisineCount[review.cuisine] = (cuisineCount[review.cuisine] || 0) + 1;
+            }
+        });
+
+        // Count locs
+        const locationCount = {};
+        userReviews.forEach(review => {
+            if (review.location) {
+                locationCount[review.location] = (locationCount[review.location] || 0) + 1;
+            }
+        });
+
+        // Get top cuisine
+        const topCuisine = Object.keys(cuisineCount).length > 0 ?
+            Object.keys(cuisineCount).reduce((a, b) => cuisineCount[a] > cuisineCount[b] ? a : b) : 'None';
+
+        // Get unique locs count
+        const locations = Object.keys(locationCount).length;
+
+        // Get top rated resto
+        const topRated = totalReviews > 0 ? userReviews.reduce((prev, current) =>
+            (prev.ratingValue > current.ratingValue) ? prev : current
+        ).restaurant : 'None';
+
+        // Calculate total upvotes and downvotes from user posts
+        const upvotes = userReviews.reduce((sum, review) => sum + (review.likes || 0), 0);
+        const downvotes = userReviews.reduce((sum, review) => sum + (review.dislikes || 0), 0);
+
+        // Get top cuisines
+        const topCuisines = Object.entries(cuisineCount)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 3)
+            .map(([name, count]) => ({ name, count }));
+
+        // Get top locs
+        const topLocations = Object.entries(locationCount)
+            .sort(([,a], [,b]) => b - a)
+            .slice(0, 3)
+            .map(([name, count]) => ({ name, count }));
+
+        return {
+            totalReviews,
+            avgRating: Math.round(avgRating * 10) / 10,
+            topCuisine,
+            locations,
+            topRated,
+            upvotes,
+            downvotes,
+            comments: totalComments,
+            points: userData.points || 0,
+            topCuisines,
+            topLocations
+        };
+
+    } catch (err) {
+        console.error("Error computing user stats:", err);
+        return null;
+    }
+}
+
+// get tier progress
+function getTierProgress(points) { // check kung ok points for tiers
+    const tiers = [
+        { name: "Bronze", min: 0, max: 49, icon: "🥉", color: "bronze" },
+        { name: "Silver", min: 50, max: 149, icon: "🥈", color: "silver" },
+        { name: "Gold", min: 150, max: 299, icon: "🥇", color: "gold" },
+        { name: "Platinum", min: 300, max: 499, icon: "💎", color: "platinum" },
+        { name: "Diamond", min: 500, max: 999, icon: "💍", color: "diamond" },
+        { name: "Master", min: 1000, max: Infinity, icon: "🏆", color: "master" }
+    ];
+
+    let currentTier = tiers[0];
+    let nextTier = tiers[1];
+
+    for (let i = 0; i < tiers.length; i++) {
+        if (points >= tiers[i].min) {
+            currentTier = tiers[i];
+            nextTier = tiers[i + 1] || null;
+        }
+    }
+
+    const progress = nextTier ?
+        ((points - currentTier.min) / (nextTier.min - currentTier.min)) * 100 : 100;
+
+    return {
+        currentTier: currentTier.name,
+        currentTierIcon: currentTier.icon,
+        currentTierColor: currentTier.color,
+        nextTier: nextTier ? nextTier.name : null,
+        nextTierIcon: nextTier ? nextTier.icon : null,
+        progress: Math.min(progress, 100),
+        pointsToNext: nextTier ? nextTier.min - points : 0
+    };
+}
+
 //UserProfile-Reviews
 app.get('/userprofile-reviews', async (req, res) => {
     try {
         const db = getDb();
         const postsCollection = db.collection("posts");
+        const votesCollection = db.collection("votes");
         const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
-        
-        // Loop through all reviews (all owned by user since we queried by their email)
+
+        // Loop through all reviews
         for (let i = 0; i < reviews.length; i++) {
             reviews[i].ownPost = true; // Mark all as owned
+        }
+
+        // Add user vote information to each review
+        for (let review of reviews) {
+            const userVote = await votesCollection.findOne({
+                userId: currentUser._id,
+                postId: review._id
+            });
+            review.userVote = userVote ? userVote.type : null;
+        }
+
+        // Calculate user stats
+        const userStats = await computeUserStats(currentUser.email);
+        const tierProgress = getTierProgress(userStats ? userStats.points : 0);
+
+        if (userStats) {
+            const updatedUser = { ...currentUser, ...userStats, ...tierProgress };
+            currentUser = updatedUser;
         }
 
         res.render("userprofile-reviews", {
@@ -1010,29 +1206,128 @@ app.get('/userprofile-reviews', async (req, res) => {
     }
 });
 
-app.get('/userprofile-activity', (req, res) => {
-    res.render("userprofile-activity", {
-        pageTitle: "Profile-Activity",
-        activePage: "profile",
-        currentUser
-        // activities: [
-        //     {
-        //         icon: "💬",
-        //         title: "Commented on Ramen Kuroda Greenhills",
-        //         date: "Feb 02, 2026",
-        //         content: "The broth is super rich! I'd suggest going for the tamago add-on, it's worth it."
-        //     },
-        //     {
-        //         icon: "✍️",
-        //         title: "Reviewed Mendokoro Ramenba",
-        //         date: "Jan 30, 2026",
-        //         rating: 4.8,
-        //         stars: "⭐⭐⭐⭐⭐",
-        //         reviewTitle: "Tonkotsu Heaven",
-        //         content: "I've tried a lot of ramen spots around the metro..."
-        //     }
-        // ]
-    });
+app.get('/userprofile-activity', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+
+        // Calculate user stats
+        const userStats = await computeUserStats(currentUser.email);
+        const tierProgress = getTierProgress(userStats ? userStats.points : 0);
+
+        if (userStats) {
+            const updatedUser = { ...currentUser, ...userStats, ...tierProgress };
+            currentUser = updatedUser;
+        }
+
+        // Get user reviews
+        const userReviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
+
+        // Get posts where user commented
+        const commentedPosts = await postsCollection.find({
+            "comments.currentUser.name": currentUser.name
+        }).toArray();
+
+        const activities = [];
+
+        // Add review activities
+        userReviews.forEach(review => {
+            activities.push({
+                icon: "✍️",
+                title: `Reviewed ${review.restaurant}`,
+                date: review.date,
+                rating: review.ratingValue,
+                stars: review.ratingStars,
+                reviewTitle: review.title,
+                content: review.content.substring(0, 150) + (review.content.length > 150 ? "..." : ""),
+                footer: {
+                    likes: review.likes || 0,
+                    comments: review.comments ? review.comments.length : 0
+                }
+            });
+        });
+
+        // Add comment activities
+        commentedPosts.forEach(post => {
+            const userComments = post.comments.filter(comment =>
+                comment.currentUser.name === currentUser.name
+            );
+
+            userComments.forEach(comment => {
+                activities.push({
+                    icon: "💬",
+                    title: `Commented on ${post.restaurant}`,
+                    date: comment.date,
+                    content: comment.text
+                });
+            });
+        });
+
+        activities.sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
+        });
+
+        res.render("userprofile-activity", {
+            pageTitle: "Profile-Activity",
+            activePage: "profile",
+            currentUser,
+            activities: activities
+        });
+    } catch (err) {
+        console.error("Error loading user activity:", err);
+        res.status(500).send("Server error");
+    }
+});
+
+// Profile Update Route
+app.post('/update-profile', async (req, res) => {
+    try {
+        const db = getDb();
+        const users = db.collection("profile");
+        const { name, username, email, bio } = req.body;
+
+        if (!currentUser || !currentUser.email) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        // Check if username is already taken (if changed)
+        if (username !== currentUser.username) {
+            const existingUser = await users.findOne({ username: username });
+            if (existingUser) {
+                return res.status(400).json({ message: "Username already taken" });
+            }
+        }
+
+        // Check if email is already taken (if changed)
+        if (email !== currentUser.email) {
+            const existingUser = await users.findOne({ email: email });
+            if (existingUser) {
+                return res.status(400).json({ message: "Email already taken" });
+            }
+        }
+
+        // Update user profile
+        const updateData = {
+            name: name || currentUser.name,
+            username: username || currentUser.username,
+            email: email || currentUser.email,
+            bio: bio || currentUser.bio
+        };
+
+        await users.updateOne(
+            { email: currentUser.email },
+            { $set: updateData }
+        );
+
+        // Update currentUser object
+        Object.assign(currentUser, updateData);
+
+        res.json({ message: "Profile updated successfully" });
+
+    } catch (err) {
+        console.error("Error updating profile:", err);
+        res.status(500).json({ message: "Server error" });
+    }
 });
 
 // Settings 

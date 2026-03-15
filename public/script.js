@@ -250,12 +250,13 @@ async function vote(postId, action, button) {
     }
 }
 
-// Comment toggle 
+// Comment toggle
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('toggle-comments')) {
-        const commentsSection = e.target.closest('.review-card-2').querySelector('.comments-section');
+        const reviewCard = e.target.closest('.review-card-2') || e.target.closest('.review-card-3');
+        const commentsSection = reviewCard.querySelector('.comments-section');
         commentsSection.classList.toggle('show');
-        
+
         const currentText = e.target.textContent;
         const newArrow = currentText.includes('▶') ? '▼' : '▶';
         e.target.innerHTML = currentText.replace(/[▶▼]/, newArrow);
@@ -309,18 +310,18 @@ async function submitComment(postId, text, button, input) {
 
         if (response.ok) {
             input.value = '';
-            
+
             // Update comment count in toggle button
-            const reviewCard = button.closest('.review-card-2');
+            const reviewCard = button.closest('.review-card-2') || button.closest('.review-card-3');
             const toggleBtn = reviewCard.querySelector('.toggle-comments');
             const currentText = toggleBtn.textContent;
             const newCount = data.commentCount;
             toggleBtn.innerHTML = `💬 ${newCount} Comments ${currentText.includes('▼') ? '▼' : '▶'}`;
-            
+
             // Add new comment to the comments section
             const commentsSection = reviewCard.querySelector('.comments-section');
             const addCommentDiv = commentsSection.querySelector('.add-comment');
-            
+
             const commentHTML = `
                 <div class="comment-item">
                     <div class="comment-avatar ${data.comment.currentUser.rankClass}">${data.comment.currentUser.initials}</div>
@@ -330,12 +331,12 @@ async function submitComment(postId, text, button, input) {
                     </div>
                 </div>
             `;
-            
+
             addCommentDiv.insertAdjacentHTML('beforebegin', commentHTML);
-            
+
             commentsSection.classList.add('show');
             toggleBtn.innerHTML = `💬 ${newCount} Comments ▼`;
-            
+
         } else {
             alert(data.message || 'Failed to add comment');
         }
@@ -503,6 +504,13 @@ if (loginForm) {
 
 // Dropdown toggle logic
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize vote button states on page load
+    const voteButtons = document.querySelectorAll('.vote-btn');
+    voteButtons.forEach(button => {
+        const postId = button.getAttribute('data-post-id');
+        const action = button.getAttribute('data-action');
+    });
+
     // We use a delegated event listener since elements might be dynamically added or not present initially
     document.body.addEventListener('click', function(e) {
         if (e.target.closest('.options')) {
@@ -756,4 +764,39 @@ function toggleCustomLocation() {//!CHECK
 }
 
 
+// Profile Update
+async function submitProfileUpdate(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const updateData = {
+        name: formData.get('name'),
+        username: formData.get('username'),
+        email: formData.get('email'),
+        bio: formData.get('bio')
+    };
+
+    try {
+        const response = await fetch('/update-profile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            await showCustomAlert('Profile updated successfully!');
+            closeEditProfilePopup();
+            window.location.reload();
+        } else {
+            await showCustomAlert(data.message || 'Failed to update profile');
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        await showCustomAlert('Failed to update profile. Please try again.');
+    }
+}
 
