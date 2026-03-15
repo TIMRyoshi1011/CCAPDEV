@@ -27,6 +27,21 @@
                     <div><strong>{{currentUser.comments}}</strong><br>Comments</div>
                     <div><strong>{{currentUser.points}}</strong><br>Points</div>
                 </div>
+
+                <!-- Tier Progress Bar -->
+                <div class="tier-progress">
+                    <div class="tier-info">
+                        <span class="tier-badge">{{currentUser.currentTierIcon}} {{currentUser.currentTier}}</span>
+                        {{#if currentUser.nextTier}}
+                        <span class="tier-next">{{currentUser.pointsToNext}} points to {{currentUser.nextTierIcon}} {{currentUser.nextTier}}</span>
+                        {{else}}
+                        <span class="tier-max">Max Tier Reached!</span>
+                        {{/if}}
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{currentUser.progress}}%"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -35,7 +50,7 @@
             <div class="popup-content">
                 <span class="close" onclick="closeEditProfilePopup()">&times;</span>
                 <h2>Edit Profile</h2><br>
-                <form method="POST" action="/profile/update">
+                <form onsubmit="submitProfileUpdate(event)">
                     <div class="form-group">
                         <label>Change Display Name</label>
                         <input type="text" name="name" value="{{currentUser.name}}">
@@ -49,8 +64,8 @@
                         <input type="email" name="email" value="{{currentUser.email}}">
                     </div><br>
                     <div class="form-group">
-                        <label>Edit Description</label>
-                        <input type="text" name="description" value="{{currentUser.description}}">
+                        <label>Edit Bio</label>
+                        <input type="text" name="bio" value="{{currentUser.bio}}">
                     </div><br>
                     <button type="submit" class="submit-btn">Update Profile</button>
                 </form>

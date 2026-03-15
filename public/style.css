@@ -1384,6 +1384,53 @@ body {
     font-size: 20px;
 }
 
+/* Tier Progress Bar */
+.tier-progress {
+    margin-top: 20px;
+}
+
+.tier-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.tier-badge {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #333;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+}
+
+.tier-next {
+    color: #666;
+    font-size: 12px;
+}
+
+.tier-max {
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffd700, #ff6b35);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
 /* Right Panel */
 .tabs {
     display: flex;
