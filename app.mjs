@@ -630,15 +630,23 @@ app.get("/feed", async (req, res) => {
             ];
         }
 
-        let cursor = allPosts.find(query);
-
-        if (sort === 'Top Rated') {
-            cursor = cursor.sort({ ratingValue: -1 });
-        } else {
-            cursor = cursor.sort({ _id: -1 });
-        }
+        let cursor = allPosts.find(query).sort({ _id: -1 });
 
         posts = await cursor.toArray();
+
+        if (sort === 'Top Rated') {
+            posts.sort((a, b) => {
+                const ratingA = parseFloat(a.ratingValue || 0);
+                const ratingB = parseFloat(b.ratingValue || 0);
+
+                if (ratingB !== ratingA) {
+                    return ratingB - ratingA;
+                }
+
+                // For equal ratings, keep newer posts first.
+                return new Date(b.date || 0) - new Date(a.date || 0);
+            });
+        }
 
         // Refresh post author badges/tiers for display
         if (posts.length > 0) {
