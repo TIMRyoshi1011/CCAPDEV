@@ -175,6 +175,12 @@ app.get('/community-reviews', async (req, res) => {
     }
 });
 
+// Logout route (currently client-side redirect handles it, but good to have)
+app.get("/logout", (req, res) => {
+    currentUser = {}; // Clear server side mock session
+    res.redirect("/");
+});
+
 // for MongoDB Connection
 connectToMongo((err) => {
     if(err) {
@@ -303,9 +309,10 @@ app.post("/forgot-password", async (req, res) => {
 
 // Change Password
 app.post("/change-password", async (req, res) => {
-    const { email, newPassword } = req.body;
-
     try {
+        const { email, newPassword } = req.body;
+        console.log(`[Change Password] Request for ${email}`);
+
         const db = getDb();
         const users = db.collection("profile");
 
@@ -394,6 +401,44 @@ app.get("/feed", async (req, res) => { //!CHECK
                 const commentsB = b.comments ? b.comments.length : 0;
                 return commentsB - commentsA;
             });
+        }
+
+        // Calculate global stats dynamically (using all posts)
+        if (currentUser) {
+            const globalPosts = await allPosts.find({}).toArray();
+            if (globalPosts.length > 0) {
+                currentUser.totalReviews = globalPosts.length;
+                
+                // Calculate Top Cuisine
+                const cuisineCounts = {};
+                globalPosts.forEach(post => {
+                    const c = post.cuisine;
+                    if (c) cuisineCounts[c] = (cuisineCounts[c] || 0) + 1;
+                });
+                if (Object.keys(cuisineCounts).length > 0) {
+                     currentUser.topCuisine = Object.keys(cuisineCounts).reduce((a, b) => cuisineCounts[a] > cuisineCounts[b] ? a : b);
+                } else {
+                    currentUser.topCuisine = "None";
+                }
+
+                // Calculate Avg Rating
+                const totalRating = globalPosts.reduce((acc, post) => acc + parseFloat(post.ratingValue || 0), 0);
+                currentUser.avgRating = (totalRating / globalPosts.length).toFixed(1);
+
+                // Calculate Locations count
+                const uniqueLocations = new Set(globalPosts.map(p => p.location).filter(l => l));
+                currentUser.locations = uniqueLocations.size;
+
+                // Calculate Top Rated (Highest rated restaurant)
+                const topRatedPost = globalPosts.reduce((prev, current) => (parseFloat(prev.ratingValue || 0) > parseFloat(current.ratingValue || 0)) ? prev : current);
+                currentUser.topRated = topRatedPost.restaurant || "None";
+            } else {
+                currentUser.totalReviews = 0;
+                currentUser.topCuisine = "None";
+                currentUser.avgRating = 0;
+                currentUser.locations = 0;
+                currentUser.topRated = "None";
+            }
         }
 
         // Loop through all posts to check ownership

@@ -79,13 +79,16 @@
     <div id="changePasswordPopup" class="popup hidden">
         <div class="popup-content">
             <span class="close" onclick="closeChangePassword()">&times;</span>
-            <h2>Change Password</h2>
-            <h1>Please enter your new password below</h1>
+            <div class="report-header">
+                <h2 class="report-title">
+                    <span class="report-title-icon" style="color: #4b5563;">🔒</span> Change Password
+                </h2>
+            </div>
 
-            <form onsubmit="submitChangePassword(); return false;">
+            <form onsubmit="event.preventDefault(); submitChangePassword();">
                 <div class="form-group">
                     <label for="email-code">Code sent on your email</label>
-                    <input type="password" id="email-code" required>
+                    <input type="password" id="email-code">
                 </div>
 
                 <div class="form-group">
@@ -98,9 +101,19 @@
                     <input type="password" id="confirm-password" required>
                 </div>
 
+                <div class="password-requirements">
+                    <strong>Password Requirements</strong>
+                    <ul>
+                        <li>At least 6 characters long</li>
+                    </ul>
+                </div>
+
                 <div id="change-pw-error-msg" class="form-error-message"></div>
 
-                <button type="submit" class="submit-btn">Change Password</button>
+                <div class="report-actions">
+                    <button type="button" class="submit-btn report-cancel-btn" onclick="closeChangePassword()">Cancel</button>
+                    <button type="submit" class="submit-btn report-submit-btn" style="background: #E94E66;">Change Password</button>
+                </div>
             </form>
         </div>
     </div>
@@ -219,7 +232,7 @@
                 <h2>🔥 Top Reviews</h2>
                 <p>See what the community is loving right now</p>
             </div>
-            <button class="view-all" onclick="window.location='/community-reviews'">View All →</button>
+            <button class="view-all" onclick="window.location.href='/community-reviews'">View All →</button>
         </div>
 
         <div class="review-grid-2">
@@ -285,6 +298,50 @@
             {{/each}}
         </div>
     </section>
+
+    <!-- Password Success Popup -->
+    <div id="successPasswordPopup" class="popup hidden">
+        <div class="popup-content" style="text-align: center; padding: 40px 20px;">
+            <div class="success-icon-container">
+                <span>&check;</span>
+            </div>
+            <h2 class="success-title">Password Changed!</h2>
+            <p class="success-message">
+                Your password has been updated successfully.<br>
+                You can now use your new password to log in.
+            </p>
+            <button class="success-done-btn" onclick="closeSuccessPassword(); openLoginPopup();">Done</button>
+        </div>
+    </div>
+
+    <!-- App Mod: Added Custom Popups for JS Alerts -->
+    <div id="customAlertPopup" class="popup hidden">
+        <div class="popup-content" style="text-align: center; padding: 40px 20px;">
+            <span class="close" onclick="closeCustomAlert()">&times;</span>
+            <div class="success-icon-container">
+                <span>&check;</span>
+            </div>
+            <h2 class="success-title">Message</h2>
+            <p id="customAlertMessage" class="success-message">Operation successful!</p>
+            <button class="success-done-btn" onclick="closeCustomAlert()">OK</button>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Popup -->
+    <div id="customConfirmPopup" class="popup hidden">
+        <div class="popup-content" style="text-align: center; padding: 40px 20px;">
+            <span class="close" onclick="closeCustomConfirm(false)">&times;</span>
+            <div class="success-icon-container" style="background-color: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                <span style="font-size: 28px;">❓</span>
+            </div>
+            <h2 class="success-title">Confirm Action</h2>
+            <p id="customConfirmMessage" class="success-message">Are you sure?</p>
+            <div class="report-actions" style="justify-content: center; gap: 15px; margin-top: 20px;">
+                <button class="success-done-btn" onclick="closeCustomConfirm(true)" style="width: 120px; background-color: #d94866;">Yes</button>
+                <button class="success-done-btn" onclick="closeCustomConfirm(false)" style="width: 120px; background-color: #f3f4f6; color: #4b5563; box-shadow: none;">Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

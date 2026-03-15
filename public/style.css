@@ -1150,25 +1150,6 @@ body {
     font-size: 14px;
 }
 
-.view-toggle { /* Toggle buttons for grid/list view */
-    margin-left: auto;
-    display: flex;
-    gap: 10px;
-}
-
-.view-toggle button { /* Individual toggle buttons for each */
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    background: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.view-toggle button.active {
-    background: #f0f0f0;
-}
-
 /* ============= COMMENTS ============= */
 .comments-section { /* Comments section */
     margin-top: 20px;

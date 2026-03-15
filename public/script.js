@@ -170,12 +170,13 @@ function goToSettings() {
 }
 
 function goToLanding() {
-    window.location.href = "Landing.html";
+    window.location.href = "/";
 }
 
 function logout() {
-
-    window.location.href = "Landing.html";
+    fetch("/logout").then(() => {
+        window.location.href = "/";
+    });
 }
 
 // Voting functionality
@@ -354,49 +355,78 @@ async function submitForgotPassword() {
     
     hideInlineError("forgot-error-msg");
 
-    const response = await fetch("/forgot-password", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email })
-    });
+    try {
+        const response = await fetch("/forgot-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
+        });
 
-    const data = await response.json();
-    if (data.success) {
-        window.resetEmail = email; 
-        closeForgotPasswordPopup();
-        openChangePassword();
-    } else {
-        showInlineError("forgot-error-msg", data.message);
+        const data = await response.json();
+        if (data.success) {
+            window.resetEmail = email; 
+            closeForgotPasswordPopup();
+            openChangePassword();
+        } else {
+            showInlineError("forgot-error-msg", data.message || "Email not found");
+        }
+    } catch (err) {
+        console.error("Forgot password error:", err);
+        showInlineError("forgot-error-msg", "An error occurred.");
     }
 }
 
 // Change Password
 async function submitChangePassword() {
+    console.log("submitChangePassword called");
     const newPassword = document.getElementById("new-password").value;
     const confirmPassword = document.getElementById("confirm-password").value;
 
     hideInlineError("change-pw-error-msg");
 
+    if (newPassword.length < 6) {
+        showInlineError("change-pw-error-msg", "New password must be at least 6 characters long.");
+        return;
+    }
+
     if (newPassword !== confirmPassword) {
         showInlineError("change-pw-error-msg", "Passwords do not match");
         return;
     }
-    const response = await fetch("/change-password", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            email: window.resetEmail,
-            newPassword: newPassword
-        })
-    });
-    const data = await response.json();
-    await showCustomAlert(data.message);
-    closeChangePassword();
-    openLoginPopup();
+
+    if (!window.resetEmail) {
+        console.error("No reset email in session");
+        showInlineError("change-pw-error-msg", "Session expired. Please restart the process.");
+        return;
+    }
+    
+    console.log("Sending request for:", window.resetEmail);
+
+    try {
+        const response = await fetch("/change-password", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: window.resetEmail,
+                newPassword: newPassword
+            })
+        });
+
+        const data = await response.json();
+        console.log("Response:", data);
+
+        if (response.ok && data.message !== "User not found.") {
+            closeChangePassword();
+            openSuccessPassword();
+        } else {
+            showInlineError("change-pw-error-msg", data.message || "Failed to change password");
+        }
+    } catch (error) {
+        console.error("Error changing password:", error);
+        showInlineError("change-pw-error-msg", "An error occurred. Please try again.");
+    }
 }
 
 // Sign Up
@@ -626,11 +656,19 @@ async function submitReport() {
 
 // --- UPDATE PASSWORD LOGIC ---
 function openUpdatePassword() {
+    console.log("Opening update password popup...");
     const popup = document.getElementById("updatePasswordPopup");
     if (popup) {
         popup.classList.remove("hidden");
-        document.getElementById("updatePasswordForm").reset();
+        const form = document.getElementById("updatePasswordForm");
+        if (form) form.reset();
         hideInlineError("update-pw-error-msg");
+        console.log("Popup opened.");
+    } else {
+        console.error("Update password popup not found!");
+        // Create popup dynamically if missing? No, user should fix layout.
+        // Alert user for fallback
+        alert("Password popup not found. Please refresh the page.");
     }
 }
 
@@ -724,6 +762,7 @@ function toggleCustomLocation() {//!CHECK
         input.value = '';
     }
 }
+
 
 // Profile Update
 async function submitProfileUpdate(event) {
