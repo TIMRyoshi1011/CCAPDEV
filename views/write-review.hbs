@@ -41,11 +41,11 @@
             <label for="foodRating">Food Quality:</label>
             <select name="foodRating" required>
                 <option value="">Select rating...</option>
-                <option value="1" {{#if editing}}{{#if (eq post.ratingValue 1)}}selected{{/if}}{{/if}}>1 - Poor</option>
-                <option value="2" {{#if editing}}{{#if (eq post.ratingValue 2)}}selected{{/if}}{{/if}}>2 - Fair</option>
-                <option value="3" {{#if editing}}{{#if (eq post.ratingValue 3)}}selected{{/if}}{{/if}}>3 - Good</option>
-                <option value="4" {{#if editing}}{{#if (eq post.ratingValue 4)}}selected{{/if}}{{/if}}>4 - Very Good</option>
-                <option value="5" {{#if editing}}{{#if (eq post.ratingValue 5)}}selected{{/if}}{{/if}}>5 - Excellent</option>
+                <option value="1" {{#if editing}}{{#if (eq post.scores.taste 1)}}selected{{/if}}{{/if}}>1 - Poor</option>
+                <option value="2" {{#if editing}}{{#if (eq post.scores.taste 2)}}selected{{/if}}{{/if}}>2 - Fair</option>
+                <option value="3" {{#if editing}}{{#if (eq post.scores.taste 3)}}selected{{/if}}{{/if}}>3 - Good</option>
+                <option value="4" {{#if editing}}{{#if (eq post.scores.taste 4)}}selected{{/if}}{{/if}}>4 - Very Good</option>
+                <option value="5" {{#if editing}}{{#if (eq post.scores.taste 5)}}selected{{/if}}{{/if}}>5 - Excellent</option>
             </select>
 
             <label for="serviceRating">Service:</label>

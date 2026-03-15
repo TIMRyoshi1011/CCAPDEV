@@ -167,6 +167,12 @@ app.get('/community-reviews', async (req, res) => {
     }
 });
 
+// Logout route (currently client-side redirect handles it, but good to have)
+app.get("/logout", (req, res) => {
+    currentUser = {}; // Clear server side mock session
+    res.redirect("/");
+});
+
 // for MongoDB Connection
 connectToMongo((err) => {
     if(err) {
@@ -295,9 +301,10 @@ app.post("/forgot-password", async (req, res) => {
 
 // Change Password
 app.post("/change-password", async (req, res) => {
-    const { email, newPassword } = req.body;
-
     try {
+        const { email, newPassword } = req.body;
+        console.log(`[Change Password] Request for ${email}`);
+
         const db = getDb();
         const users = db.collection("profile");
 

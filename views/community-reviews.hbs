@@ -12,7 +12,7 @@
 <body>
     <!-- Header (same as homepage, might need to change if needed account before accessing reviews) -->
     <div class="header">
-        <h3 class="name" onclick="window.location='/'" style="cursor: pointer;">Bite<span>Back</span></h3>
+        <h3 class="name" onclick="window.location.href='/'" style="cursor: pointer;">Bite<span>Back</span></h3>
 
         <div class="buttons">
             <button class="login" onclick="openLoginPopup()">Login</button>
@@ -83,10 +83,10 @@
             <h2>Change Password</h2>
             <h1>Please enter your new password below</h1>
 
-            <form onsubmit="submitChangePassword(); return false;">
+            <form onsubmit="event.preventDefault(); submitChangePassword();">
                 <div class="form-group">
                     <label for="email-code">Code sent on your email</label>
-                    <input type="password" id="email-code" required>
+                    <input type="password" id="email-code">
                 </div>
 
                 <div class="form-group">
