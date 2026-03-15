@@ -25,7 +25,8 @@ const POINTS = {
     WRITE_REVIEW: 10,
     RECEIVE_UPVOTE: 2,
     RECEIVE_DOWNVOTE: -1,
-    RECEIVE_COMMENT: 1
+    ADD_COMMENT: 2,
+    RECEIVE_COMMENT: 2
 };
 
 const TIER_THRESHOLDS = {
@@ -1315,6 +1316,14 @@ app.post('/comment', async (req, res) => {
         currentUser.comments = (currentUser.comments || 0) + 1;
 
         const updatedPost = await postsCollection.findOne({ _id: new ObjectId(postId) });
+
+        // Update reputation for the comment author
+        await updateUserReputation(currentUser.email, POINTS.ADD_COMMENT);
+
+        // Update reputation for the post author (if not self)
+        if (updatedPost && updatedPost.currentUser && updatedPost.currentUser.email !== currentUser.email) {
+            await updateUserReputation(updatedPost.currentUser.email, POINTS.RECEIVE_COMMENT);
+        }
 
         res.json({
             message: "Comment added successfully",

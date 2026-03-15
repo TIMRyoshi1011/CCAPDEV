@@ -14,18 +14,10 @@ async function main() {
         const postsCollection = db.collection("posts");
         const votesCollection = db.collection("votes");
 
-        // Clear existing data is commented out to preserve data
         await usersCollection.deleteMany({});
         await postsCollection.deleteMany({});
         await votesCollection.deleteMany({});
         console.log("Checking and preserving existing data...");
-
-        // --- 1. Create Users ---
-        // Points Calculation Rules:
-        // WRITE_REVIEW: 10
-        // RECEIVE_UPVOTE: 2
-        // RECEIVE_DOWNVOTE: -1
-        // RECEIVE_COMMENT: 1
 
         const usersData = [
             {
@@ -39,10 +31,7 @@ async function main() {
                 memberSince: "January 15, 2024",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 21, // 1 Post(10) + 4 Upvotes(8) + 1 Downvote(-1) + 2 Comments on Post(2) + 2 Comments Made(2) = 21 -> Wait, adjusted logic below:
-                            // Post: Jollibee (Likes: 4, Dislikes: 1, Comments: 2)
-                            // Points: 10 (Post) + 4*2 (Likes) + 1*-1 (Dislikes) + 2*1 (Comments Received) = 19
-                            // Let's stick to Receieved interactions for simplicity + Writing Review.
+                points: 23,
                 nextTier: "Silver",
                 verified: false,
                 bio: "Food enthusiast exploring Metro Manila.",
@@ -53,8 +42,8 @@ async function main() {
                 locations: 1,
                 topRated: "Jollibee",
                 comments: 1,
-                upvotes: 2, // Cast
-                downvotes: 0 // Cast
+                upvotes: 2,
+                downvotes: 0
             },
             {
                 name: "Mia Santos",
@@ -67,8 +56,7 @@ async function main() {
                 memberSince: "March 10, 2023",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 21, // Post: Yabu (Likes: 5, Dislikes: 0, Comments: 1)
-                            // Points: 10 + 5*2 + 0 + 1 = 21
+                points: 24,
                 nextTier: "Silver",
                 verified: false,
                 bio: "Curator of fine dining experiences.",
@@ -78,7 +66,7 @@ async function main() {
                 avgRating: 5.0,
                 locations: 1,
                 topRated: "Yabu",
-                comments: 1,  
+                comments: 1,
                 upvotes: 3,
                 downvotes: 0
             },
@@ -93,8 +81,7 @@ async function main() {
                 memberSince: "July 22, 2024",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 13, // Post: Illo (Likes: 2, Dislikes: 1, Comments: 1)
-                            // Points: 10 + 2*2 - 1 + 1 = 14 -> 14
+                points: 17,
                 nextTier: "Silver",
                 verified: false,
                 bio: "Always hungry for ramen.",
@@ -104,7 +91,7 @@ async function main() {
                 avgRating: 3.0,
                 locations: 1,
                 topRated: "Illo",
-                comments: 1,  
+                comments: 1,
                 upvotes: 1,
                 downvotes: 0
             },
@@ -119,7 +106,7 @@ async function main() {
                 memberSince: "January 5, 2025",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 12,
+                points: 14,
                 nextTier: "Silver",
                 verified: false,
                 bio: "New to the city!",
@@ -129,7 +116,7 @@ async function main() {
                 avgRating: 3.5,
                 locations: 1,
                 topRated: "Chef Bab's Sisig",
-                comments: 1,  
+                comments: 1,
                 upvotes: 0,
                 downvotes: 0
             },
@@ -144,7 +131,7 @@ async function main() {
                 memberSince: "February 14, 2024",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 48, 
+                points: 48,
                 nextTier: "Silver",
                 verified: false,
                 bio: "Dessert lover.",
@@ -154,7 +141,7 @@ async function main() {
                 avgRating: 3.8,
                 locations: 3,
                 topRated: "La Toca Taqueria",
-                comments: 0, 
+                comments: 0,
                 upvotes: 0,
                 downvotes: 0
             },
@@ -169,7 +156,7 @@ async function main() {
                 memberSince: "February 14, 2024",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 17, 
+                points: 20,
                 nextTier: "Silver",
                 verified: false,
                 bio: "Dessert lover.",
@@ -179,7 +166,7 @@ async function main() {
                 avgRating: 4.8,
                 locations: 1,
                 topRated: "Gino's Brick Oven Pizza",
-                comments: 1,  
+                comments: 1,
                 upvotes: 2,
                 downvotes: 0
             }
@@ -195,25 +182,22 @@ async function main() {
         }
         console.log(`${usersInserted} users inserted (skipped ${usersData.length - usersInserted} existing)`);
 
-        // Get users back to use in posts (need _id and structure)
         const users = await usersCollection.find().toArray();
         const userMap = {};
         users.forEach(u => userMap[u.username] = u);
 
-        // Helper to create comment object
         const createComment = (user, text) => ({
             currentUser: {
                 name: user.name,
                 avatar: user.avatar,
                 rankClass: user.rankClass,
                 initials: user.avatar,
-                email: user.email // Crucial for activity tracking
+                email: user.email
             },
             text: text,
             date: new Date().toLocaleDateString()
         });
 
-        // --- 2. Create Posts ---
         const postsData = [
             {
                 currentUser: userMap['lance_chua'],
@@ -225,11 +209,11 @@ async function main() {
                 date: new Date().toLocaleDateString(),
                 ratingStars: "⭐⭐⭐⭐",
                 ratingValue: 4.0,
-                ownPost: true, 
+                ownPost: true,
                 tags: [],
                 scores: { service: 4.0, taste: 5.0, ambiance: 3.0 },
-                likes: 4, 
-                dislikes: 1, 
+                likes: 4,
+                dislikes: 1,
                 comments: [
                     createComment(userMap['mia_santos'], "Totally agree about the gravy!"),
                     createComment(userMap['carlo_dc'], "Best fast food chicken hands down.")
@@ -248,285 +232,27 @@ async function main() {
                 ownPost: true,
                 tags: [],
                 scores: { service: 5.0, taste: 5.0, ambiance: 4.5 },
-                likes: 5, // Max realistic
+                likes: 5,
                 dislikes: 0,
                 comments: [
                     createComment(userMap['rina_reyes'], "The miso soup is great too.")
                 ]
-            },
-            {
-                currentUser: userMap['rina_reyes'],
-                restaurant: "Illo",
-                cuisine: "Japanese",
-                location: "BGC",
-                title: "Decent but Overhyped",
-                content: "The sukiyaki pot was tasty enough, sure. But the portions felt small for the price and the wait time was almost an hour on a Tuesday.",
-                date: new Date().toLocaleDateString(),
-                ratingStars: "⭐⭐⭐",
-                ratingValue: 3.0,
-                ownPost: true,
-                tags: [],
-                scores: { service: 3.0, taste: 4.0, ambiance: 5.0 },
-                likes: 2, 
-                dislikes: 1,
-                comments: [
-                    createComment(userMap['bea_alonzo'], "Oh no, I was planning to go there. Thanks for the heads up!")
-                ]
-            },
-            {
-                currentUser: userMap['carlo_dc'],
-                restaurant: "Chef Bab's Sisig",
-                cuisine: "Filipino",
-                location: "Quezon City",
-                title: "Good Sisig",
-                content: "Solid sisig for the price. Not the best I've had but definitely hits the spot.",
-                date: new Date().toLocaleDateString(),
-                ratingStars: "⭐⭐⭐",
-                ratingValue: 3.5,
-                ownPost: true,
-                tags: [],
-                scores: { service: 3.0, taste: 4.0, ambiance: 2.0 },
-                likes: 1,
-                dislikes: 0,
-                comments: []
-            },
-            {
-                currentUser: userMap['bea_alonzo'],
-                restaurant: "Gino's Brick Oven Pizza",
-                cuisine: "Italian",
-                location: "Taguig",
-                title: "Chocolate Pizza!",
-                content: "You have to try the chocolate pizza for dessert. It's surprisingly good with the sea salt.",
-                date: new Date().toLocaleDateString(),
-                ratingStars: "⭐⭐⭐⭐⭐",
-                ratingValue: 4.8,
-                ownPost: true,
-                tags: [],
-                scores: { service: 4.5, taste: 5.0, ambiance: 4.0 },
-                likes: 3,
-                dislikes: 0,
-                comments: [
-                    createComment(userMap['lance_chua'], "Adding this to my list!")
-                ]
-            },
-            {
-                currentUser: userMap['justine_valdes'],
-                restaurant: "Mcdonalds",
-                cuisine: "American",
-                location: "Pasig",
-                title: "Bad!",
-                content: "Super stale fries :(( Nuggets taste reheated. Please do better!",
-                date: "March 15, 2026",
-                ratingStars: "⭐⭐⭐",
-                ratingValue: 2.7,
-                ownPost: true,
-                tags: [],
-                scores: { service: 4.0, taste: 1.0, ambiance: 3.0 },
-                likes: 0,
-                dislikes: 0,
-                comments: []
-            },
-            {
-                currentUser: userMap['justine_valdes'],
-                restaurant: "La Toca Taqueria",
-                cuisine: "Mexican",
-                location: "Quezon City",
-                title: "Birria cravings satisfied!",
-                content: "Authentic tacos! The birria is a must-try. Consome was flavorful.",
-                date: "February 20, 2026",
-                ratingStars: "⭐⭐⭐⭐",
-                ratingValue: 4.5,
-                ownPost: true,
-                tags: [],
-                scores: { service: 4.5, taste: 5.0, ambiance: 4.0 },
-                likes: 1,
-                dislikes: 0,
-                comments: []
-            },
-            {
-                currentUser: userMap['justine_valdes'],
-                restaurant: "The Barn",
-                cuisine: "American",
-                location: "Taguig",
-                title: "Cozy vibes",
-                content: "Cozy place, good coffee, but the pasta was a bit salty for my taste.",
-                date: "January 15, 2026",
-                ratingStars: "⭐⭐⭐", // 3.8 ~ 4 or 3.5. Let's say 4 for now in visual or 3.
-                ratingValue: 3.8,
-                ownPost: true,
-                tags: [],
-                scores: { service: 4.0, taste: 3.5, ambiance: 4.0 },
-                likes: 1,
-                dislikes: 0,
-                comments: []
-            },
-            {
-                currentUser: userMap['justine_valdes'],
-                restaurant: "Rica's Bacsilog",
-                cuisine: "Filipino",
-                location: "Quezon City",
-                title: "Classic comfort food",
-                content: "The cheese sauce never fails. Cheap and filling.",
-                date: "March 10, 2026",
-                ratingStars: "⭐⭐⭐⭐",
-                ratingValue: 4.0,
-                ownPost: true,
-                tags: [],
-                scores: { service: 3.0, taste: 5.0, ambiance: 2.0 },
-                likes: 2,
-                dislikes: 0,
-                comments: []
             }
         ];
 
         let postsInserted = 0;
         for (const postData of postsData) {
-            // Check if post exists by title and author
-            const existingPost = await postsCollection.findOne({ 
-                title: postData.title, 
-                "currentUser.username": postData.currentUser.username 
+            const existingPost = await postsCollection.findOne({
+                title: postData.title,
+                "currentUser.username": postData.currentUser.username
             });
-            
+
             if (!existingPost) {
                 await postsCollection.insertOne(postData);
                 postsInserted++;
             }
         }
         console.log(`${postsInserted} posts inserted (skipped ${postsData.length - postsInserted} existing)`);
-        
-        // Comments are now included directly in the post data above.
-        
-        // --- 3. Create Votes (Notifications) ---
-        console.log("Creating votes for notifications...");
-        const allPosts = await postsCollection.find().toArray();
-        const allUsersForVotes = await usersCollection.find().toArray();
-        
-        for (const post of allPosts) {
-            let availableVoters = allUsersForVotes.filter(u => u.email !== post.currentUser.email);
-            let userVotes = {};
-            
-            // Add Upvotes
-            for (let i = 0; i < (post.likes || 0); i++) {
-                if (availableVoters.length === 0) break;
-                
-                // Pick random user
-                const voterIndex = Math.floor(Math.random() * availableVoters.length);
-                const voter = availableVoters.splice(voterIndex, 1)[0];
-                
-                // Add to votes collection (CRITICAL for notifications)
-                await votesCollection.updateOne(
-                    { userId: voter._id, postId: post._id },
-                    { 
-                        $set: { 
-                            userId: voter._id, 
-                            postId: post._id, 
-                            type: 'upvote',
-                            userEmail: voter.email,
-                            date: new Date() // CRITICAL: Only votes with dates show as notifications
-                        } 
-                    },
-                    { upsert: true }
-                );
-                
-                userVotes[voter.email] = 'upvote';
-            }
-            
-            // Add Downvotes
-            for (let i = 0; i < (post.dislikes || 0); i++) {
-                if (availableVoters.length === 0) break;
-                
-                const voterIndex = Math.floor(Math.random() * availableVoters.length);
-                const voter = availableVoters.splice(voterIndex, 1)[0];
-                
-                await votesCollection.updateOne(
-                    { userId: voter._id, postId: post._id },
-                    { 
-                        $set: { 
-                            userId: voter._id, 
-                            postId: post._id, 
-                            type: 'downvote',
-                            userEmail: voter.email,
-                            date: new Date() 
-                        } 
-                    },
-                    { upsert: true }
-                );
-                
-                userVotes[voter.email] = 'downvote';
-            }
-            
-            // Update post with userVotes map so buttons show correct state
-            if (Object.keys(userVotes).length > 0) {
-               await postsCollection.updateOne(
-                   { _id: post._id },
-                   { $set: { userVotes: userVotes } }
-               );
-            }
-        }
-        console.log("Votes created.");
-
-        // --- 4. Update User Stats Based on Posts ---
-        console.log("Updating user stats...");
-        
-        // Refresh users list cause we need to iterate all of them
-        const allUsers = await usersCollection.find().toArray();
-
-        for (const user of allUsers) {
-             const userPosts = await postsCollection.find({ "currentUser.email": user.email }).toArray();
-             
-             if (userPosts.length > 0) {
-                 const totalReviews = userPosts.length;
-                 
-                 // Avg Rating
-                 const totalRating = userPosts.reduce((acc, p) => acc + parseFloat(p.ratingValue || 0), 0);
-                 const avgRating = parseFloat((totalRating / totalReviews).toFixed(1));
-
-                 // Locations
-                 const uniqueLocations = new Set(userPosts.map(p => p.location).filter(l => l)).size;
-
-                 // Top Cuisine
-                  const cuisineCounts = {};
-                  let topCuisine = "None";
-                  userPosts.forEach(post => {
-                      const c = post.cuisine;
-                      if (c) cuisineCounts[c] = (cuisineCounts[c] || 0) + 1;
-                  });
-                  if (Object.keys(cuisineCounts).length > 0) {
-                      topCuisine = Object.keys(cuisineCounts).reduce((a, b) => cuisineCounts[a] > cuisineCounts[b] ? a : b);
-                  }
-
-                 // Top Rated
-                 const topRatedPost = userPosts.reduce((prev, current) => (parseFloat(prev.ratingValue || 0) > parseFloat(current.ratingValue || 0)) ? prev : current);
-                 const topRated = topRatedPost.restaurant || "None";
-                 
-                 // Update User
-                 await usersCollection.updateOne(
-                     { _id: user._id },
-                     { $set: { 
-                         totalReviews, 
-                         avgRating, 
-                         locations: uniqueLocations, 
-                         topCuisine, 
-                         topRated 
-                     }}
-                 );
-                 console.log(`Updated stats for ${user.username}`);
-             } else {
-                 // Reset stats if no posts found
-                 await usersCollection.updateOne(
-                     { _id: user._id },
-                     { $set: { 
-                         totalReviews: 0, 
-                         avgRating: 0, 
-                         locations: 0, 
-                         topCuisine: "None", 
-                         topRated: "None" 
-                     }}
-                 );
-             }
-        }
-
-        console.log("Seed complete with stat updates!");
 
     } catch (err) {
         console.error(err);
