@@ -4,6 +4,6 @@ Execute these before running the server:
 - npm i express-handlebars (for handlebars)
 - npm i mongodb (for mongodb)
 <p></p>
-To Run Server: node app.mjs <br>
-To Run Server w/ updates: node --watch app.mjs <br>
+To Run Server: node app.mjs <br> <br>
+
 Type <ins>localhost:3000</ins> to browser
