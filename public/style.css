@@ -1562,6 +1562,14 @@ body {
   margin-bottom: 10px;
 }
 
+.activity-footer {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #999;
+  margin-top: 8px;
+}
+
 .header-left {
   display: flex;
   align-items: center;

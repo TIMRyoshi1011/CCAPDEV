@@ -93,7 +93,7 @@
                         <span class="verified-2">✔ Verified</span>
                         {{/if}}
                     </div>
-                    <div class="review-date">{{date}}</div>
+                    <div class="review-date">{{formatDate date}}</div>
                 </div>
             </div>
 
@@ -147,7 +147,7 @@
                 <div class="comment-item">
                     <div class="comment-avatar {{currentUser.rankClass}}">{{currentUser.initials}}</div>
                     <div class="review-user-info">
-                        <highlight>{{currentUser.name}} <span class="review-date">· {{date}}</span></highlight>
+                        <highlight>{{currentUser.name}} <span class="review-date">· {{formatDate date}}</span></highlight>
                         <div class="review-text-2">{{text}}</div>
                     </div>
                 </div>

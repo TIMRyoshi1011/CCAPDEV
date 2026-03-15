@@ -9,7 +9,7 @@
             <div class="profile-content">
                 <h2>
                     {{currentUser.name}}
-                    <span class="badge platinum">{{currentUser.tierIcon}} {{currentUser.tier}}</span>
+                    <span class="badge platinum">{{currentUser.currentTierIcon}} {{currentUser.currentTier}}</span>
                     {{#if currentUser.verified}}
                     <span class="badge verified">Verified</span>
                     {{/if}}
@@ -116,7 +116,7 @@
                 <div class="icon-3">{{icon}}</div>
                 <div>
                     <div class="title">{{title}}</div>
-                    <div class="date">{{date}}</div>
+                    <div class="date">{{formatDate date}}</div>
                 </div>
                 {{#if rating}}
                 <div class="rating">
@@ -127,14 +127,15 @@
             </div>
 
             {{#if reviewTitle}}
-            <div class="review-title">{{reviewTitle}}</div>
+            <div class="review-title-3">{{reviewTitle}}</div>
             {{/if}}
 
             <p class="activity-text">{{content}}</p><br>
 
             {{#if footer}}
             <div class="activity-footer">
-                <span>👍 {{footer.likes}} . </span>
+                <span>👍 {{footer.likes}}</span>
+                <span>👎 {{footer.dislikes}}</span>
                 <span>💬 {{footer.comments}}</span>
             </div>
             {{/if}}

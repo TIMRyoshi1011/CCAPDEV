@@ -63,7 +63,12 @@ app.engine("hbs", exphbs.engine({
                 }
             }
             return stars;
-        }
+        },
+        formatDate: (dateStr) => {
+            const date = new Date(dateStr);
+            if (isNaN(date)) return dateStr;
+            return date.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'});
+        },
     },
     layoutsDir: path.join(__dirname, "views/layouts")
 }));
@@ -538,7 +543,7 @@ app.post('/write-review', async (req, res) => { //!CHECK
                 location,
                 title: title,
                 content,
-                date: new Date().toLocaleDateString(),
+                date: new Date().toISOString(),
                 ratingStars: "⭐".repeat(Math.round(avgRating)),
                 ratingValue: avgRating,
                 ownPost: true,
@@ -956,7 +961,7 @@ app.post('/comment', async (req, res) => {
                 email: currentUser.email
             },
             text: text.trim(),
-            date: new Date().toLocaleDateString()
+            date: new Date().toISOString()
         };
 
         // Add comment to post
@@ -1063,7 +1068,7 @@ async function computeUserStats(userEmail) {
         }, 0);
 
         const avgRating = totalReviews > 0 ?
-            userReviews.reduce((sum, review) => sum + review.ratingValue, 0) / totalReviews : 0;
+            userReviews.reduce((sum, review) => sum + parseFloat(review.ratingValue || 0), 0) / totalReviews : 0;
 
         // Count cuisines
         const cuisineCount = {};
@@ -1170,7 +1175,7 @@ app.get('/userprofile-reviews', async (req, res) => {
         const db = getDb();
         const postsCollection = db.collection("posts");
         const votesCollection = db.collection("votes");
-        const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
+        const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).sort({ _id: -1 }).toArray();
 
         // Loop through all reviews
         for (let i = 0; i < reviews.length; i++) {
@@ -1243,6 +1248,7 @@ app.get('/userprofile-activity', async (req, res) => {
                 content: review.content.substring(0, 150) + (review.content.length > 150 ? "..." : ""),
                 footer: {
                     likes: review.likes || 0,
+                    dislikes: review.dislikes || 0,
                     comments: review.comments ? review.comments.length : 0
                 }
             });
@@ -1265,7 +1271,10 @@ app.get('/userprofile-activity', async (req, res) => {
         });
 
         activities.sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            if (isNaN(dateA) || isNaN(dateB)) return 0;
+            return dateB - dateA;
         });
 
         res.render("userprofile-activity", {
