@@ -1,6 +1,7 @@
 // --- Custom System Dialogs using Existing Popups ---
 let alertResolve = null;
 let confirmResolve = null;
+let deleteCommentContext = null;
 
 function showCustomAlert(message) {
     return new Promise((resolve) => {
@@ -521,18 +522,9 @@ function deleteComment(btn) {
     const commentItem = btn.closest('.comment-item');
     const postId = commentItem.dataset.postId;
     const commentIndex = commentItem.dataset.commentIndex;
-
-    if (!confirm("Delete this comment?")) return;
-
-    fetch(`/comment/${postId}/${commentIndex}`, { method: 'DELETE' })
-        .then(res => res.json())
-        .then(data => {
-            if (data.message === "Comment deleted") {
-                commentItem.remove();
-            } else {
-                alert(data.message);
-            }
-        });
+    
+    deleteCommentContext = { commentItem, postId, commentIndex };
+    openDeleteCommentPopup();
 }
 
 function editComment(btn) {
@@ -1074,5 +1066,38 @@ async function submitDeleteAccount() {
         alert('An error occurred. Please try again.');
         closeDeleteAccountConfirm();
     }
+}
+
+function openDeleteCommentPopup() {
+    const popup = document.getElementById('deleteCommentPopup');
+    if (popup) popup.classList.remove('hidden');
+}
+
+function closeDeleteCommentPopup() {
+     const popup = document.getElementById('deleteCommentPopup');
+     if (popup) popup.classList.add('hidden');
+    deleteCommentContext = null;
+}
+
+function confirmDeleteComment() {
+    if (!deleteCommentContext) return;
+    const { commentItem, postId, commentIndex } = deleteCommentContext;
+
+    fetch(`/comment/${postId}/${commentIndex}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message === "Comment deleted") {
+                commentItem.remove();
+            } else {
+                showCustomAlert(data.message);
+            }
+        })
+        .catch(err => {
+            console.error('Error deleting comment:', err);
+            showCustomAlert('Failed to delete comment. Please try again.');
+        })
+        .finally(() => {
+             closeDeleteCommentPopup();
+        });
 }
 
