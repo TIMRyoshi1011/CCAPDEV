@@ -178,6 +178,175 @@ function logout() {
     window.location.href = "Landing.html";
 }
 
+// Voting functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize vote button states
+    document.querySelectorAll('.vote-btn').forEach(btn => {
+        const postElement = btn.closest('.review-card-2');
+        if (postElement) {
+            const userVote = postElement.getAttribute('data-user-vote');
+            if (userVote) {
+                const action = btn.getAttribute('data-action');
+                if (userVote === action) {
+                    btn.classList.add('voted');
+                }
+            }
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('vote-btn')) {
+            e.preventDefault();
+            const button = e.target;
+            const postId = button.getAttribute('data-post-id');
+            const action = button.getAttribute('data-action');
+            
+            vote(postId, action, button);
+        }
+    });
+});
+
+async function vote(postId, action, button) {
+    try {
+        const response = await fetch('/vote', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                postId: postId,
+                action: action
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Update vote counts
+            const reviewActions = button.closest('.review-actions');
+            const upvoteBtn = reviewActions.querySelector('.upvote-btn');
+            const downvoteBtn = reviewActions.querySelector('.downvote-btn');
+            
+            upvoteBtn.textContent = `👍 ${data.likes}`;
+            downvoteBtn.textContent = `👎 ${data.dislikes}`;
+            
+            // Update button states based on user's current vote
+            upvoteBtn.classList.toggle('voted', data.userVote === 'upvote');
+            downvoteBtn.classList.toggle('voted', data.userVote === 'downvote');
+
+            // Add animation effect
+            button.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 150);
+
+        } else {
+            alert(data.message || 'Failed to vote');
+        }
+    } catch (error) {
+        console.error('Error voting:', error);
+        alert('Failed to vote. Please try again.');
+    }
+}
+
+// Comment toggle 
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('toggle-comments')) {
+        const commentsSection = e.target.closest('.review-card-2').querySelector('.comments-section');
+        commentsSection.classList.toggle('show');
+        
+        const currentText = e.target.textContent;
+        const newArrow = currentText.includes('▶') ? '▼' : '▶';
+        e.target.innerHTML = currentText.replace(/[▶▼]/, newArrow);
+    }
+});
+
+// Comment submission functionality
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('comment-submit-btn')) {
+        const button = e.target;
+        const postId = button.getAttribute('data-post-id');
+        const input = button.closest('.comment-input-container').querySelector('.comment-input');
+        const commentText = input.value.trim();
+        
+        if (commentText) {
+            submitComment(postId, commentText, button, input);
+        }
+    }
+});
+
+document.addEventListener('keypress', function(e) {
+    if (e.target.classList.contains('comment-input') && e.key === 'Enter') {
+        const input = e.target;
+        const postId = input.getAttribute('data-post-id');
+        const commentText = input.value.trim();
+        const button = input.closest('.comment-input-container').querySelector('.comment-submit-btn');
+        
+        if (commentText) {
+            submitComment(postId, commentText, button, input);
+        }
+    }
+});
+
+async function submitComment(postId, text, button, input) {
+    try {
+        button.disabled = true;
+        button.textContent = 'Posting...';
+        
+        const response = await fetch('/comment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                postId: postId,
+                text: text
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            input.value = '';
+            
+            // Update comment count in toggle button
+            const reviewCard = button.closest('.review-card-2');
+            const toggleBtn = reviewCard.querySelector('.toggle-comments');
+            const currentText = toggleBtn.textContent;
+            const newCount = data.commentCount;
+            toggleBtn.innerHTML = `💬 ${newCount} Comments ${currentText.includes('▼') ? '▼' : '▶'}`;
+            
+            // Add new comment to the comments section
+            const commentsSection = reviewCard.querySelector('.comments-section');
+            const addCommentDiv = commentsSection.querySelector('.add-comment');
+            
+            const commentHTML = `
+                <div class="comment-item">
+                    <div class="comment-avatar ${data.comment.currentUser.rankClass}">${data.comment.currentUser.initials}</div>
+                    <div class="review-user-info">
+                        <highlight>${data.comment.currentUser.name} <span class="review-date">· ${data.comment.date}</span></highlight>
+                        <div class="review-text-2">${data.comment.text}</div>
+                    </div>
+                </div>
+            `;
+            
+            addCommentDiv.insertAdjacentHTML('beforebegin', commentHTML);
+            
+            commentsSection.classList.add('show');
+            toggleBtn.innerHTML = `💬 ${newCount} Comments ▼`;
+            
+        } else {
+            alert(data.message || 'Failed to add comment');
+        }
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        alert('Failed to add comment. Please try again.');
+    } finally {
+        button.disabled = false;
+        button.textContent = 'Post';
+    }
+}
+
 // Forgot Password
 async function submitForgotPassword() {
     const email = document.getElementById("forgot-email").value;

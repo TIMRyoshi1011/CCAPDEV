@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import exphbs from "express-handlebars";
 import { connectToMongo, getDb } from "./db/conn.js";
+import { ObjectId } from "mongodb";
 
 const app = express();
 const port = 3000;
@@ -30,7 +31,14 @@ app.engine("hbs", exphbs.engine({
     extname: ".hbs",
     defaultLayout: "main",
     helpers: {
-        eq: (a, b) => a === b
+        eq: (a, b) => a === b,
+        toString: (obj) => obj ? obj.toString() : '',
+        userVoteClass: (post, voteType) => {
+            if (post.userVote === voteType) {
+                return 'voted';
+            }
+            return '';
+        }
     },
     layoutsDir: path.join(__dirname, "views/layouts")
 }));
@@ -234,6 +242,7 @@ app.get("/feed", async (req, res) => { //!CHECK
     try {
         const db = getDb(); 
         const allPosts = db.collection("posts");
+        const votesCollection = db.collection("votes");
 
         const { cuisine, location, sort } = req.query;
         let query = {};
@@ -273,6 +282,15 @@ app.get("/feed", async (req, res) => { //!CHECK
                 posts[i].ownPost = false;
             }
             // console.log(`Post ${posts[i]._id} owned by ${posts[i].currentUser?.email}: ${posts[i].ownPost}`);
+        }
+
+        // Add user vote information to each post
+        for (let post of posts) {
+            const userVote = await votesCollection.findOne({
+                userId: currentUser._id,
+                postId: post._id
+            });
+            post.userVote = userVote ? userVote.type : null;
         }
 
         res.render("feed", {
@@ -385,8 +403,6 @@ app.post('/write-review', async (req, res) => { //!CHECK
     }
 });
         
-import { ObjectId } from "mongodb";
-
 // Delete Review
 app.delete('/delete-review/:id', async (req, res) => {
     try {
@@ -558,6 +574,198 @@ app.post('/edit-review/:id', async (req, res) => {
     } catch(err) {
         console.error(err);
         res.status(500).send("Server error");
+    }
+});
+
+// Voting route
+app.post('/vote', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const users = db.collection("profile");
+        const { postId, action } = req.body;
+
+        if (!currentUser || !currentUser.email) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        if (!postId || !action) {
+            return res.status(400).json({ message: "Post ID and action are required" });
+        }
+
+        if (action !== 'upvote' && action !== 'downvote') {
+            return res.status(400).json({ message: "Invalid action" });
+        }
+
+        // Find post
+        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        // Initialize userVotes
+        if (!post.userVotes) {
+            post.userVotes = {};
+        }
+
+        const userEmail = currentUser.email;
+        const previousVote = post.userVotes[userEmail];
+
+        let likesChange = 0;
+        let dislikesChange = 0;
+        let userVoteChange = 0; // user's total votes
+
+        // Handle vote logic
+        if (previousVote === action) {
+            // User is trying to vote the same way again - remove their vote
+            if (action === 'upvote') {
+                likesChange = -1;
+            } else {
+                dislikesChange = -1;
+            }
+            userVoteChange = -1;
+            delete post.userVotes[userEmail];
+        } else if (previousVote) {
+            // User had a different vote - switch votes
+            if (previousVote === 'upvote') {
+                likesChange = -1;
+                dislikesChange = 1;
+            } else {
+                likesChange = 1;
+                dislikesChange = -1;
+            }
+            post.userVotes[userEmail] = action;
+        } else {
+            // User hasn't voted before - add new vote
+            if (action === 'upvote') {
+                likesChange = 1;
+            } else {
+                dislikesChange = 1;
+            }
+            userVoteChange = 1;
+            post.userVotes[userEmail] = action;
+        }
+
+        // Update post votes and userVotes
+        const updateObj = {
+            $inc: {},
+            $set: { userVotes: post.userVotes }
+        };
+
+        if (likesChange !== 0) {
+            updateObj.$inc.likes = likesChange;
+        }
+        if (dislikesChange !== 0) {
+            updateObj.$inc.dislikes = dislikesChange;
+        }
+
+        const result = await postsCollection.updateOne(
+            { _id: new ObjectId(postId) },
+            updateObj
+        );
+
+        if (result.modifiedCount === 0) {
+            return res.status(500).json({ message: "Failed to update vote" });
+        }
+
+        
+        if (userVoteChange !== 0) {
+            const userUpdateField = action === 'upvote' ? 'upvotes' : 'downvotes';
+            await users.updateOne(
+                { email: currentUser.email },
+                { $inc: { [userUpdateField]: userVoteChange } }
+            );
+            currentUser[userUpdateField] = (currentUser[userUpdateField] || 0) + userVoteChange;
+        } else if (previousVote && previousVote !== action) {
+            // User switched votes - update both counters
+            const oldField = previousVote === 'upvote' ? 'upvotes' : 'downvotes';
+            const newField = action === 'upvote' ? 'upvotes' : 'downvotes';
+
+            await users.updateOne(
+                { email: currentUser.email },
+                {
+                    $inc: {
+                        [oldField]: -1,
+                        [newField]: 1
+                    }
+                }
+            );
+            currentUser[oldField] = (currentUser[oldField] || 0) - 1;
+            currentUser[newField] = (currentUser[newField] || 0) + 1;
+        }
+
+        // Get updated post data
+        const updatedPost = await postsCollection.findOne({ _id: new ObjectId(postId) });
+
+        res.json({
+            message: "Vote updated successfully",
+            likes: updatedPost.likes,
+            dislikes: updatedPost.dislikes,
+            userVote: updatedPost.userVotes[userEmail] || null
+        });
+
+    } catch (err) {
+        console.error("Error voting:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Comment functionality
+app.post('/comment', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const users = db.collection("profile");
+        const { postId, text } = req.body;
+
+        if (!currentUser || !currentUser.email) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        if (!postId || !text || text.trim() === '') {
+            return res.status(400).json({ message: "Post ID and comment text are required" });
+        }
+
+        // Create new comment
+        const newComment = {
+            currentUser: {
+                name: currentUser.name,
+                avatar: currentUser.avatar,
+                rankClass: currentUser.rankClass,
+                initials: currentUser.name.split(' ').map(word => word[0].toUpperCase()).join('')
+            },
+            text: text.trim(),
+            date: new Date().toLocaleDateString()
+        };
+
+        // Add comment to post
+        const result = await postsCollection.updateOne(
+            { _id: new ObjectId(postId) },
+            { $push: { comments: newComment } }
+        );
+
+        if (result.modifiedCount === 0) {
+            return res.status(500).json({ message: "Failed to add comment" });
+        }
+
+        await users.updateOne(
+            { email: currentUser.email },
+            { $inc: { comments: 1 } }
+        );
+
+        currentUser.comments = (currentUser.comments || 0) + 1;
+
+        const updatedPost = await postsCollection.findOne({ _id: new ObjectId(postId) });
+
+        res.json({
+            message: "Comment added successfully",
+            comment: newComment,
+            commentCount: updatedPost.comments.length
+        });
+
+    } catch (err) {
+        console.error("Error adding comment:", err);
+        res.status(500).json({ message: "Server error" });
     }
 });
 
