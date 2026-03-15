@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-let cuisines = ["Filipino", "Korean", "Indian", "Japanese"];
+let cuisines = ["Filipino", "Chinese", "Japanese", "Korean", "Thai", "Vietnamese", "Italian", "American", "Indian", "Mexican"];
 let locations = ["BGC", "Makati", "Quezon City", "Taguig"];
 let sortOptions = ["Recent", "Top Rated", "Most Commented"];
 
@@ -201,14 +201,88 @@ app.post("/change-password", async (req, res) => {
     }
 });
 
+// Update Password for signed in user
+app.post("/update-password", async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    try {
+        if (!currentUser) {
+            return res.status(401).json({ message: "Not logged in." });
+        }
+
+        const db = getDb();
+        const users = db.collection("profile");
+
+        // Verify current password first
+        if (currentUser.password !== currentPassword) {
+            return res.status(400).json({ message: "Current password is incorrect." });
+        }
+
+        const result = await users.updateOne(
+            { email: currentUser.email },
+            { $set: { password: newPassword } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // Update local session mock
+        currentUser.password = newPassword;
+
+        res.json({ message: "Password updated successfully!" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error." });
+    }
+});
+
 // After login, redirect to feed
-app.get("/feed", async (req, res) => {
+app.get("/feed", async (req, res) => { //!CHECK
     try {
         const db = getDb(); 
         const allPosts = db.collection("posts");
         const votesCollection = db.collection("votes");
 
-        posts = await allPosts.find({}).toArray();
+        const { cuisine, location, sort } = req.query;
+        let query = {};
+
+        if (cuisine && cuisine !== '') {
+            query.cuisine = cuisine;
+        }
+
+        if (location && location !== '') {
+            query.location = location;
+        }
+
+        let cursor = allPosts.find(query);
+
+        if (sort === 'Top Rated') {
+            cursor = cursor.sort({ ratingValue: -1 });
+        } else {
+            cursor = cursor.sort({ _id: -1 });
+        }
+
+        posts = await cursor.toArray();
+
+        if (sort === 'Most Commented') {
+            posts.sort((a, b) => {
+                const commentsA = a.comments ? a.comments.length : 0;
+                const commentsB = b.comments ? b.comments.length : 0;
+                return commentsB - commentsA;
+            });
+        }
+
+        // Loop through all posts to check ownership
+        for (let i = 0; i < posts.length; i++) {
+            // Check if the current user owns the post
+            if (currentUser.email && posts[i].currentUser && posts[i].currentUser.email === currentUser.email) {
+                posts[i].ownPost = true;
+            } else {
+                posts[i].ownPost = false;
+            }
+            // console.log(`Post ${posts[i]._id} owned by ${posts[i].currentUser?.email}: ${posts[i].ownPost}`);
+        }
 
         // Add user vote information to each post
         for (let post of posts) {
@@ -227,7 +301,10 @@ app.get("/feed", async (req, res) => {
             activePage: "feed",
             currentUser,
             notifications: 0,
-            posts
+            posts: posts,
+            selectedCuisine: cuisine,
+            selectedLocation: location,
+            selectedSort: sort
         });
 
     } catch (err) {
@@ -240,30 +317,60 @@ app.get("/feed", async (req, res) => {
 app.get("/write-review", (req, res) => {
     res.render("write-review", {
         pageTitle: "Write Review",
-        currentUser
+        currentUser,
+        cuisines,
+        locations
     });
 });
 
 // posting the review
-app.post('/write-review', async (req, res) => {
+app.post('/write-review', async (req, res) => { //!CHECK
     try {
         const db = getDb();
         const users = db.collection("profile");
         const uploadPost = db.collection("posts");
-        const { restaurant, content, foodRating, serviceRating } = req.body;
+        let { restaurant, cuisine, customCuisine, location, customLocation, content, foodRating, serviceRating, ambianceRating, title } = req.body;
+
+        // Handle Custom Cuisine
+        if (cuisine === "Other" && customCuisine) {
+            customCuisine = customCuisine.trim();
+            // Capitalize first letter of each word
+            customCuisine = customCuisine.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+            
+            if (!cuisines.includes(customCuisine)) {
+                cuisines.push(customCuisine);
+                cuisines.sort(); // Keep alphabetical
+            }
+            cuisine = customCuisine;
+        }
+
+        // Handle Custom Location
+        if (location === "Other" && customLocation) {
+            customLocation = customLocation.trim();
+            // Capitalize first letter of each word
+            customLocation = customLocation.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+
+            if (!locations.includes(customLocation)) {
+                locations.push(customLocation);
+                locations.sort();
+            }
+            location = customLocation;
+        }
 
         if (content && content.trim() !== '') {
             const newPost = {
                 currentUser,
                 restaurant,
-                title: `${restaurant} Review`,
+                cuisine,
+                location,
+                title: title,
                 content,
                 date: new Date().toLocaleDateString(),
                 ratingStars: "⭐".repeat(foodRating),
-                ratingValue: foodRating,
+                ratingValue: parseInt(foodRating),
                 ownPost: true,
                 tags: [],
-                scores: { service: serviceRating, taste: foodRating, ambiance: 5 }, // papalitan nalang ng ambiance
+                scores: { service: parseInt(serviceRating), taste: parseInt(foodRating), ambiance: parseInt(ambianceRating) },
                 likes: 0,
                 dislikes: 0,
                 comments: []
@@ -290,10 +397,185 @@ app.post('/write-review', async (req, res) => {
         } else {
             return res.status(400).json({ message: "Content is required." });
         }
-        res.redirect('/feed');
     } catch (err) {
         console.error("Error writing review:", err);
         return res.status(500).json({ message: "Server error." });
+    }
+});
+        
+import { ObjectId } from "mongodb";
+
+// Delete Review
+app.delete('/delete-review/:id', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const users = db.collection("profile");
+        const postId = req.params.id;
+
+        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+        
+        // Ownership check
+        if (post.currentUser.email !== currentUser.email) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        await postsCollection.deleteOne({ _id: new ObjectId(postId) });
+        
+        // Decrement user reviews count
+        let nReviews = currentUser.totalReviews - 1;
+        if(nReviews < 0) nReviews = 0;
+        
+        currentUser.totalReviews = nReviews;
+
+        await users.updateOne(
+            { email: currentUser.email },        
+            { $set: { totalReviews: nReviews } } 
+        );
+
+        res.json({ message: "Review deleted" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+// Report Review
+app.post('/report-review/:id', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const postId = req.params.id;
+        const { reason } = req.body;
+
+        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        // Add a reports array if it doesn't exist, and push the new report
+        await postsCollection.updateOne(
+            { _id: new ObjectId(postId) },
+            { 
+                $push: { 
+                    reports: {
+                        reporterEmail: currentUser ? currentUser.email : "anonymous",
+                        reason: reason || "No reason provided",
+                        timestamp: new Date()
+                    }
+                } 
+            }
+        );
+
+        res.status(200).json({ message: "Review successfully reported", success: true });
+    } catch (err) {
+        console.error("Error reporting review:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+// Edit Review Page
+app.get('/edit-review/:id', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const postId = req.params.id;
+        
+        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+
+        if (!post) {
+            return res.status(404).send("Post not found");
+        }
+        
+        // Ownership check
+        if (post.currentUser.email !== currentUser.email) {
+            return res.status(403).send("Unauthorized");
+        }
+
+        res.render("write-review", {
+            pageTitle: "Edit Review",
+            currentUser,
+            editing: true,
+            post, 
+            cuisines, 
+            locations 
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server error");
+    }
+});
+
+// Update Review
+app.post('/edit-review/:id', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const postId = req.params.id;
+        
+        let { restaurant, cuisine, customCuisine, location, customLocation, content, foodRating, serviceRating, ambianceRating, title } = req.body;
+        
+        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        
+        if (!post) {
+             return res.status(404).send("Post not found");
+        }
+         // Ownership check
+         if (post.currentUser.email !== currentUser.email) {
+            return res.status(403).send("Unauthorized");
+        }
+
+         // Handle Custom Cuisine
+         if (cuisine === "Other" && customCuisine) {
+            customCuisine = customCuisine.trim();
+            customCuisine = customCuisine.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+            
+            if (!cuisines.includes(customCuisine)) {
+                cuisines.push(customCuisine);
+                cuisines.sort();
+            }
+            cuisine = customCuisine;
+        }
+
+        // Handle Custom Location
+        if (location === "Other" && customLocation) {
+            customLocation = customLocation.trim();
+            customLocation = customLocation.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+
+            if (!locations.includes(customLocation)) {
+                locations.push(customLocation);
+                locations.sort();
+            }
+            location = customLocation;
+        }
+        
+        const updatedPost = {
+            restaurant,
+            cuisine,
+            location,
+            title,
+            content,
+            edited: true,
+            editedDate: new Date().toLocaleDateString(), 
+            ratingStars: "⭐".repeat(foodRating),
+            ratingValue: parseInt(foodRating),
+            scores: { service: parseInt(serviceRating), taste: parseInt(foodRating), ambiance: parseInt(ambianceRating) }
+        };
+        
+        await postsCollection.updateOne(
+            { _id: new ObjectId(postId) },
+            { $set: updatedPost }
+        );
+        
+        res.redirect('/feed');
+        
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Server error");
     }
 });
 
@@ -537,43 +819,27 @@ app.get('/notifications', (req, res) => {
 });
 
 //UserProfile-Reviews
-app.get('/userprofile-reviews', (req, res) => {
-    res.render("userprofile-reviews", {
-        pageTitle: "Profile-Reviews",
-        activePage: "profile",
-        currentUser
-        // reviews: [
-        //     {
-        //     restaurant: "Yabu",
-        //     cuisine: "Indian",
-        //     location: "Makati",
-        //     rating: 4.7,
-        //     title: "Best Butter Chicken in Manila",
-        //     content: "I've tried a LOT of Indian restaurants...",
-        //     date: "Jan 26, 2026",
-        //     service: "★★★★★",
-        //     taste: "★★★★★",
-        //     ambiance: "★★★★☆",
-        //     comments: 2,
-        //     ownPost: true
-        //     },
+app.get('/userprofile-reviews', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
+        
+        // Loop through all reviews (all owned by user since we queried by their email)
+        for (let i = 0; i < reviews.length; i++) {
+            reviews[i].ownPost = true; // Mark all as owned
+        }
 
-        //     {
-        //     restaurant: "Kodawari",
-        //     cuisine: "Japanese",
-        //     location: "BGC",
-        //     rating: 5.0,
-        //     title: "Gyudon so bomb",
-        //     content: "The Japanese Gyudon here is genuinely one of the best...",
-        //     date: "Jan 20, 2026",
-        //     service: "★★★★★",
-        //     taste: "★★★★★",
-        //     ambiance: "★★★★★",
-        //     comments: 2,
-        //     ownPost: true
-        //     }
-        // ]
-    });
+        res.render("userprofile-reviews", {
+            pageTitle: "Profile-Reviews",
+            activePage: "profile",
+            currentUser,
+            reviews: reviews
+        });
+    } catch (err) {
+        console.error("Error loading user reviews:", err);
+        res.status(500).send("Server error");
+    }
 });
 
 app.get('/userprofile-activity', (req, res) => {
@@ -616,5 +882,5 @@ app.get('/settings', (req, res) => {
 
 // server activation
 app.listen(port, () => {
-    console.log(`Server runinng at http://localhost:${port}`);
+    console.log(`Server running at http://localhost:${port}`);
 });

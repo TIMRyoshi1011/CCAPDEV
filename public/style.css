@@ -487,6 +487,21 @@ body {
     font-size: 13px;
 }
 
+.form-error-message {
+    background-color: #fff0f0;
+    color: #e53e3e;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 18px;
+    display: none;
+    text-align: left;
+}
+
+.form-error-message.show {
+    display: block;
+}
+
 .login-options {
     display: flex;
     justify-content: space-between;
@@ -877,13 +892,34 @@ body {
     font-weight: 600;
 }
 
-.review-tags { /* Container for category tags */
+.badge-cuisine {
+    background-color: #f0fdf4;
+    color: #166534; 
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.badge-location {
+    background-color: #f3f4f6;
+    color: #374151;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.review-tags { 
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
 }
 
-.tag-2 { /* Individual category tag pill */
+.tag-2 { 
     background: #f0f0f0;
     padding: 5px 12px;
     border-radius: 15px;
@@ -891,7 +927,7 @@ body {
     color: #666;
 }
 
-.review-scores { /* Food/Service/Ambience scores */
+.review-scores { 
     font-size: 12px;
     color: #999;
     margin-bottom: 12px;
@@ -907,7 +943,7 @@ body {
     line-height: 1.6;
 }
 
-.review-actions { /* Like and comment action buttons */
+.review-actions { 
     display: flex;
     align-items: center;
     gap: 20px;
@@ -1437,6 +1473,11 @@ body {
     font-size: 20px;
 }
 
+.options-container-3 {
+    position: relative;
+    margin-left: auto; /* Push to right */
+}
+
 .review-user-3 {
     display: flex;
     gap: 12px;
@@ -1570,3 +1611,80 @@ body {
   margin-top: 3px;
 }
 
+
+/* Update Password Specific Styles */
+.password-requirements {
+    background: linear-gradient(135deg, #e5f8a0 0%, #c4e456 100%);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.password-requirements strong {
+    color: #374151;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.password-requirements ul {
+    color: #4b5563;
+    font-size: 13px;
+    margin: 0;
+    padding-left: 20px;
+}
+
+.password-requirements li {
+    margin-bottom: 5px;
+}
+
+/* Success Password Specific Styles */
+.success-icon-container {
+    background-color: #5bb381;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px auto;
+    box-shadow: 0 4px 12px rgba(91, 179, 129, 0.3);
+}
+
+.success-icon-container span {
+    color: white;
+    font-size: 32px;
+    line-height: 1;
+}
+
+.success-title {
+    font-size: 24px;
+    color: #2d3748;
+    margin-bottom: 15px;
+}
+
+.success-message {
+    color: #6b7280;
+    font-size: 15px;
+    margin-bottom: 30px;
+    line-height: 1.5;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.success-done-btn {
+    background-color: #d94866;
+    width: auto;
+    padding: 12px 40px;
+    margin: 0 auto;
+    display: block;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    color: white;
+    cursor: pointer;
+    box-shadow: none;
+}

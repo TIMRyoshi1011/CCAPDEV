@@ -128,13 +128,12 @@
                 <h3>{{restaurant}}</h3>
 
                 {{#if ownPost}}
-                <div class="options-container-3">
+                <div class="options-container-3" data-post-id="{{_id}}">
                     <div class="options">...</div>
 
                     <div class="options-dropdown-3">
-                        <div class="option-item-3">✏️ Edit</div>
-                        <div class="option-item-3">🗑️ Delete</div>
-                    </div>
+                        <div class="option-item-3" onclick="editReview('{{_id}}')">✏️ Edit</div>
+                        <div class="option-item-3" onclick="deleteReview('{{_id}}')">🗑️ Delete</div>                        <div class="option-item-3" onclick="deleteReview('{{_id}}')">🗑️ Delete</div>                    </div>
                 </div>
                 {{/if}}
             </div>
@@ -159,22 +158,27 @@
                 </div>
 
                 <div class="rating-3">
-                    ★★★★★ {{rating}}
+                    {{ratingStars}} {{ratingValue}}
                 </div>
             </div>
 
             <br>
 
-            <span class="badge country">{{cuisine}}</span>
+            {{#if cuisine}}
+            <span class="badge country" style="background-color: #eee; padding: 5px 10px; border-radius: 20px; font-size: 0.9em; margin-right: 5px;">🍽️ {{cuisine}}</span>
+            {{/if}}
+            
+            {{#if location}}
             <span class="badge location">📍 {{location}}</span>
+            {{/if}}
 
             <br>
             <br>
 
             <span style="font-size:15px; color:#777;">
-                Service: {{service}}
-                Taste: {{taste}}
-                Ambiance: {{ambiance}}
+                Service: {{scores.service}}
+                Taste: {{scores.taste}}
+                Ambiance: {{scores.ambiance}}
             </span>
 
             <div class="review-title-3">
@@ -188,7 +192,7 @@
             <hr>
             <br>
             <div class="comments">
-                💬 {{comments}} Comments ▼
+                💬 {{comments.length}} Comments ▼
             </div>
         </div>
         {{/each}}

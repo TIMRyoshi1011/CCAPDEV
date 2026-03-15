@@ -5,35 +5,74 @@
     </div>
 
     <div class="review-page-container">
+        {{#if editing}}
+        <form action="/edit-review/{{post._id}}" method="POST">
+        {{else}}
         <form action="/write-review" method="POST">
+        {{/if}}
             <h3>🔍 Select Restaurant</h3>
-            <input type="text" name="restaurant" placeholder="Enter restaurant name" required>
+            <div style="display: flex; gap: 20px; align-items: flex-start;">
+                <input type="text" name="restaurant" placeholder="Enter restaurant name" required value="{{#if editing}}{{post.restaurant}}{{else}}{{/if}}" style="flex: 2;">
+                
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <select name="cuisine" id="cuisineSelect" required onchange="toggleCustomCuisine()">
+                        <option value="">Select Cuisine...</option>
+                        {{#each cuisines}}
+                            <option value="{{this}}" {{#if ../editing}}{{#if (eq ../post.cuisine this)}}selected{{/if}}{{/if}}>{{this}}</option>
+                        {{/each}}
+                        <option value="Other">Add new cuisine...</option>
+                    </select>
+                    <input type="text" name="customCuisine" id="customCuisineInput" placeholder="Enter cuisine" style="display: none; margin-top: 10px;">
+                </div>
+
+                <div style="flex: 1; display: flex; flex-direction: column;">
+                    <select name="location" id="locationSelect" required onchange="toggleCustomLocation()">
+                        <option value="">Select Location...</option>
+                        {{#each locations}}
+                            <option value="{{this}}" {{#if ../editing}}{{#if (eq ../post.location this)}}selected{{/if}}{{/if}}>{{this}}</option>
+                        {{/each}}
+                        <option value="Other">Add new location...</option>
+                    </select>
+                    <input type="text" name="customLocation" id="customLocationInput" placeholder="Enter location" style="display: none; margin-top: 10px;">
+                </div>
+            </div>
 
             <h3>⭐ Rate Your Experience</h3>
-            <label for="food-rating">Food Quality:</label>
+            <label for="foodRating">Food Quality:</label>
             <select name="foodRating" required>
                 <option value="">Select rating...</option>
-                <option value="1">1 - Poor</option>
-                <option value="2">2 - Fair</option>
-                <option value="3">3 - Good</option>
-                <option value="4">4 - Very Good</option>
-                <option value="5">5 - Excellent</option>
+                <option value="1" {{#if editing}}{{#if (eq post.ratingValue 1)}}selected{{/if}}{{/if}}>1 - Poor</option>
+                <option value="2" {{#if editing}}{{#if (eq post.ratingValue 2)}}selected{{/if}}{{/if}}>2 - Fair</option>
+                <option value="3" {{#if editing}}{{#if (eq post.ratingValue 3)}}selected{{/if}}{{/if}}>3 - Good</option>
+                <option value="4" {{#if editing}}{{#if (eq post.ratingValue 4)}}selected{{/if}}{{/if}}>4 - Very Good</option>
+                <option value="5" {{#if editing}}{{#if (eq post.ratingValue 5)}}selected{{/if}}{{/if}}>5 - Excellent</option>
             </select>
 
-            <label for="service-rating">Service:</label>
+            <label for="serviceRating">Service:</label>
             <select name="serviceRating" required>
                 <option value="">Select rating...</option>
-                <option value="1">1 - Poor</option>
-                <option value="2">2 - Fair</option>
-                <option value="3">3 - Good</option>
-                <option value="4">4 - Very Good</option>
-                <option value="5">5 - Excellent</option>
+                <option value="1" {{#if editing}}{{#if (eq post.scores.service 1)}}selected{{/if}}{{/if}}>1 - Poor</option>
+                <option value="2" {{#if editing}}{{#if (eq post.scores.service 2)}}selected{{/if}}{{/if}}>2 - Fair</option>
+                <option value="3" {{#if editing}}{{#if (eq post.scores.service 3)}}selected{{/if}}{{/if}}>3 - Good</option>
+                <option value="4" {{#if editing}}{{#if (eq post.scores.service 4)}}selected{{/if}}{{/if}}>4 - Very Good</option>
+                <option value="5" {{#if editing}}{{#if (eq post.scores.service 5)}}selected{{/if}}{{/if}}>5 - Excellent</option>
+            </select>
+
+            <label for="ambianceRating">Ambiance:</label>
+            <select name="ambianceRating" required>
+                <option value="">Select rating...</option>
+                <option value="1" {{#if editing}}{{#if (eq post.scores.ambiance 1)}}selected{{/if}}{{/if}}>1 - Poor</option>
+                <option value="2" {{#if editing}}{{#if (eq post.scores.ambiance 2)}}selected{{/if}}{{/if}}>2 - Fair</option>
+                <option value="3" {{#if editing}}{{#if (eq post.scores.ambiance 3)}}selected{{/if}}{{/if}}>3 - Good</option>
+                <option value="4" {{#if editing}}{{#if (eq post.scores.ambiance 4)}}selected{{/if}}{{/if}}>4 - Very Good</option>
+                <option value="5" {{#if editing}}{{#if (eq post.scores.ambiance 5)}}selected{{/if}}{{/if}}>5 - Excellent</option>
             </select>
 
             <h3>📝 Write Your Review</h3>
-            <textarea name="content" rows="5" placeholder="Share your thoughts..." required></textarea>
+            <input type="text" name="title" placeholder="Review Title" required class="review-title-input" value="{{#if editing}}{{post.title}}{{else}}{{/if}}">
+            <textarea name="content" rows="5" placeholder="Share your thoughts..." required>{{#if editing}}{{post.content}}{{else}}{{/if}}</textarea>
 
-            <button type="submit" class="submit-review-btn">Submit Review</button>
+            <button type="submit" class="submit-review-btn">{{#if editing}}Update Review{{else}}Submit Review{{/if}}</button>
         </form>
     </div>
 </div>

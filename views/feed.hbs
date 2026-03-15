@@ -25,34 +25,36 @@
 
     <!-- Filters -->
     <div class="filters">
-        <div class="filter-group">
-            <span>🍽️</span>
-            <select>
-                <option>Cuisine: All</option>
-                {{#each cuisines}}
-                <option>{{this}}</option>
-                {{/each}}
-            </select>
-        </div>
+        <form id="filterForm" action="/feed" method="GET" style="display: flex; gap: 15px; align-items: center;">
+            <div class="filter-group">
+                <span>🍽️</span>
+                <select name="cuisine" onchange="this.form.submit()">
+                    <option value="">Cuisine: All</option>
+                    {{#each cuisines}}
+                    <option value="{{this}}" {{#if (eq ../selectedCuisine this)}}selected{{/if}}>{{this}}</option>
+                    {{/each}}
+                </select>
+            </div>
 
-        <div class="filter-group">
-            <span>📍</span>
-            <select>
-                <option>Location: All</option>
-                {{#each locations}}
-                <option>{{this}}</option>
-                {{/each}}
-            </select>
-        </div>
+            <div class="filter-group">
+                <span>📍</span>
+                <select name="location" onchange="this.form.submit()">
+                    <option value="">Location: All</option>
+                    {{#each locations}}
+                    <option value="{{this}}" {{#if (eq ../selectedLocation this)}}selected{{/if}}>{{this}}</option>
+                    {{/each}}
+                </select>
+            </div>
 
-        <div class="filter-group">
-            <span>🕒</span>
-            <select>
-                {{#each sortOptions}}
-                <option>{{this}}</option>
-                {{/each}}
-            </select>
-        </div>
+            <div class="filter-group">
+                <span>🕒</span>
+                <select name="sort" onchange="this.form.submit()">
+                    {{#each sortOptions}}
+                    <option value="{{this}}" {{#if (eq ../selectedSort this)}}selected{{/if}}>{{this}}</option>
+                    {{/each}}
+                </select>
+            </div>
+        </form>
 
         <button class="write-review-btn" onclick="window.location.href='/write-review'">
             ✏️ Write a Review
@@ -70,17 +72,17 @@
         <div class="review-card-2" data-user-vote="{{userVote}}">
             <div class="review-header">
                 <h3>{{restaurant}}</h3>
-                <div class="options-container">
+                <div class="options-container" data-post-id="{{_id}}">
                     {{#if ownPost}}
-                    <div class="options" data-own-post="true">...</div>
-                    {{!-- <div class="options-dropdown show">
-                        <div class="option-item">✏️ Edit</div>
-                        <div class="option-item">🗑️ Delete</div>
-                    </div> --}}
+                    <div class="options">...</div>
+                    <div class="options-dropdown">
+                        <div class="option-item" onclick="editReview('{{_id}}')">✏️ Edit</div>
+                        <div class="option-item" onclick="deleteReview('{{_id}}')">🗑️ Delete</div>
+                    </div>
                     {{else}}
-                    <div class="options" data-own-post="false">...</div>
-                    <div class="options-dropdown show">
-                        <div class="option-item">🚩 Report</div>
+                    <div class="options">...</div>
+                    <div class="options-dropdown">
+                        <div class="option-item" onclick="reportReview('{{_id}}', this)">🚩 Report</div>
                     </div>
                     {{/if}}
                 </div>
@@ -98,13 +100,18 @@
                     </div>
                     <div class="review-date">{{date}}</div>
                 </div>
-                <div class="review-rating">{{ratingStars}} {{ratingValue}}</div>
             </div>
 
-            <div class="review-tags">
-                {{#each tags}}
-                <span class="tag-2">{{this}}</span>
-                {{/each}}
+            <div class="review-meta-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; margin-top: 10px;">
+                <div class="review-meta-left" style="display: flex; gap: 10px;">
+                    {{#if cuisine}}
+                    <span class="badge-cuisine">{{cuisine}}</span>
+                    {{/if}}
+                    {{#if location}}
+                    <span class="badge-location">📍 {{location}}</span>
+                    {{/if}}
+                </div>
+                <div class="review-rating">{{ratingStars}} {{ratingValue}}</div>
             </div>
 
             <div class="review-scores">
