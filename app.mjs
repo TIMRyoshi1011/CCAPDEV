@@ -4,7 +4,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import exphbs from "express-handlebars";
-import { connectToMongo, getDb } from "./db/conn.js";
+import { connectToMongo, getDb } from "./model/conn.js";
 import { ObjectId } from "mongodb";
 
 const app = express();
