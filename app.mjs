@@ -247,7 +247,7 @@ app.get('/', async (req, res) => {
             }
         }
 
-        // Top Reviews (Sort rating in descending order)
+        // Top Reviews 
         // Clone array before sorting to avoid modifying original list if needed later
         const topReviews = [...allPosts].sort((a, b) => parseFloat(b.ratingValue) - parseFloat(a.ratingValue)).slice(0, 3);
 
@@ -260,11 +260,10 @@ app.get('/', async (req, res) => {
                 avgRating: avgRating
             },
             topReviews: topReviews,
-            currentUser // Pass current user to view
+            currentUser 
         });
     } catch(err) {
         console.error("Error loading landing page:", err);
-        // Fallback to static if DB fails, or show error
         res.status(500).send("Error loading landing page");
     }
 });
@@ -272,7 +271,7 @@ app.get('/', async (req, res) => {
 
 app.get('/community-reviews', async (req, res) => {
     try {
-        await refreshCurrentUser(); // Fetch fresh user data
+        await refreshCurrentUser(); 
 
         const db = getDb();
         const postsCollection = db.collection("posts");
@@ -303,7 +302,7 @@ app.get('/community-reviews', async (req, res) => {
         res.render('community-reviews', {
             layout: false,
             posts: allPosts,
-            currentUser // Pass current user to view
+            currentUser
         });
     } catch(err) {
         console.error("Error loading community reviews:", err);
@@ -352,8 +351,6 @@ app.get("/api/user/:username", async (req, res) => {
         }
 
         // Find all posts by this user to calculate stats
-        // Note: posts collection stores author in 'currentUser' field or we might need to query by 'currentUser.username'
-        // Based on seed.js, posts have `currentUser` object embedded.
         const userPosts = await postsCollection.find({ "currentUser.username": username }).toArray();
 
         // Calculate stats
@@ -643,11 +640,11 @@ app.get("/feed", async (req, res) => {
 
         posts = await cursor.toArray();
 
-        // Refresh post author data (badges/tiers) for display
+        // Refresh post author badges/tiers for display
         if (posts.length > 0) {
             const usersCollection = db.collection("profile");
             
-            // Collect all unique usernames (post authors + comment authors)
+            // Collect all unique usernames
             const usernames = new Set();
             posts.forEach(p => {
                 if (p.currentUser && p.currentUser.username) usernames.add(p.currentUser.username);
@@ -671,9 +668,9 @@ app.get("/feed", async (req, res) => {
                         if (fresh) {
                             p.currentUser.tier = fresh.tier;
                             p.currentUser.badge = fresh.badge;
-                            p.currentUser.rankClass = fresh.rankClass; // e.g. "bronze", "silver"
+                            p.currentUser.rankClass = fresh.rankClass;
                             p.currentUser.verified = fresh.verified;
-                            p.currentUser.avatar = fresh.avatar; // Update avatar if changed
+                            p.currentUser.avatar = fresh.avatar; 
                         }
                     }
                     
@@ -687,8 +684,8 @@ app.get("/feed", async (req, res) => {
                                     c.currentUser.badge = fresh.badge;
                                     c.currentUser.rankClass = fresh.rankClass;
                                     c.currentUser.verified = fresh.verified;
-                                    c.currentUser.avatar = fresh.avatar; // Update avatar too
-                                    c.currentUser.initials = fresh.avatar; // Ensure consistency
+                                    c.currentUser.avatar = fresh.avatar;
+                                    c.currentUser.initials = fresh.avatar; 
                                 }
                             }
                         });
@@ -751,8 +748,7 @@ app.get("/feed", async (req, res) => {
             } else {
                 posts[i].ownPost = false;
             }
-            // console.log(`Post ${posts[i]._id} owned by ${posts[i].currentUser?.email}: ${posts[i].ownPost}`);
-        }
+               }
 
         // Add user vote information to each post
         for (let post of posts) {
@@ -805,7 +801,7 @@ app.post('/write-review', async (req, res) => {
         // Handle Custom Cuisine
         if (cuisine === "Other" && customCuisine) {
             customCuisine = customCuisine.trim();
-            // Capitalize first letter of each word
+            // Capitalize first letter of each word so it matches display format in feed
             customCuisine = customCuisine.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
             
             if (!cuisines.includes(customCuisine)) {
@@ -818,7 +814,7 @@ app.post('/write-review', async (req, res) => {
         // Handle Custom Location
         if (location === "Other" && customLocation) {
             customLocation = customLocation.trim();
-            // Capitalize first letter of each word
+            // Capitalize first letter of each word so it matches display format in feed
             customLocation = customLocation.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
 
             if (!locations.includes(customLocation)) {
@@ -1108,7 +1104,7 @@ app.post('/vote', async (req, res) => {
 
         let likesChange = 0;
         let dislikesChange = 0;
-        let userVoteChange = 0; // user's total votes
+        let userVoteChange = 0; 
 
         // Handles vote logic
         if (previousVote === action) {
@@ -1174,8 +1170,8 @@ app.post('/vote', async (req, res) => {
                         userId: currentUser._id, 
                         postId: new ObjectId(postId), 
                         type: currentVote,
-                        userEmail: userEmail, // for easier querying
-                        date: new Date() // Adds timestamp for activity tracking
+                        userEmail: userEmail, 
+                        date: new Date()
                     }
                 },
                 { upsert: true }
@@ -1228,9 +1224,9 @@ app.post('/vote', async (req, res) => {
             // Determines the final state of the vote after this action
             let finalVoteState = null;
             if (previousVote === action) {
-                finalVoteState = null; // Removes vote
+                finalVoteState = null; 
             } else {
-                finalVoteState = action; // Sets or changes vote
+                finalVoteState = action; 
             }
 
             const oldPoints = getPointsValue(previousVote);
