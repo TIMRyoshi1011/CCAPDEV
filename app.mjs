@@ -1314,6 +1314,73 @@ app.post('/comment', async (req, res) => {
     }
 });
 
+// Delete Comment
+app.delete('/comment/:postId/:commentIndex', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const { postId, commentIndex } = req.params;
+
+        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        if (!post) return res.status(404).json({ message: "Post not found" });
+
+        const comment = post.comments[commentIndex];
+        if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+        // Ownership check
+        if (comment.currentUser.email !== currentUser.email) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        // Remove comment by index
+        post.comments.splice(commentIndex, 1);
+        await postsCollection.updateOne(
+            { _id: new ObjectId(postId) },
+            { $set: { comments: post.comments } }
+        );
+
+        res.json({ message: "Comment deleted" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// Edit Comment
+app.patch('/comment/:postId/:commentIndex', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const { postId, commentIndex } = req.params;
+        const { text } = req.body;
+
+        if (!text || text.trim() === '') {
+            return res.status(400).json({ message: "Comment text is required" });
+        }
+
+        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        if (!post) return res.status(404).json({ message: "Post not found" });
+
+        const comment = post.comments[commentIndex];
+        if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+        // Ownership check
+        if (comment.currentUser.email !== currentUser.email) {
+            return res.status(403).json({ message: "Unauthorized" });
+        }
+
+        // Update comment text
+        await postsCollection.updateOne(
+            { _id: new ObjectId(postId) },
+            { $set: { [`comments.${commentIndex}.text`]: text.trim() } }
+        );
+
+        res.json({ message: "Comment updated", text: text.trim() });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
 // Notifications
 // Get Recent Notifications 

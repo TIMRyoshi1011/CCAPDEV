@@ -144,10 +144,24 @@
 
             <div class="comments-section">
                 {{#each comments}}
-                <div class="comment-item">
+                <div class="comment-item" data-post-id="{{toString ../_id}}" data-comment-index="{{@index}}">
                     <div class="comment-avatar {{currentUser.rankClass}}">{{currentUser.initials}}</div>
                     <div class="review-user-info">
-                        <highlight>{{currentUser.name}} <span class="review-date">· {{formatDate date}}</span></highlight>
+                        <div class="comment-header">
+                            <highlight>{{currentUser.name}} <span class="review-date">· {{formatDate date}}</span></highlight>
+
+                            <!-- Show edit/delete dropdown only on own comments -->
+                            {{#if (eq currentUser.email ../../currentUser.email)}}
+                            <div class="comment-options-container">
+                                <div class="comment-options">⋯</div>
+                                <div class="comment-options-dropdown">
+                                    <div class="comment-option-item" onclick="editComment(this)">✏️ Edit</div>
+                                    <div class="comment-option-item" onclick="deleteComment(this)">🗑️ Delete</div>
+                                </div>
+                            </div>
+                            {{/if}}
+                        </div>
+
                         <div class="review-text-2">{{text}}</div>
                     </div>
                 </div>

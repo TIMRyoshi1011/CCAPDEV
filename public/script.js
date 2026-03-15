@@ -517,6 +517,69 @@ async function submitComment(postId, text, button, input) {
     }
 }
 
+function deleteComment(btn) {
+    const commentItem = btn.closest('.comment-item');
+    const postId = commentItem.dataset.postId;
+    const commentIndex = commentItem.dataset.commentIndex;
+
+    if (!confirm("Delete this comment?")) return;
+
+    fetch(`/comment/${postId}/${commentIndex}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message === "Comment deleted") {
+                commentItem.remove();
+            } else {
+                alert(data.message);
+            }
+        });
+}
+
+function editComment(btn) {
+    const commentItem = btn.closest('.comment-item');
+    const postId = commentItem.dataset.postId;
+    const commentIndex = commentItem.dataset.commentIndex;
+    const textDiv = commentItem.querySelector('.review-text-2');
+    const currentText = textDiv.textContent.trim();
+
+    // Replace text with input
+    textDiv.innerHTML = `
+        <div class="comment-edit-wrapper">
+            <input type="text" class="comment-input" value="${currentText}">
+            <div class="comment-edit-actions">
+                <button class="comment-save-btn" onclick="submitEditComment(this)">Save</button>
+                <button class="comment-cancel-btn" onclick="cancelEditComment(this, '${currentText}')">Cancel</button>
+            </div>
+        </div>
+    `;
+}
+
+function submitEditComment(btn) {
+    const commentItem = btn.closest('.comment-item');
+    const postId = commentItem.dataset.postId;
+    const commentIndex = commentItem.dataset.commentIndex;
+    const newText = commentItem.querySelector('.comment-input').value.trim();
+
+    if (!newText) return alert("Comment cannot be empty");
+
+    fetch(`/comment/${postId}/${commentIndex}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newText })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message === "Comment updated") {
+            commentItem.querySelector('.review-text-2').innerHTML = data.text;
+        }
+    });
+}
+
+function cancelEditComment(btn, originalText) {
+    const textDiv = btn.closest('.comment-item').querySelector('.review-text-2');
+    textDiv.textContent = originalText;
+}
+
 // Forgot Password
 async function submitForgotPassword() {
     const email = document.getElementById("forgot-email").value;
@@ -681,22 +744,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // We use a delegated event listener since elements might be dynamically added or not present initially
     document.body.addEventListener('click', function(e) {
-        if (e.target.closest('.options')) {
+        if (e.target.closest('.options') || e.target.closest('.comment-options')) {
             e.stopPropagation();
-            const trigger = e.target.closest('.options');
+            const trigger = e.target.closest('.options') || e.target.closest('.comment-options');
             
             // Try to find container
-            const container = trigger.closest('.options-container') || trigger.closest('.options-container-3');
+            const container = trigger.closest('.options-container') || trigger.closest('.options-container-3') || trigger.closest('.comment-options-container');
             
             if (container) {
                 // Try to find dropdown
-                const dropdown = container.querySelector('.options-dropdown') || container.querySelector('.options-dropdown-3');
+                const dropdown = container.querySelector('.options-dropdown') || container.querySelector('.options-dropdown-3') || container.querySelector('.comment-options-dropdown');
                 
                 if (dropdown) {
                     const wasVisible = dropdown.classList.contains('show');
                     
                     // Close all others first
-                    document.querySelectorAll('.options-dropdown, .options-dropdown-3').forEach(d => {
+                    document.querySelectorAll('.options-dropdown.show, .options-dropdown-3.show, .comment-options-dropdown.show').forEach(d => {
                         d.classList.remove('show');
                     });
                     
@@ -708,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
              // Close dropdowns when clicking outside
-             document.querySelectorAll('.options-dropdown.show, .options-dropdown-3.show').forEach(d => {
+             document.querySelectorAll('.options-dropdown.show, .options-dropdown-3.show, .comment-options-dropdown.show').forEach(d => {
                 d.classList.remove('show');
             });
         }
