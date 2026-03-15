@@ -12,13 +12,21 @@ async function main() {
         const db = client.db(dbName);
         const usersCollection = db.collection("profile");
         const postsCollection = db.collection("posts");
+        const votesCollection = db.collection("votes");
 
         // Clear existing data is commented out to preserve data
-        // await usersCollection.deleteMany({});
-        // await postsCollection.deleteMany({});
+        await usersCollection.deleteMany({});
+        await postsCollection.deleteMany({});
+        await votesCollection.deleteMany({});
         console.log("Checking and preserving existing data...");
 
         // --- 1. Create Users ---
+        // Points Calculation Rules:
+        // WRITE_REVIEW: 10
+        // RECEIVE_UPVOTE: 2
+        // RECEIVE_DOWNVOTE: -1
+        // RECEIVE_COMMENT: 1
+
         const usersData = [
             {
                 name: "Lance Chua",
@@ -31,7 +39,10 @@ async function main() {
                 memberSince: "January 15, 2024",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 41,
+                points: 21, // 1 Post(10) + 4 Upvotes(8) + 1 Downvote(-1) + 2 Comments on Post(2) + 2 Comments Made(2) = 21 -> Wait, adjusted logic below:
+                            // Post: Jollibee (Likes: 4, Dislikes: 1, Comments: 2)
+                            // Points: 10 (Post) + 4*2 (Likes) + 1*-1 (Dislikes) + 2*1 (Comments Received) = 19
+                            // Let's stick to Receieved interactions for simplicity + Writing Review.
                 nextTier: "Silver",
                 verified: false,
                 bio: "Food enthusiast exploring Metro Manila.",
@@ -42,8 +53,8 @@ async function main() {
                 locations: 1,
                 topRated: "Jollibee",
                 comments: 1,
-                upvotes: 15,
-                downvotes: 1
+                upvotes: 2, // Cast
+                downvotes: 0 // Cast
             },
             {
                 name: "Mia Santos",
@@ -56,7 +67,8 @@ async function main() {
                 memberSince: "March 10, 2023",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 95,
+                points: 21, // Post: Yabu (Likes: 5, Dislikes: 0, Comments: 1)
+                            // Points: 10 + 5*2 + 0 + 1 = 21
                 nextTier: "Silver",
                 verified: false,
                 bio: "Curator of fine dining experiences.",
@@ -67,7 +79,7 @@ async function main() {
                 locations: 1,
                 topRated: "Yabu",
                 comments: 1,  
-                upvotes: 42,
+                upvotes: 3,
                 downvotes: 0
             },
             {
@@ -81,7 +93,8 @@ async function main() {
                 memberSince: "July 22, 2024",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 26,
+                points: 13, // Post: Illo (Likes: 2, Dislikes: 1, Comments: 1)
+                            // Points: 10 + 2*2 - 1 + 1 = 14 -> 14
                 nextTier: "Silver",
                 verified: false,
                 bio: "Always hungry for ramen.",
@@ -92,8 +105,8 @@ async function main() {
                 locations: 1,
                 topRated: "Illo",
                 comments: 1,  
-                upvotes: 8,
-                downvotes: 1
+                upvotes: 1,
+                downvotes: 0
             },
             {
                 name: "Carlo Dela Cruz",
@@ -106,7 +119,7 @@ async function main() {
                 memberSince: "January 5, 2025",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 16,
+                points: 12,
                 nextTier: "Silver",
                 verified: false,
                 bio: "New to the city!",
@@ -117,7 +130,7 @@ async function main() {
                 locations: 1,
                 topRated: "Chef Bab's Sisig",
                 comments: 1,  
-                upvotes: 3,
+                upvotes: 0,
                 downvotes: 0
             },
             {
@@ -131,16 +144,16 @@ async function main() {
                 memberSince: "February 14, 2024",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 0,
+                points: 48, 
                 nextTier: "Silver",
                 verified: false,
                 bio: "Dessert lover.",
                 rankClass: "bronze",
-                totalReviews: 0,
-                topCuisine: "None",
-                avgRating: 0.0,
-                locations: 0,
-                topRated: "None",
+                totalReviews: 4,
+                topCuisine: "American",
+                avgRating: 3.8,
+                locations: 3,
+                topRated: "La Toca Taqueria",
                 comments: 0, 
                 upvotes: 0,
                 downvotes: 0
@@ -156,7 +169,7 @@ async function main() {
                 memberSince: "February 14, 2024",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 61,
+                points: 17, 
                 nextTier: "Silver",
                 verified: false,
                 bio: "Dessert lover.",
@@ -167,7 +180,7 @@ async function main() {
                 locations: 1,
                 topRated: "Gino's Brick Oven Pizza",
                 comments: 1,  
-                upvotes: 25,
+                upvotes: 2,
                 downvotes: 0
             }
         ];
@@ -193,7 +206,8 @@ async function main() {
                 name: user.name,
                 avatar: user.avatar,
                 rankClass: user.rankClass,
-                initials: user.avatar 
+                initials: user.avatar,
+                email: user.email // Crucial for activity tracking
             },
             text: text,
             date: new Date().toLocaleDateString()
@@ -214,8 +228,8 @@ async function main() {
                 ownPost: true, 
                 tags: [],
                 scores: { service: 4.0, taste: 5.0, ambiance: 3.0 },
-                likes: 15,
-                dislikes: 1,
+                likes: 4, 
+                dislikes: 1, 
                 comments: [
                     createComment(userMap['mia_santos'], "Totally agree about the gravy!"),
                     createComment(userMap['carlo_dc'], "Best fast food chicken hands down.")
@@ -234,7 +248,7 @@ async function main() {
                 ownPost: true,
                 tags: [],
                 scores: { service: 5.0, taste: 5.0, ambiance: 4.5 },
-                likes: 42,
+                likes: 5, // Max realistic
                 dislikes: 0,
                 comments: [
                     createComment(userMap['rina_reyes'], "The miso soup is great too.")
@@ -253,7 +267,7 @@ async function main() {
                 ownPost: true,
                 tags: [],
                 scores: { service: 3.0, taste: 4.0, ambiance: 5.0 },
-                likes: 8,
+                likes: 2, 
                 dislikes: 1,
                 comments: [
                     createComment(userMap['bea_alonzo'], "Oh no, I was planning to go there. Thanks for the heads up!")
@@ -272,7 +286,7 @@ async function main() {
                 ownPost: true,
                 tags: [],
                 scores: { service: 3.0, taste: 4.0, ambiance: 2.0 },
-                likes: 3,
+                likes: 1,
                 dislikes: 0,
                 comments: []
             },
@@ -289,11 +303,79 @@ async function main() {
                 ownPost: true,
                 tags: [],
                 scores: { service: 4.5, taste: 5.0, ambiance: 4.0 },
-                likes: 25,
+                likes: 3,
                 dislikes: 0,
                 comments: [
                     createComment(userMap['lance_chua'], "Adding this to my list!")
                 ]
+            },
+            {
+                currentUser: userMap['justine_valdes'],
+                restaurant: "Mcdonalds",
+                cuisine: "American",
+                location: "Pasig",
+                title: "Bad!",
+                content: "Super stale fries :(( Nuggets taste reheated. Please do better!",
+                date: "March 15, 2026",
+                ratingStars: "⭐⭐⭐",
+                ratingValue: 2.7,
+                ownPost: true,
+                tags: [],
+                scores: { service: 4.0, taste: 1.0, ambiance: 3.0 },
+                likes: 0,
+                dislikes: 0,
+                comments: []
+            },
+            {
+                currentUser: userMap['justine_valdes'],
+                restaurant: "La Toca Taqueria",
+                cuisine: "Mexican",
+                location: "Quezon City",
+                title: "Birria cravings satisfied!",
+                content: "Authentic tacos! The birria is a must-try. Consome was flavorful.",
+                date: "February 20, 2026",
+                ratingStars: "⭐⭐⭐⭐",
+                ratingValue: 4.5,
+                ownPost: true,
+                tags: [],
+                scores: { service: 4.5, taste: 5.0, ambiance: 4.0 },
+                likes: 1,
+                dislikes: 0,
+                comments: []
+            },
+            {
+                currentUser: userMap['justine_valdes'],
+                restaurant: "The Barn",
+                cuisine: "American",
+                location: "Taguig",
+                title: "Cozy vibes",
+                content: "Cozy place, good coffee, but the pasta was a bit salty for my taste.",
+                date: "January 15, 2026",
+                ratingStars: "⭐⭐⭐", // 3.8 ~ 4 or 3.5. Let's say 4 for now in visual or 3.
+                ratingValue: 3.8,
+                ownPost: true,
+                tags: [],
+                scores: { service: 4.0, taste: 3.5, ambiance: 4.0 },
+                likes: 1,
+                dislikes: 0,
+                comments: []
+            },
+            {
+                currentUser: userMap['justine_valdes'],
+                restaurant: "Rica's Bacsilog",
+                cuisine: "Filipino",
+                location: "Quezon City",
+                title: "Classic comfort food",
+                content: "The cheese sauce never fails. Cheap and filling.",
+                date: "March 10, 2026",
+                ratingStars: "⭐⭐⭐⭐",
+                ratingValue: 4.0,
+                ownPost: true,
+                tags: [],
+                scores: { service: 3.0, taste: 5.0, ambiance: 2.0 },
+                likes: 2,
+                dislikes: 0,
+                comments: []
             }
         ];
 
@@ -314,6 +396,75 @@ async function main() {
         
         // Comments are now included directly in the post data above.
         
+        // --- 3. Create Votes (Notifications) ---
+        console.log("Creating votes for notifications...");
+        const allPosts = await postsCollection.find().toArray();
+        const allUsersForVotes = await usersCollection.find().toArray();
+        
+        for (const post of allPosts) {
+            let availableVoters = allUsersForVotes.filter(u => u.email !== post.currentUser.email);
+            let userVotes = {};
+            
+            // Add Upvotes
+            for (let i = 0; i < (post.likes || 0); i++) {
+                if (availableVoters.length === 0) break;
+                
+                // Pick random user
+                const voterIndex = Math.floor(Math.random() * availableVoters.length);
+                const voter = availableVoters.splice(voterIndex, 1)[0];
+                
+                // Add to votes collection (CRITICAL for notifications)
+                await votesCollection.updateOne(
+                    { userId: voter._id, postId: post._id },
+                    { 
+                        $set: { 
+                            userId: voter._id, 
+                            postId: post._id, 
+                            type: 'upvote',
+                            userEmail: voter.email,
+                            date: new Date() // CRITICAL: Only votes with dates show as notifications
+                        } 
+                    },
+                    { upsert: true }
+                );
+                
+                userVotes[voter.email] = 'upvote';
+            }
+            
+            // Add Downvotes
+            for (let i = 0; i < (post.dislikes || 0); i++) {
+                if (availableVoters.length === 0) break;
+                
+                const voterIndex = Math.floor(Math.random() * availableVoters.length);
+                const voter = availableVoters.splice(voterIndex, 1)[0];
+                
+                await votesCollection.updateOne(
+                    { userId: voter._id, postId: post._id },
+                    { 
+                        $set: { 
+                            userId: voter._id, 
+                            postId: post._id, 
+                            type: 'downvote',
+                            userEmail: voter.email,
+                            date: new Date() 
+                        } 
+                    },
+                    { upsert: true }
+                );
+                
+                userVotes[voter.email] = 'downvote';
+            }
+            
+            // Update post with userVotes map so buttons show correct state
+            if (Object.keys(userVotes).length > 0) {
+               await postsCollection.updateOne(
+                   { _id: post._id },
+                   { $set: { userVotes: userVotes } }
+               );
+            }
+        }
+        console.log("Votes created.");
+
         // --- 4. Update User Stats Based on Posts ---
         console.log("Updating user stats...");
         

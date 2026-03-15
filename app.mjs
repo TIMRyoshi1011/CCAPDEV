@@ -4,7 +4,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import exphbs from "express-handlebars";
-import { connectToMongo, getDb } from "./db/conn.js";
+import { connectToMongo, getDb } from "./model/conn.js";
 import { ObjectId } from "mongodb";
 
 const app = express();
@@ -20,7 +20,7 @@ let cuisines = ["Filipino", "Chinese", "Japanese", "Korean", "Thai", "Vietnamese
 let locations = ["BGC", "Makati", "Quezon City", "Taguig"];
 let sortOptions = ["Recent", "Top Rated", "Most Commented"];
 
-// Points system constants <- !!check vals if ok na
+// Points system constants
 const POINTS = {
     WRITE_REVIEW: 10,
     RECEIVE_UPVOTE: 2,
@@ -28,8 +28,113 @@ const POINTS = {
     RECEIVE_COMMENT: 1
 };
 
+const TIER_THRESHOLDS = {
+    BRONZE: 0,
+    SILVER: 50,
+    GOLD: 150,
+    PLATINUM: 300,
+    DIAMOND: 500,
+    MASTER: 1000
+};
+
+// Helper function to update user points and tier
+async function updateUserReputation(userEmail, pointsDelta) {
+    try {
+        const db = getDb();
+        const users = db.collection("profile");
+        
+        const user = await users.findOne({ email: userEmail });
+        if (!user) return;
+        
+        // Prevent negative points
+        let newPoints = (user.points || 0) + pointsDelta;
+        if (newPoints < 0) newPoints = 0; 
+        
+        let newTier = "Bronze";
+        let newBadge = "🥉 Bronze";
+        let isVerified = false;
+        let rankClass = "bronze";
+        let nextTier = "Silver";
+        
+        if (newPoints >= TIER_THRESHOLDS.MASTER) {
+            newTier = "Master";
+            newBadge = "🏆 Master";
+            isVerified = true;
+            rankClass = "master";
+            nextTier = "Max Tier";
+        } else if (newPoints >= TIER_THRESHOLDS.DIAMOND) {
+            newTier = "Diamond";
+            newBadge = "💍 Diamond";
+            isVerified = true;
+            rankClass = "diamond";
+            nextTier = "Master";
+        } else if (newPoints >= TIER_THRESHOLDS.PLATINUM) {
+            newTier = "Platinum";
+            newBadge = "💎 Platinum";
+            isVerified = true;
+            rankClass = "platinum";
+            nextTier = "Diamond";
+        } else if (newPoints >= TIER_THRESHOLDS.GOLD) {
+            newTier = "Gold";
+            newBadge = "🥇 Gold";
+            isVerified = true;
+            rankClass = "gold";
+            nextTier = "Platinum";
+        } else if (newPoints >= TIER_THRESHOLDS.SILVER) {
+            newTier = "Silver";
+            newBadge = "🥈 Silver";
+            isVerified = true;
+            rankClass = "silver";
+            nextTier = "Gold";
+        }
+        
+        await users.updateOne(
+            { email: userEmail },
+            { 
+                $set: { 
+                    points: newPoints,
+                    tier: newTier,
+                    badge: newBadge,
+                    verified: isVerified,
+                    rankClass: rankClass,
+                    nextTier: nextTier
+                }
+            }
+        );
+        
+        // Update session user if relevant
+        if (currentUser && currentUser.email === userEmail) {
+            currentUser.points = newPoints;
+            currentUser.tier = newTier;
+            currentUser.badge = newBadge;
+            currentUser.verified = isVerified;
+            currentUser.rankClass = rankClass;
+            currentUser.nextTier = nextTier;
+        }
+    } catch (err) {
+        console.error("Error updating reputation:", err);
+    }
+}
+
 // current active user
 let currentUser = {};
+
+// Helper to refresh current user data from DB
+async function refreshCurrentUser() {
+    if (currentUser && currentUser.email) {
+        try {
+            const db = getDb();
+            const users = db.collection("profile");
+            const freshUser = await users.findOne({ email: currentUser.email });
+            if (freshUser) {
+                // Merge fresh data into currentUser, preserving session-specific fields if any
+                Object.assign(currentUser, freshUser);
+            }
+        } catch (err) {
+            console.error("Error refreshing user data:", err);
+        }
+    }
+}
 
 // current posts
 let posts = [];
@@ -39,6 +144,11 @@ app.engine("hbs", exphbs.engine({
     extname: ".hbs",
     defaultLayout: "main",
     helpers: {
+        formatDate: (date) => {
+            if (!date) return '';
+            const d = new Date(date);
+            return isNaN(d.getTime()) ? date : d.toLocaleDateString();
+        },
         eq: (a, b) => a == b,
         toString: (obj) => obj ? obj.toString() : '',
         userVoteClass: (post, voteType) => {
@@ -64,11 +174,25 @@ app.engine("hbs", exphbs.engine({
             }
             return stars;
         },
-        formatDate: (dateStr) => {
-            const date = new Date(dateStr);
-            if (isNaN(date)) return dateStr;
-            return date.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'});
-        },
+        timeAgo: (date) => {
+        const pastDate = new Date(date);
+        const now = new Date();
+        const seconds = Math.floor((now - past) / 1000);
+
+        if (seconds < 60) return `${seconds} seconds ago`;
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes} minutes ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours} hours ago`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days} days ago`;
+        const weeks = Math.floor(days / 7);
+        if (weeks < 4) return `${weeks} weeks ago`;
+        const months = Math.floor(days / 30);
+        if (months < 12) return `${months} months ago`;
+        const years = Math.floor(days / 365);
+        return `${years} years ago`;
+        }
     },
     layoutsDir: path.join(__dirname, "views/layouts")
 }));
@@ -76,7 +200,7 @@ app.engine("hbs", exphbs.engine({
 app.set("view engine", "hbs");
 app.set("views", path.join(__dirname, "views"));
 
-app.use(express.static('public')); // launches the html files
+app.use(express.static('public')); 
 
 app.get('/', async (req, res) => {
     try {
@@ -141,8 +265,11 @@ app.get('/', async (req, res) => {
     }
 });
 
+
 app.get('/community-reviews', async (req, res) => {
     try {
+        await refreshCurrentUser(); // Fetch fresh user data
+
         const db = getDb();
         const postsCollection = db.collection("posts");
         const votesCollection = db.collection("votes"); // Need votes collection
@@ -180,11 +307,35 @@ app.get('/community-reviews', async (req, res) => {
     }
 });
 
-// Logout route (currently client-side redirect handles it, but good to have)
+// Logout route
 app.get("/logout", (req, res) => {
-    currentUser = {}; // Clear server side mock session
+    currentUser = {}; 
     res.redirect("/");
 });
+
+// Delete User Account
+app.delete("/delete-user", async (req, res) => {
+    try {
+        if (!currentUser || !currentUser.username) {
+            return res.status(401).json({ message: "Not logged in" });
+        }
+        
+        const db = getDb();
+        const users = db.collection("profile");
+        // Also delete their reviews? Or keep them anonymized? 
+        // For now, just delete the user profile as requested.
+        
+        await users.deleteOne({ username: currentUser.username });
+        
+        currentUser = {}; // Clear session
+        
+        res.json({ message: "Account deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting account:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 
 // API Route to fetch user profile data for modal
 app.get("/api/user/:username", async (req, res) => {
@@ -430,7 +581,7 @@ app.post("/update-password", async (req, res) => {
 
     try {
         if (!currentUser) {
-            return res.status(401).json({ message: "Not logged in." });
+            return res.status(401).json({ message: "User not authenticated" });
         }
 
         const db = getDb();
@@ -461,9 +612,11 @@ app.post("/update-password", async (req, res) => {
 });
 
 // After login, redirect to feed
-app.get("/feed", async (req, res) => { //!CHECK
+app.get("/feed", async (req, res) => { 
     try {
-        const db = getDb(); 
+        await refreshCurrentUser(); 
+
+        const db = getDb();  
         const allPosts = db.collection("posts");
         const votesCollection = db.collection("votes");
 
@@ -488,6 +641,60 @@ app.get("/feed", async (req, res) => { //!CHECK
 
         posts = await cursor.toArray();
 
+        // Refresh post author data (badges/tiers) for display
+        if (posts.length > 0) {
+            const usersCollection = db.collection("profile");
+            
+            // Collect all unique usernames (post authors + comment authors)
+            const usernames = new Set();
+            posts.forEach(p => {
+                if (p.currentUser && p.currentUser.username) usernames.add(p.currentUser.username);
+                if (p.comments) {
+                    p.comments.forEach(c => {
+                        if (c.currentUser && c.currentUser.username) usernames.add(c.currentUser.username);
+                    });
+                }
+            });
+
+            if (usernames.size > 0) {
+                const freshUsers = await usersCollection.find({ username: { $in: [...usernames] } }).toArray();
+                const userMap = {};
+                freshUsers.forEach(u => userMap[u.username] = u);
+
+                // Update posts in memory
+                posts.forEach(p => {
+                    // Update Post Author
+                    if (p.currentUser && p.currentUser.username) {
+                        const fresh = userMap[p.currentUser.username];
+                        if (fresh) {
+                            p.currentUser.tier = fresh.tier;
+                            p.currentUser.badge = fresh.badge;
+                            p.currentUser.rankClass = fresh.rankClass; // e.g. "bronze", "silver"
+                            p.currentUser.verified = fresh.verified;
+                            p.currentUser.avatar = fresh.avatar; // Update avatar if changed
+                        }
+                    }
+                    
+                    // Update Comment Authors
+                    if (p.comments) {
+                        p.comments.forEach(c => {
+                            if (c.currentUser && c.currentUser.username) {
+                                const fresh = userMap[c.currentUser.username];
+                                if (fresh) {
+                                    c.currentUser.tier = fresh.tier;
+                                    c.currentUser.badge = fresh.badge;
+                                    c.currentUser.rankClass = fresh.rankClass;
+                                    c.currentUser.verified = fresh.verified;
+                                    c.currentUser.avatar = fresh.avatar; // Update avatar too
+                                    c.currentUser.initials = fresh.avatar; // Ensure consistency
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
         if (sort === 'Most Commented') {
             posts.sort((a, b) => {
                 const commentsA = a.comments ? a.comments.length : 0;
@@ -496,7 +703,7 @@ app.get("/feed", async (req, res) => { //!CHECK
             });
         }
 
-        // Calculate global stats dynamically (using all posts)
+        // Calculate stats for all the posts aka. global posts
         if (currentUser) {
             const globalPosts = await allPosts.find({}).toArray();
             if (globalPosts.length > 0) {
@@ -631,7 +838,7 @@ app.post('/write-review', async (req, res) => { //!CHECK
                 location,
                 title: title,
                 content,
-                date: new Date().toISOString(),
+                date: new Date().toLocaleDateString(),
                 ratingStars: "⭐".repeat(Math.round(avgRating)),
                 ratingValue: avgRating,
                 ownPost: true,
@@ -661,11 +868,7 @@ app.post('/write-review', async (req, res) => { //!CHECK
             }
 
             // Award points for writing review
-            await users.updateOne(
-                { email: currentUser.email },
-                { $inc: { points: POINTS.WRITE_REVIEW } }
-            );
-            currentUser.points = (currentUser.points || 0) + POINTS.WRITE_REVIEW;
+            await updateUserReputation(currentUser.email, POINTS.WRITE_REVIEW);
 
             return res.redirect('/feed'); 
         } else {
@@ -708,6 +911,9 @@ app.delete('/delete-review/:id', async (req, res) => {
             { email: currentUser.email },        
             { $set: { totalReviews: nReviews } } 
         );
+        
+        // Deduct points for deleting review
+        await updateUserReputation(currentUser.email, -POINTS.WRITE_REVIEW);
 
         res.json({ message: "Review deleted" });
     } catch (err) {
@@ -883,6 +1089,11 @@ app.post('/vote', async (req, res) => {
             return res.status(404).json({ message: "Post not found" });
         }
 
+        // --- NEW: Prevent voting on own post ---
+        if (post.currentUser && post.currentUser.email === currentUser.email) {
+            return res.status(403).json({ message: "You cannot vote on your own review" });
+        }
+
         // Initialize userVotes
         if (!post.userVotes) {
             post.userVotes = {};
@@ -959,7 +1170,8 @@ app.post('/vote', async (req, res) => {
                         userId: currentUser._id, 
                         postId: new ObjectId(postId), 
                         type: currentVote,
-                        userEmail: userEmail // for easier querying
+                        userEmail: userEmail, // for easier querying
+                        date: new Date() // Add timestamp for activity tracking
                     }
                 },
                 { upsert: true }
@@ -1000,13 +1212,30 @@ app.post('/vote', async (req, res) => {
             }
         }
 
-        // Award points to post owner (if not voting on own post)
-        if (post.currentUser.email !== currentUser.email && userVoteChange !== 0) {
-            const pointsToAward = action === 'upvote' ? POINTS.RECEIVE_UPVOTE : POINTS.RECEIVE_DOWNVOTE;
-            await users.updateOne(
-                { email: post.currentUser.email },
-                { $inc: { points: pointsToAward } }
-            );
+        // Award/Dedudct points for post owner (if not voting on own post)
+        if (post.currentUser.email !== currentUser.email) {
+            // Helper to get point value for a vote type
+            const getPointsValue = (voteType) => {
+                if (voteType === 'upvote') return POINTS.RECEIVE_UPVOTE;
+                if (voteType === 'downvote') return POINTS.RECEIVE_DOWNVOTE;
+                return 0;
+            };
+
+            // Determine the final state of the vote after this action
+            let finalVoteState = null;
+            if (previousVote === action) {
+                finalVoteState = null; // Removing vote
+            } else {
+                finalVoteState = action; // Setting or changing vote
+            }
+
+            const oldPoints = getPointsValue(previousVote);
+            const newPoints = getPointsValue(finalVoteState);
+            const pointsDelta = newPoints - oldPoints;
+
+            if (pointsDelta !== 0) {
+                await updateUserReputation(post.currentUser.email, pointsDelta);
+            }
         }
 
         // Get updated post data
@@ -1051,7 +1280,7 @@ app.post('/comment', async (req, res) => {
                 email: currentUser.email
             },
             text: text.trim(),
-            date: new Date().toISOString()
+            date: new Date().toLocaleDateString()
         };
 
         // Add comment to post
@@ -1085,51 +1314,113 @@ app.post('/comment', async (req, res) => {
     }
 });
 
+
 // Notifications
-app.get('/notifications', (req, res) => {
-    res.render("notifications", {
-        pageTitle: "Notifications",
-        activePage: "notifs",
-        currentUser,
-        // notifications: [
-        //     {
-        //     icon: "🖋",
-        //     message: "You left a review for <highlight>Yabu</highlight>",
-        //     timestamp: "2 minutes ago",
-        //     unread: true
-        //     },
-        //     {
-        //     icon: "🖋",
-        //     message: "You left a review for <highlight>Kodawari</highlight>",
-        //     timestamp: "1 week ago",
-        //     unread: false
-        //     },
-        //     {
-        //     icon: "💬",
-        //     message: "<highlight>Lee Dokyeom</highlight> left a comment under your review on <highlight>Kodawari</highlight>",
-        //     timestamp: "1 day ago",
-        //     unread: false
-        //     },
-        //     {
-        //     icon: "🔺",
-        //     message: "<highlight>Carlo Dela Cruz</highlight> upvoted your review on <highlight>Yabu</highlight>",
-        //     timestamp: "4 days ago",
-        //     unread: false
-        //     },
-        //     {
-        //     icon: "🔻",
-        //     message: "<highlight>Charles Sanchez</highlight> downvoted your review on <highlight>Kodawari</highlight>",
-        //     timestamp: "4 days ago",
-        //     unread: true
-        //     },
-        //     {
-        //     icon: "🌟",
-        //     message: "Your status has been upgraded to the <highlight>Bronze tier</highlight>",
-        //     timestamp: "1 week ago",
-        //     unread: false
-        //     }
-        // ]
+// Get Recent Notifications 
+app.get('/notifications', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const votesCollection = db.collection("votes");
+
+        // User must be logged in to view notifications
+        if (!currentUser || !currentUser.email) {
+            return res.redirect('/');
+        }
+
+        // Get user reviews
+        const userReviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
+
+        // Get posts where user commented
+        const commentedPosts = await postsCollection.find({
+            "comments.currentUser.email": currentUser.email
+        }).toArray();
+
+        const activities = [];
+
+        // Add review activities
+        userReviews.forEach(review => {
+            activities.push({
+                icon: "✍️",
+                title: `You reviewed ${review.restaurant}`,
+                date: review.date,
+                rating: review.ratingValue,
+                stars: review.ratingStars,
+                reviewTitle: review.title,
+                content: review.content.substring(0, 150) + (review.content.length > 150 ? "..." : ""),
+                footer: {
+                    likes: review.likes || 0,
+                    comments: review.comments ? review.comments.length : 0
+                }
+            });
+
+            // Add incoming comments on user's reviews
+            if (review.comments && review.comments.length > 0) {
+                review.comments.forEach(comment => {
+                    if (comment.currentUser.email !== currentUser.email) {
+                        activities.push({
+                            icon: "💬",
+                            title: `New comment from ${comment.currentUser.name} on your review of ${review.restaurant}`,
+                            date: comment.date,
+                            content: comment.text,
+                            footer: { author: comment.currentUser.name }
+                        });
+                    }
+                });
+            }
         });
+
+        // Add incoming votes on user's reviews
+        const userPostIds = userReviews.map(p => p._id);
+        const incomingVotes = await votesCollection.find({
+            postId: { $in: userPostIds },
+            userId: { $ne: currentUser._id }
+        }).toArray();
+
+        incomingVotes.forEach(vote => {
+            if (vote.date) { // Only show votes with timestamps
+                const relatedPost = userReviews.find(p => p._id.toString() === vote.postId.toString());
+                if (relatedPost) {
+                    activities.push({
+                        icon: vote.type === 'upvote' ? '🔺' : '🔻',
+                        title: `Received ${vote.type} on your review of ${relatedPost.restaurant}`,
+                        date: vote.date,
+                        content: relatedPost.title || relatedPost.content.substring(0, 50) + "..."
+                    });
+                }
+            }
+        });
+
+        // Add outgoing comment activities
+        commentedPosts.forEach(post => {
+            const userComments = post.comments.filter(comment =>
+                comment.currentUser.email === currentUser.email
+            );
+
+            userComments.forEach(comment => {
+                activities.push({
+                    icon: "💬",
+                    title: `You commented on ${post.restaurant}`,
+                    date: comment.date,
+                    content: comment.text
+                });
+            });
+        });
+
+        activities.sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
+        });
+
+        res.render("notifications", {
+            pageTitle: "Notifications",
+            activePage: "notifs",
+            currentUser,
+            notifications: activities
+        });
+    } catch (err) {
+        console.error("Error fetching notifications:", err);
+        return res.status(500).send("Server error");
+    }
 });
 
 // compute user stats
@@ -1158,7 +1449,7 @@ async function computeUserStats(userEmail) {
         }, 0);
 
         const avgRating = totalReviews > 0 ?
-            userReviews.reduce((sum, review) => sum + parseFloat(review.ratingValue || 0), 0) / totalReviews : 0;
+            userReviews.reduce((sum, review) => sum + review.ratingValue, 0) / totalReviews : 0;
 
         // Count cuisines
         const cuisineCount = {};
@@ -1265,7 +1556,7 @@ app.get('/userprofile-reviews', async (req, res) => {
         const db = getDb();
         const postsCollection = db.collection("posts");
         const votesCollection = db.collection("votes");
-        const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).sort({ _id: -1 }).toArray();
+        const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
 
         // Loop through all reviews
         for (let i = 0; i < reviews.length; i++) {
@@ -1298,83 +1589,6 @@ app.get('/userprofile-reviews', async (req, res) => {
         });
     } catch (err) {
         console.error("Error loading user reviews:", err);
-        res.status(500).send("Server error");
-    }
-});
-
-app.get('/userprofile-activity', async (req, res) => {
-    try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-
-        // Calculate user stats
-        const userStats = await computeUserStats(currentUser.email);
-        const tierProgress = getTierProgress(userStats ? userStats.points : 0);
-
-        if (userStats) {
-            const updatedUser = { ...currentUser, ...userStats, ...tierProgress };
-            currentUser = updatedUser;
-        }
-
-        // Get user reviews
-        const userReviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
-
-        // Get posts where user commented
-        const commentedPosts = await postsCollection.find({
-            "comments.currentUser.email": currentUser.email
-        }).toArray();
-
-        const activities = [];
-
-        // Add review activities
-        userReviews.forEach(review => {
-            activities.push({
-                icon: "✍️",
-                title: `Reviewed ${review.restaurant}`,
-                date: review.date,
-                rating: review.ratingValue,
-                stars: review.ratingStars,
-                reviewTitle: review.title,
-                content: review.content.substring(0, 150) + (review.content.length > 150 ? "..." : ""),
-                footer: {
-                    likes: review.likes || 0,
-                    dislikes: review.dislikes || 0,
-                    comments: review.comments ? review.comments.length : 0
-                }
-            });
-        });
-
-        // Add comment activities
-        commentedPosts.forEach(post => {
-            const userComments = post.comments.filter(comment =>
-                comment.currentUser.email === currentUser.email
-            );
-
-            userComments.forEach(comment => {
-                activities.push({
-                    icon: "💬",
-                    title: `Commented on ${post.restaurant}`,
-                    date: comment.date,
-                    content: comment.text
-                });
-            });
-        });
-
-        activities.sort((a, b) => {
-            const dateA = new Date(a.date);
-            const dateB = new Date(b.date);
-            if (isNaN(dateA) || isNaN(dateB)) return 0;
-            return dateB - dateA;
-        });
-
-        res.render("userprofile-activity", {
-            pageTitle: "Profile-Activity",
-            activePage: "profile",
-            currentUser,
-            activities: activities
-        });
-    } catch (err) {
-        console.error("Error loading user activity:", err);
         res.status(500).send("Server error");
     }
 });

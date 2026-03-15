@@ -2,32 +2,49 @@
     <!-- Notifications Header -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h1 style="color: #1a1a1a; font-size: 28px; margin: 0;">Notifications</h1>
-        <button id="read"
-            style="background: none; border: none; color: #d94866; font-weight: 600; cursor: pointer; font-size: 14px; padding: 8px 16px; border-radius: 8px; transition: background-color 0.2s;">
-            Mark all as read
-        </button>
     </div>
 
     <!-- Notifications List -->
     <div class="notifications-list">
 
         {{#each notifications}}
-
-        <div class="{{#if unread}}unread{{else}}notification{{/if}}">
-            <span class="icon">{{icon}}</span>
-
-            <div class="notification-content">
-                <p>
-                    {{{message}}}
-                </p>
-                <span class="timestamp">{{timestamp}}</span>
+        <div class="activity-card">
+            <div class="activity-header">
+                <div class="icon-3">{{icon}}</div>
+                <div>
+                    <div class="title">{{title}}</div>
+                    <div class="date">{{formatDate date}}</div>
+                </div>
+                {{#if rating}}
+                <div class="rating">
+                    {{{renderStars rating}}}
+                    <span class="rating-score">{{rating}}</span>
+                </div>
+                {{/if}}
             </div>
 
-            {{#if unread}}
-            <span class="unread-dot"></span>
+            {{#if reviewTitle}}
+            <div class="review-title-3">{{reviewTitle}}</div>
+            {{/if}}
+
+            <p class="activity-text">{{content}}</p><br>
+
+            {{#if footer}}
+            <div class="activity-footer">
+                {{#if footer.likes}}<span>👍 {{footer.likes}}</span>{{/if}}
+                {{#if footer.dislikes}}<span>👎 {{footer.dislikes}}</span>{{/if}}
+                {{#if footer.comments}}<span>💬 {{footer.comments}}</span>{{/if}}
+                {{#if footer.author}}<span>By {{footer.author}}</span>{{/if}}
+            </div>
             {{/if}}
         </div>
         {{/each}}
+        
+        {{#unless notifications.length}}
+        <div style="text-align: center; padding: 40px; color: #666;">
+            <p>No notifications yet.</p>
+        </div>
+        {{/unless}}
 
     </div>
 </div>

@@ -320,7 +320,6 @@ window.onclick = function(event) {
 }
 
 
-// for ALL sidebar buttons, just change the href once u added the html file na
 function goToFeed() {
     window.location.href = "/feed";
 }
@@ -331,10 +330,6 @@ function goToNotifications() {
 
 function goToProfile() {
     window.location.href = "/userprofile-reviews";
-}
-
-function goToActivity() {
-    window.location.href = "/userprofile-activity";
 }
 
 function goToSettings() {
@@ -414,11 +409,12 @@ async function vote(postId, action, button) {
             }, 150);
 
         } else {
-            alert(data.message || 'Failed to vote');
+            // Use custom popup instead of alert
+            showCustomAlert(data.message || 'Failed to vote');
         }
     } catch (error) {
         console.error('Error voting:', error);
-        alert('Failed to vote. Please try again.');
+        showCustomAlert('Failed to vote. Please try again.');
     }
 }
 
@@ -969,6 +965,46 @@ async function submitProfileUpdate(event) {
     } catch (error) {
         console.error('Error updating profile:', error);
         await showCustomAlert('Failed to update profile. Please try again.');
+    }
+}
+
+// --- Delete Account Logic ---
+function openDeleteAccountConfirm() {
+    const popup = document.getElementById('deleteAccountConfirmPopup');
+    if (popup) {
+        popup.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDeleteAccountConfirm() {
+    const popup = document.getElementById('deleteAccountConfirmPopup');
+    if (popup) {
+        popup.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+async function submitDeleteAccount() {
+    try {
+        const response = await fetch('/delete-user', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            window.location.href = '/'; 
+        } else {
+            const data = await response.json();
+            alert(data.message || 'Failed to delete account');
+            closeDeleteAccountConfirm();
+        }
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        alert('An error occurred. Please try again.');
+        closeDeleteAccountConfirm();
     }
 }
 

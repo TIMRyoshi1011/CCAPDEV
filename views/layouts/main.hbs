@@ -20,7 +20,7 @@
             <div class="sidebar-avatar">{{currentUser.avatar}}</div>
             <div class="sidebar-user-info">
                 <h4>{{currentUser.name}}</h4>
-                <div class="user-badge">{{currentUser.badge}}</div>
+                <div class="user-badge {{currentUser.rankClass}}">{{currentUser.badge}} • {{#if currentUser.points}}{{currentUser.points}}{{else}}0{{/if}} pts</div>
             </div>
         </div>
 
@@ -30,8 +30,8 @@
             </div>
             <div class="sidebar-nav-item {{#if (eq activePage 'notifs')}}active{{/if}}" onclick="goToNotifications()">
                 🔔 Notifications
-                {{#if notifications}}
-                <span class="notif-badge">{{notifications}}</span> 
+                {{#if notifications.length}}
+                <span class="notif-badge">{{notifications.length}}</span> 
                 {{/if}}
             </div>
             <div class="sidebar-nav-item {{#if (eq activePage 'profile')}}active{{/if}}" onclick="goToProfile()">
