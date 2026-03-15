@@ -20,7 +20,7 @@ let cuisines = ["Filipino", "Chinese", "Japanese", "Korean", "Thai", "Vietnamese
 let locations = ["BGC", "Makati", "Quezon City", "Taguig"];
 let sortOptions = ["Recent", "Top Rated", "Most Commented"];
 
-// Points system constants <- !!check vals if ok na
+// Points system constants
 const POINTS = {
     WRITE_REVIEW: 10,
     RECEIVE_UPVOTE: 2,
@@ -28,8 +28,113 @@ const POINTS = {
     RECEIVE_COMMENT: 1
 };
 
+const TIER_THRESHOLDS = {
+    BRONZE: 0,
+    SILVER: 50,
+    GOLD: 150,
+    PLATINUM: 300,
+    DIAMOND: 500,
+    MASTER: 1000
+};
+
+// Helper function to update user points and tier
+async function updateUserReputation(userEmail, pointsDelta) {
+    try {
+        const db = getDb();
+        const users = db.collection("profile");
+        
+        const user = await users.findOne({ email: userEmail });
+        if (!user) return;
+        
+        // Prevent negative points
+        let newPoints = (user.points || 0) + pointsDelta;
+        if (newPoints < 0) newPoints = 0; 
+        
+        let newTier = "Bronze";
+        let newBadge = "🥉 Bronze";
+        let isVerified = false;
+        let rankClass = "bronze";
+        let nextTier = "Silver";
+        
+        if (newPoints >= TIER_THRESHOLDS.MASTER) {
+            newTier = "Master";
+            newBadge = "🏆 Master";
+            isVerified = true;
+            rankClass = "master";
+            nextTier = "Max Tier";
+        } else if (newPoints >= TIER_THRESHOLDS.DIAMOND) {
+            newTier = "Diamond";
+            newBadge = "💍 Diamond";
+            isVerified = true;
+            rankClass = "diamond";
+            nextTier = "Master";
+        } else if (newPoints >= TIER_THRESHOLDS.PLATINUM) {
+            newTier = "Platinum";
+            newBadge = "💎 Platinum";
+            isVerified = true;
+            rankClass = "platinum";
+            nextTier = "Diamond";
+        } else if (newPoints >= TIER_THRESHOLDS.GOLD) {
+            newTier = "Gold";
+            newBadge = "🥇 Gold";
+            isVerified = true;
+            rankClass = "gold";
+            nextTier = "Platinum";
+        } else if (newPoints >= TIER_THRESHOLDS.SILVER) {
+            newTier = "Silver";
+            newBadge = "🥈 Silver";
+            isVerified = true;
+            rankClass = "silver";
+            nextTier = "Gold";
+        }
+        
+        await users.updateOne(
+            { email: userEmail },
+            { 
+                $set: { 
+                    points: newPoints,
+                    tier: newTier,
+                    badge: newBadge,
+                    verified: isVerified,
+                    rankClass: rankClass,
+                    nextTier: nextTier
+                }
+            }
+        );
+        
+        // Update session user if relevant
+        if (currentUser && currentUser.email === userEmail) {
+            currentUser.points = newPoints;
+            currentUser.tier = newTier;
+            currentUser.badge = newBadge;
+            currentUser.verified = isVerified;
+            currentUser.rankClass = rankClass;
+            currentUser.nextTier = nextTier;
+        }
+    } catch (err) {
+        console.error("Error updating reputation:", err);
+    }
+}
+
 // current active user
 let currentUser = {};
+
+// Helper to refresh current user data from DB
+async function refreshCurrentUser() {
+    if (currentUser && currentUser.email) {
+        try {
+            const db = getDb();
+            const users = db.collection("profile");
+            const freshUser = await users.findOne({ email: currentUser.email });
+            if (freshUser) {
+                // Merge fresh data into currentUser, preserving session-specific fields if any
+                Object.assign(currentUser, freshUser);
+            }
+        } catch (err) {
+            console.error("Error refreshing user data:", err);
+        }
+    }
+}
 
 // current posts
 let posts = [];
@@ -76,7 +181,7 @@ app.engine("hbs", exphbs.engine({
 app.set("view engine", "hbs");
 app.set("views", path.join(__dirname, "views"));
 
-app.use(express.static('public')); // launches the html files
+app.use(express.static('public')); 
 
 app.get('/', async (req, res) => {
     try {
@@ -141,8 +246,11 @@ app.get('/', async (req, res) => {
     }
 });
 
+
 app.get('/community-reviews', async (req, res) => {
     try {
+        await refreshCurrentUser(); // Fetch fresh user data
+
         const db = getDb();
         const postsCollection = db.collection("posts");
         const votesCollection = db.collection("votes"); // Need votes collection
@@ -180,11 +288,35 @@ app.get('/community-reviews', async (req, res) => {
     }
 });
 
-// Logout route (currently client-side redirect handles it, but good to have)
+// Logout route
 app.get("/logout", (req, res) => {
-    currentUser = {}; // Clear server side mock session
+    currentUser = {}; 
     res.redirect("/");
 });
+
+// Delete User Account
+app.delete("/delete-user", async (req, res) => {
+    try {
+        if (!currentUser || !currentUser.username) {
+            return res.status(401).json({ message: "Not logged in" });
+        }
+        
+        const db = getDb();
+        const users = db.collection("profile");
+        // Also delete their reviews? Or keep them anonymized? 
+        // For now, just delete the user profile as requested.
+        
+        await users.deleteOne({ username: currentUser.username });
+        
+        currentUser = {}; // Clear session
+        
+        res.json({ message: "Account deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting account:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
 
 // API Route to fetch user profile data for modal
 app.get("/api/user/:username", async (req, res) => {
@@ -462,9 +594,11 @@ app.post("/update-password", async (req, res) => {
 });
 
 // After login, redirect to feed
-app.get("/feed", async (req, res) => { //!CHECK
+app.get("/feed", async (req, res) => { 
     try {
-        const db = getDb(); 
+        await refreshCurrentUser(); 
+
+        const db = getDb();  
         const allPosts = db.collection("posts");
         const votesCollection = db.collection("votes");
 
@@ -489,6 +623,60 @@ app.get("/feed", async (req, res) => { //!CHECK
 
         posts = await cursor.toArray();
 
+        // Refresh post author data (badges/tiers) for display
+        if (posts.length > 0) {
+            const usersCollection = db.collection("profile");
+            
+            // Collect all unique usernames (post authors + comment authors)
+            const usernames = new Set();
+            posts.forEach(p => {
+                if (p.currentUser && p.currentUser.username) usernames.add(p.currentUser.username);
+                if (p.comments) {
+                    p.comments.forEach(c => {
+                        if (c.currentUser && c.currentUser.username) usernames.add(c.currentUser.username);
+                    });
+                }
+            });
+
+            if (usernames.size > 0) {
+                const freshUsers = await usersCollection.find({ username: { $in: [...usernames] } }).toArray();
+                const userMap = {};
+                freshUsers.forEach(u => userMap[u.username] = u);
+
+                // Update posts in memory
+                posts.forEach(p => {
+                    // Update Post Author
+                    if (p.currentUser && p.currentUser.username) {
+                        const fresh = userMap[p.currentUser.username];
+                        if (fresh) {
+                            p.currentUser.tier = fresh.tier;
+                            p.currentUser.badge = fresh.badge;
+                            p.currentUser.rankClass = fresh.rankClass; // e.g. "bronze", "silver"
+                            p.currentUser.verified = fresh.verified;
+                            p.currentUser.avatar = fresh.avatar; // Update avatar if changed
+                        }
+                    }
+                    
+                    // Update Comment Authors
+                    if (p.comments) {
+                        p.comments.forEach(c => {
+                            if (c.currentUser && c.currentUser.username) {
+                                const fresh = userMap[c.currentUser.username];
+                                if (fresh) {
+                                    c.currentUser.tier = fresh.tier;
+                                    c.currentUser.badge = fresh.badge;
+                                    c.currentUser.rankClass = fresh.rankClass;
+                                    c.currentUser.verified = fresh.verified;
+                                    c.currentUser.avatar = fresh.avatar; // Update avatar too
+                                    c.currentUser.initials = fresh.avatar; // Ensure consistency
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
         if (sort === 'Most Commented') {
             posts.sort((a, b) => {
                 const commentsA = a.comments ? a.comments.length : 0;
@@ -497,7 +685,7 @@ app.get("/feed", async (req, res) => { //!CHECK
             });
         }
 
-        // Calculate global stats dynamically (using all posts)
+        // Calculate stats for all the posts aka. global posts
         if (currentUser) {
             const globalPosts = await allPosts.find({}).toArray();
             if (globalPosts.length > 0) {
@@ -662,11 +850,7 @@ app.post('/write-review', async (req, res) => { //!CHECK
             }
 
             // Award points for writing review
-            await users.updateOne(
-                { email: currentUser.email },
-                { $inc: { points: POINTS.WRITE_REVIEW } }
-            );
-            currentUser.points = (currentUser.points || 0) + POINTS.WRITE_REVIEW;
+            await updateUserReputation(currentUser.email, POINTS.WRITE_REVIEW);
 
             return res.redirect('/feed'); 
         } else {
@@ -709,6 +893,9 @@ app.delete('/delete-review/:id', async (req, res) => {
             { email: currentUser.email },        
             { $set: { totalReviews: nReviews } } 
         );
+        
+        // Deduct points for deleting review
+        await updateUserReputation(currentUser.email, -POINTS.WRITE_REVIEW);
 
         res.json({ message: "Review deleted" });
     } catch (err) {
@@ -884,6 +1071,11 @@ app.post('/vote', async (req, res) => {
             return res.status(404).json({ message: "Post not found" });
         }
 
+        // --- NEW: Prevent voting on own post ---
+        if (post.currentUser && post.currentUser.email === currentUser.email) {
+            return res.status(403).json({ message: "You cannot vote on your own review" });
+        }
+
         // Initialize userVotes
         if (!post.userVotes) {
             post.userVotes = {};
@@ -999,13 +1191,30 @@ app.post('/vote', async (req, res) => {
             currentUser[newField] = (currentUser[newField] || 0) + 1;
         }
 
-        // Award points to post owner (if not voting on own post)
-        if (post.currentUser.email !== currentUser.email && userVoteChange !== 0) {
-            const pointsToAward = action === 'upvote' ? POINTS.RECEIVE_UPVOTE : POINTS.RECEIVE_DOWNVOTE;
-            await users.updateOne(
-                { email: post.currentUser.email },
-                { $inc: { points: pointsToAward } }
-            );
+        // Award/Dedudct points for post owner (if not voting on own post)
+        if (post.currentUser.email !== currentUser.email) {
+            // Helper to get point value for a vote type
+            const getPointsValue = (voteType) => {
+                if (voteType === 'upvote') return POINTS.RECEIVE_UPVOTE;
+                if (voteType === 'downvote') return POINTS.RECEIVE_DOWNVOTE;
+                return 0;
+            };
+
+            // Determine the final state of the vote after this action
+            let finalVoteState = null;
+            if (previousVote === action) {
+                finalVoteState = null; // Removing vote
+            } else {
+                finalVoteState = action; // Setting or changing vote
+            }
+
+            const oldPoints = getPointsValue(previousVote);
+            const newPoints = getPointsValue(finalVoteState);
+            const pointsDelta = newPoints - oldPoints;
+
+            if (pointsDelta !== 0) {
+                await updateUserReputation(post.currentUser.email, pointsDelta);
+            }
         }
 
         // Get updated post data
@@ -1085,7 +1294,8 @@ app.post('/comment', async (req, res) => {
 });
 
 // Notifications
-app.get('/notifications', (req, res) => {
+app.get('/notifications', async (req, res) => {
+    await refreshCurrentUser(); // Fetch fresh notifications count if any
     res.render("notifications", {
         pageTitle: "Notifications",
         activePage: "notifs",

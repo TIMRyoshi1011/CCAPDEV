@@ -23,11 +23,9 @@
     }
 
     .account,
-    .about-me,
     .notifications,
     .others,
     .tier-system {
-        /* Cards for eacy sections in the settings category */
         background: var(--card-bg);
         border-radius: 16px;
         padding: 24px;
@@ -54,6 +52,41 @@
 
     .account h3 {
         grid-column: 1 / -1;
+    }
+
+    .user-stats {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .stat-card {
+        background: #f8f9fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .stat-card .label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6b7280;
+        margin-bottom: 4px;
+        font-weight: 600;
+    }
+    
+    .stat-card .value {
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
     }
 
     .profile-pic {
@@ -246,6 +279,102 @@
     .others .description {
         margin-top: 5px;
     }
+
+    /* Popup Overlay */
+    .popup {
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .popup.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .popup-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 30px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 400px;
+        border-radius: 16px;
+        position: relative;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .close {
+        color: #aaa;
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .success-icon-container {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: white;
+        font-size: 30px;
+        font-weight: bold;
+    }
+
+    .success-title {
+        margin: 0 0 10px;
+        color: #333;
+        font-size: 22px;
+    }
+
+    .success-message {
+        color: #666;
+        margin-bottom: 25px;
+        line-height: 1.5;
+    }
+
+    .success-done-btn {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.1s, box-shadow 0.1s;
+        box-shadow: 0 4px 6px rgba(76, 175, 80, 0.2);
+        width: 100%;
+    }
+
+    .success-done-btn:active {
+        transform: scale(0.98);
+    }
+
 </style>
 
 <div class="main-content-2">
@@ -267,95 +396,91 @@
             <p class="member-date">Member since {{currentUser.memberSince}}</p>
         </div>
 
-        <div class="current-tier">
-            <span class="label">Current Tier:</span>
-            <span class="value">{{currentUser.tierIcon}} {{currentUser.tier}}</span>
-        </div>
+        <div class="user-stats">
+            <div class="stat-card current-tier">
+                <span class="label">Current Tier</span>
+                <span class="value">{{currentUser.tierIcon}} {{currentUser.tier}}</span>
+            </div>
 
-        <div class="points">
-            <span class="label">Points:</span>
-            <span class="value">{{currentUser.points}}</span>
-        </div>
+            <div class="stat-card points">
+                <span class="label">Points</span>
+                <span class="value">{{currentUser.points}}</span>
+            </div>
 
-        <div class="next-tier">
-            <span class="label">Next Tier:</span>
-            <span class="value">{{currentUser.nextTier}}</span>
+            <div class="stat-card next-tier">
+                <span class="label">Next Tier</span>
+                <span class="value">{{currentUser.nextTier}}</span>
+            </div>
         </div>
     </div>
 
-
-    <div class="about-me">
-        <h3>About Me</h3>
-
-        <textarea id="about-me" name="about-me" rows="5" cols="50"
-            placeholder="Tell us about yourself...">{{currentUser.bio}}</textarea>
-        <br>
-
-        <input type="submit" value="Submit">
-    </div>
 
 
     <div class="notifications">
         <h3>Notifications</h3>
 
-        <div class="public-profile">
-            <span class="label">Public Profile</span>
-            <span class="description">Allow others to view your profile page</span>
-
-            <label class="switch">
-                <input type="checkbox" {{#if settings.publicProfile}}checked{{/if}}>
-                <span class="slider"></span>
-            </label>
-
-            <div class="show-tier">
-                <span class="label">Show Tier Badge</span>
-                <span class="description">Display your tier on reviews and comments</span>
-
-                <label class="switch">
-                    <input type="checkbox" {{#if settings.showTierBadge}}checked{{/if}}>
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-
-
         <div class="tier-system">
-            <span class="label">How Points and Tiers Work</span>
-            <span class="description">Post a restaurant review -> others upvote or downvote</span>
-            <span class="description">Reach tier thresholds -> unlock higher tiers & a Verified badge</span>
-            <span class="description">Verified users (Silver+) appear more credible in the community</span>
+             <div>
+                 <span class="label" style="display: block; font-weight: bold; margin-bottom: 5px;">Points & Tiers Guide</span>
+                 <p class="description" style="margin: 0;"> Earn points by writing reviews (10pts), getting upvotes (2pts), or comments (1pt). Downvotes reduce points (-1pt).</p>
+                 <br>
+                 <span class="label" style="display: block; font-weight: bold; margin-bottom: 5px;">Tiers & Badges</span>
+                 <ul style="padding-left: 20px; margin: 0; font-size: 13px; color: #666;">
+                    <li>🥉 <b>Bronze</b> (0-49 pts)</li>
+                    <li>🥈 <b>Silver</b> (50-199 pts) - Verified Badge</li>
+                    <li>🥇 <b>Gold</b> (200-499 pts)</li>
+                    <li>💎 <b>Platinum</b> (500+ pts)</li>
+                 </ul>
+            </div>
         </div>
 
 
         <div class="others">
-            <h3>Other Settings</h3>
+            <h3>Account Settings</h3>
 
             <div class="change-password-setting">
-                <br>
                 <button id="change-password-btn" onclick="openUpdatePassword()">Change Password</button>
-                <label for="change-password-btn" class="description">
-                    Update your account password.
-                </label>
+                <div class="description" style="margin-top: 5px;">
+                    Update your account password securely.
+                </div>
             </div>
 
-            <div class="logout">
+            <div class="logout-setting">
                 <br>
-                <button id="logout" onclick="logout()">Log Out</button>
-                <label for="logout" class="description">
-                    Clicking this will log you out of your account on this device. You can log back in anytime.
-                </label>
+                <button id="logout" onclick="logout()" style="background-color: var(--text-muted);">Log Out</button>
+                <div class="description" style="margin-top: 5px;">
+                    End your session on this device.
+                </div>
             </div>
 
-            <div class="delete-account">
+            <div class="delete-account-setting">
                 <br>
-                <button id="delete-account">Delete Account</button>
-                <label for="delete" class="description">
-                    Clicking this will permanently delete your account and all associated data. This action cannot be undone.
-                </label>
+                <button class="delete-btn" onclick="openDeleteAccountConfirm()" style="background-color: #d94866;">Delete Account</button>
+                <div class="description" style="margin-top: 5px;">
+                    Permanently delete your account and all data. Cannot be undone.
+                </div>
                 <br>
             </div>
         </div>
 
     </div>
 
+</div>
+
+<!-- Delete Account Confirm Popup -->
+<div id="deleteAccountConfirmPopup" class="popup hidden">
+    <div class="popup-content" style="text-align: center;">
+        <span class="close" onclick="closeDeleteAccountConfirm()">&times;</span>
+        <div class="success-icon-container" style="background-color: #d94866; box-shadow: 0 4px 12px rgba(217, 72, 102, 0.3);">
+            <span>!</span>
+        </div>
+        <h2 class="success-title">Delete Account?</h2>
+        <p class="success-message">
+            Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be lost.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;">
+            <button class="success-done-btn" onclick="submitDeleteAccount()" style="width: 120px; background-color: #d94866;">Delete</button>
+            <button class="success-done-btn" onclick="closeDeleteAccountConfirm()" style="width: 120px; background-color: #f3f4f6; color: #4b5563; box-shadow: none;">Cancel</button>
+        </div>
+    </div>
 </div>
