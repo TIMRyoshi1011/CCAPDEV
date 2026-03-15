@@ -140,12 +140,13 @@ async function refreshCurrentUser() {
 // current posts
 let posts = [];
 
-// handlebars
+// handlebar helper functions
 app.engine("hbs", exphbs.engine({
     extname: ".hbs",
     defaultLayout: "main",
     helpers: {
         formatDate: (date) => {
+            // Handles date inputs, ensures it is a number and not a string
             if (!date) return '';
             const d = new Date(date);
             return isNaN(d.getTime()) ? date : d.toLocaleDateString();
@@ -153,7 +154,7 @@ app.engine("hbs", exphbs.engine({
         eq: (a, b) => a == b,
         toString: (obj) => obj ? obj.toString() : '',
         userVoteClass: (post, voteType) => {
-            // Handle Handlebars options object or missing voteType
+            // Handles upvotes and downvotes of reviews
             if (typeof voteType !== 'string') {
                 voteType = 'upvote';
             }
@@ -163,6 +164,7 @@ app.engine("hbs", exphbs.engine({
             return '';
         },
         renderStars: (rating) => {
+            // Handles star rating values
             let stars = '';
             for (let i = 1; i <= 5; i++) {
                 if (rating >= i) {
@@ -176,6 +178,7 @@ app.engine("hbs", exphbs.engine({
             return stars;
         },
         timeAgo: (date) => {
+            // Handles timestamp computations
         const pastDate = new Date(date);
         const now = new Date();
         const seconds = Math.floor((now - past) / 1000);
@@ -210,7 +213,7 @@ app.get('/', async (req, res) => {
         const votesCollection = db.collection("votes");
         const allPosts = await postsCollection.find({}).toArray();
 
-        // Calculate Stats
+        // Gets total number of posts (reviews)
         const totalReviews = allPosts.length;
         // Use Set to count unique restaurants (case-insensitive)
         const restaurants = new Set(allPosts.map(p => p.restaurant ? p.restaurant.trim().toLowerCase() : "")).size;
@@ -244,7 +247,7 @@ app.get('/', async (req, res) => {
             }
         }
 
-        // Top Reviews (Sort by rating descending)
+        // Top Reviews (Sort rating in descending order)
         // Clone array before sorting to avoid modifying original list if needed later
         const topReviews = [...allPosts].sort((a, b) => parseFloat(b.ratingValue) - parseFloat(a.ratingValue)).slice(0, 3);
 
@@ -252,7 +255,7 @@ app.get('/', async (req, res) => {
             layout: false,
             stats: {
                 reviews: totalReviews,
-                restaurants: restaurants, // Approximate unique count
+                restaurants: restaurants,
                 locations: locations,
                 avgRating: avgRating
             },
@@ -273,7 +276,7 @@ app.get('/community-reviews', async (req, res) => {
 
         const db = getDb();
         const postsCollection = db.collection("posts");
-        const votesCollection = db.collection("votes"); // Need votes collection
+        const votesCollection = db.collection("votes");
         const allPosts = await postsCollection.find({}).sort({ _id: -1 }).toArray();
         
         // Add ownership and vote info
@@ -320,13 +323,10 @@ app.delete("/delete-user", async (req, res) => {
         if (!currentUser || !currentUser.username) {
             return res.status(401).json({ message: "Not logged in" });
         }
-        
         const db = getDb();
         const users = db.collection("profile");
-        // Also delete their reviews? Or keep them anonymized? 
-        // For now, just delete the user profile as requested.
         
-        await users.deleteOne({ username: currentUser.username });
+        await users.deleteOne({ username: currentUser.username }); 
         
         currentUser = {}; // Clear session
         
@@ -336,7 +336,6 @@ app.delete("/delete-user", async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
-
 
 // API Route to fetch user profile data for modal
 app.get("/api/user/:username", async (req, res) => {
@@ -392,7 +391,7 @@ app.get("/api/user/:username", async (req, res) => {
         let topCuisine = user.topCuisine || "None";
         if (Object.keys(cuisineCounts).length > 0) {
              // prioritizing calculated one if we want dynamic
-             topCuisine = Object.keys(cuisineCounts).reduce((a, b) => cuisineCounts[a] > cuisineCounts[b] ? a : b);
+            topCuisine = Object.keys(cuisineCounts).reduce((a, b) => cuisineCounts[a] > cuisineCounts[b] ? a : b);
         }
 
         const avgService = totalReviews > 0 ? (totalService / totalReviews).toFixed(1) : "0.0";
@@ -478,17 +477,6 @@ app.post("/signup", async (req, res) => {
             comments: 0,
             upvotes: 0,
             downvotes: 0
-            // achievements: ["✍ First Review", "👍 Community Fave", "🔥 Viral Post"]
-
-            // topCuisines: [
-            // { name: "Indian", count: 1 },
-            // { name: "Japanese", count: 1 }
-            // ],
-
-            // topLocations: [
-            // { name: "Makati", count: 1 },
-            // { name: "BGC", count: 1 }
-            // ]
         };
 
         // update the currentUser object
@@ -717,7 +705,7 @@ app.get("/feed", async (req, res) => {
             });
         }
 
-        // Calculate stats for all the posts aka. global posts
+        // Gets all the reviews posted by every user
         if (currentUser) {
             const globalPosts = await allPosts.find({}).toArray();
             if (globalPosts.length > 0) {
@@ -796,7 +784,7 @@ app.get("/feed", async (req, res) => {
     }
 });
 
-// writing a review
+// Writing a review
 app.get("/write-review", (req, res) => {
     res.render("write-review", {
         pageTitle: "Write Review",
@@ -806,8 +794,8 @@ app.get("/write-review", (req, res) => {
     });
 });
 
-// posting the review
-app.post('/write-review', async (req, res) => { //!CHECK
+// Posting the review
+app.post('/write-review', async (req, res) => { 
     try {
         const db = getDb();
         const users = db.collection("profile");
@@ -936,6 +924,7 @@ app.delete('/delete-review/:id', async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
+
 // Report Review
 app.post('/report-review/:id', async (req, res) => {
     try {
@@ -953,8 +942,7 @@ app.post('/report-review/:id', async (req, res) => {
         // Add a reports array if it doesn't exist, and push the new report
         await postsCollection.updateOne(
             { _id: new ObjectId(postId) },
-            { 
-                $push: { 
+            { $push: { 
                     reports: {
                         reporterEmail: currentUser ? currentUser.email : "anonymous",
                         reason: reason || "No reason provided",
@@ -970,6 +958,7 @@ app.post('/report-review/:id', async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
 // Edit Review Page
 app.get('/edit-review/:id', async (req, res) => {
     try {
@@ -1003,7 +992,7 @@ app.get('/edit-review/:id', async (req, res) => {
     }
 });
 
-// Update Review
+// Update Review Page
 app.post('/edit-review/:id', async (req, res) => {
     try {
         const db = getDb();
@@ -1015,7 +1004,7 @@ app.post('/edit-review/:id', async (req, res) => {
         const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
         
         if (!post) {
-             return res.status(404).send("Post not found");
+            return res.status(404).send("Post not found");
         }
          // Ownership check
          if (post.currentUser.email !== currentUser.email) {
@@ -1098,13 +1087,13 @@ app.post('/vote', async (req, res) => {
             return res.status(400).json({ message: "Invalid action" });
         }
 
-        // Find post
+        // Looks for post in existing collection
         const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
 
-        // --- NEW: Prevent voting on own post ---
+        // Prevents user from voting on their review
         if (post.currentUser && post.currentUser.email === currentUser.email) {
             return res.status(403).json({ message: "You cannot vote on your own review" });
         }
@@ -1121,9 +1110,9 @@ app.post('/vote', async (req, res) => {
         let dislikesChange = 0;
         let userVoteChange = 0; // user's total votes
 
-        // Handle vote logic
+        // Handles vote logic
         if (previousVote === action) {
-            // User is trying to vote the same way again - remove their vote
+            // Removes user's vote if they do the same action
             if (action === 'upvote') {
                 likesChange = -1;
             } else {
@@ -1132,7 +1121,7 @@ app.post('/vote', async (req, res) => {
             userVoteChange = -1;
             delete post.userVotes[userEmail];
         } else if (previousVote) {
-            // User had a different vote - switch votes
+            // Switches user's vote if action is different
             if (previousVote === 'upvote') {
                 likesChange = -1;
                 dislikesChange = 1;
@@ -1142,7 +1131,7 @@ app.post('/vote', async (req, res) => {
             }
             post.userVotes[userEmail] = action;
         } else {
-            // User hasn't voted before - add new vote
+            // Adds new vote if user has not yet made a vote
             if (action === 'upvote') {
                 likesChange = 1;
             } else {
@@ -1152,7 +1141,7 @@ app.post('/vote', async (req, res) => {
             post.userVotes[userEmail] = action;
         }
 
-        // Update post votes and userVotes
+        // Updates post votes and userVotes
         const updateObj = {
             $inc: {},
             $set: { userVotes: post.userVotes }
@@ -1174,10 +1163,10 @@ app.post('/vote', async (req, res) => {
             return res.status(500).json({ message: "Failed to update vote" });
         }
 
-        // Update votes collection
+        // Updates votes collection
         const currentVote = post.userVotes[userEmail];
         if (currentVote) {
-            // User has a vote - save or update in votes collection
+            // Saves user's vote in votes collection if there was a vote made 
             await votesCollection.updateOne(
                 { userId: currentUser._id, postId: new ObjectId(postId) },
                 { 
@@ -1186,13 +1175,13 @@ app.post('/vote', async (req, res) => {
                         postId: new ObjectId(postId), 
                         type: currentVote,
                         userEmail: userEmail, // for easier querying
-                        date: new Date() // Add timestamp for activity tracking
+                        date: new Date() // Adds timestamp for activity tracking
                     }
                 },
                 { upsert: true }
             );
         } else {
-            // User removed their vote - delete from votes collection
+            // Deletes user's vote in votes collection if vote was removed
             await votesCollection.deleteOne({
                 userId: currentUser._id,
                 postId: new ObjectId(postId)
@@ -1208,7 +1197,7 @@ app.post('/vote', async (req, res) => {
                 { $inc: { [ownerField]: userVoteChange } }
             );
         } else if (previousVote && previousVote !== action) {
-            // User switched votes - update both counters
+            // Updates both counters if user switched votes
             const oldField = previousVote === 'upvote' ? 'upvotes' : 'downvotes';
             const newField = action === 'upvote' ? 'upvotes' : 'downvotes';
 
@@ -1227,7 +1216,7 @@ app.post('/vote', async (req, res) => {
             }
         }
 
-        // Award/Dedudct points for post owner (if not voting on own post)
+        // Award or deduct points for post owner, if not voting on own post
         if (post.currentUser.email !== currentUser.email) {
             // Helper to get point value for a vote type
             const getPointsValue = (voteType) => {
@@ -1236,12 +1225,12 @@ app.post('/vote', async (req, res) => {
                 return 0;
             };
 
-            // Determine the final state of the vote after this action
+            // Determines the final state of the vote after this action
             let finalVoteState = null;
             if (previousVote === action) {
-                finalVoteState = null; // Removing vote
+                finalVoteState = null; // Removes vote
             } else {
-                finalVoteState = action; // Setting or changing vote
+                finalVoteState = action; // Sets or changes vote
             }
 
             const oldPoints = getPointsValue(previousVote);
@@ -1253,7 +1242,7 @@ app.post('/vote', async (req, res) => {
             }
         }
 
-        // Get updated post data
+        // Gets updated post data
         const updatedPost = await postsCollection.findOne({ _id: new ObjectId(postId) });
 
         res.json({
@@ -1285,7 +1274,7 @@ app.post('/comment', async (req, res) => {
             return res.status(400).json({ message: "Post ID and comment text are required" });
         }
 
-        // Create new comment
+        // Creates new comment
         const newComment = {
             currentUser: {
                 name: currentUser.name,
@@ -1298,7 +1287,7 @@ app.post('/comment', async (req, res) => {
             date: new Date().toLocaleDateString()
         };
 
-        // Add comment to post
+        // Adds comment to post
         const result = await postsCollection.updateOne(
             { _id: new ObjectId(postId) },
             { $push: { comments: newComment } }
@@ -1337,8 +1326,7 @@ app.post('/comment', async (req, res) => {
     }
 });
 
-
-// Notifications
+// Notifications page
 // Get Recent Notifications 
 app.get('/notifications', async (req, res) => {
     try {
@@ -1346,22 +1334,22 @@ app.get('/notifications', async (req, res) => {
         const postsCollection = db.collection("posts");
         const votesCollection = db.collection("votes");
 
-        // User must be logged in to view notifications
+        // Allows viewing of notifications for user that is logged in
         if (!currentUser || !currentUser.email) {
             return res.redirect('/');
         }
 
-        // Get user reviews
+        // Gets user reviews
         const userReviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
 
-        // Get posts where user commented
+        // Gets posts where user commented
         const commentedPosts = await postsCollection.find({
             "comments.currentUser.email": currentUser.email
         }).toArray();
 
         const activities = [];
 
-        // Add review activities
+        // Adds review activities
         userReviews.forEach(review => {
             activities.push({
                 icon: "✍️",
@@ -1377,7 +1365,7 @@ app.get('/notifications', async (req, res) => {
                 }
             });
 
-            // Add incoming comments on user's reviews
+            // Adds incoming comments on user's reviews
             if (review.comments && review.comments.length > 0) {
                 review.comments.forEach(comment => {
                     if (comment.currentUser.email !== currentUser.email) {
@@ -1393,7 +1381,7 @@ app.get('/notifications', async (req, res) => {
             }
         });
 
-        // Add incoming votes on user's reviews
+        // Adds incoming votes on user's reviews
         const userPostIds = userReviews.map(p => p._id);
         const incomingVotes = await votesCollection.find({
             postId: { $in: userPostIds },
@@ -1414,7 +1402,7 @@ app.get('/notifications', async (req, res) => {
             }
         });
 
-        // Add outgoing comment activities
+        // Adds outgoing comment activities
         commentedPosts.forEach(post => {
             const userComments = post.comments.filter(comment =>
                 comment.currentUser.email === currentUser.email
@@ -1430,6 +1418,7 @@ app.get('/notifications', async (req, res) => {
             });
         });
 
+        // Calculates the difference between two timestamps, ensures recent ones appear first
         activities.sort((a, b) => {
             return new Date(b.date) - new Date(a.date);
         });
@@ -1446,35 +1435,36 @@ app.get('/notifications', async (req, res) => {
     }
 });
 
-// compute user stats
+// Computes user stats
 async function computeUserStats(userEmail) {
     try {
         const db = getDb();
         const postsCollection = db.collection("posts");
         const users = db.collection("profile");
 
-        // Get user
+        // Gets user
         const userData = await users.findOne({ email: userEmail });
         if (!userData) return null;
 
-        // Get all reviews by user
+        // Gets all reviews made by user
         const userReviews = await postsCollection.find({ "currentUser.email": userEmail }).toArray();
 
-        // Get all posts where user commented
+        // Gets all posts where user commented
         const commentedPosts = await postsCollection.find({
             "comments.currentUser.email": userEmail
         }).toArray();
 
-        // Calculate stats
+        // Gets total reviews and comments made by user
         const totalReviews = userReviews.length;
         const totalComments = commentedPosts.reduce((sum, post) => {
             return sum + post.comments.filter(comment => comment.currentUser.email === userEmail).length;
         }, 0);
 
+        // Computes for average rating of reviews made by user
         const avgRating = totalReviews > 0 ?
             userReviews.reduce((sum, review) => sum + review.ratingValue, 0) / totalReviews : 0;
 
-        // Count cuisines
+        // Counts cuisines that user made reviews on
         const cuisineCount = {};
         userReviews.forEach(review => {
             if (review.cuisine) {
@@ -1482,7 +1472,7 @@ async function computeUserStats(userEmail) {
             }
         });
 
-        // Count locs
+        // Count locations that user made reviews on
         const locationCount = {};
         userReviews.forEach(review => {
             if (review.location) {
@@ -1490,29 +1480,29 @@ async function computeUserStats(userEmail) {
             }
         });
 
-        // Get top cuisine
+        // Gets top cuisine based on user's reviews
         const topCuisine = Object.keys(cuisineCount).length > 0 ?
             Object.keys(cuisineCount).reduce((a, b) => cuisineCount[a] > cuisineCount[b] ? a : b) : 'None';
 
-        // Get unique locs count
+        // Gets count of unique location based on user's reviews
         const locations = Object.keys(locationCount).length;
 
-        // Get top rated resto
+        // Gets highest-rated restaurant of user
         const topRated = totalReviews > 0 ? userReviews.reduce((prev, current) =>
             (prev.ratingValue > current.ratingValue) ? prev : current
         ).restaurant : 'None';
 
-        // Calculate total upvotes and downvotes from user posts
+        // Gets total upvotes and downvotes from user posts made by other users
         const upvotes = userReviews.reduce((sum, review) => sum + (review.likes || 0), 0);
         const downvotes = userReviews.reduce((sum, review) => sum + (review.dislikes || 0), 0);
 
-        // Get top cuisines
+        // Gets a list of the top 3 cuisines of the user
         const topCuisines = Object.entries(cuisineCount)
             .sort(([,a], [,b]) => b - a)
             .slice(0, 3)
             .map(([name, count]) => ({ name, count }));
 
-        // Get top locs
+        // Gets a list of the top 3 locations of the user
         const topLocations = Object.entries(locationCount)
             .sort(([,a], [,b]) => b - a)
             .slice(0, 3)
@@ -1538,8 +1528,8 @@ async function computeUserStats(userEmail) {
     }
 }
 
-// get tier progress
-function getTierProgress(points) { // check kung ok points for tiers
+// Gets tier progress
+function getTierProgress(points) { 
     const tiers = [
         { name: "Bronze", min: 0, max: 49, icon: "🥉", color: "bronze" },
         { name: "Silver", min: 50, max: 149, icon: "🥈", color: "silver" },
@@ -1573,7 +1563,7 @@ function getTierProgress(points) { // check kung ok points for tiers
     };
 }
 
-//UserProfile-Reviews
+// User profile-reviews
 app.get('/userprofile-reviews', async (req, res) => {
     try {
         const db = getDb();
@@ -1581,12 +1571,12 @@ app.get('/userprofile-reviews', async (req, res) => {
         const votesCollection = db.collection("votes");
         const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
 
-        // Loop through all reviews
+        // Loops through all reviews
         for (let i = 0; i < reviews.length; i++) {
-            reviews[i].ownPost = true; // Mark all as owned
+            reviews[i].ownPost = true; // Marks all as owned
         }
 
-        // Add user vote information to each review
+        // Adds user vote information to each review
         for (let review of reviews) {
             const userVote = await votesCollection.findOne({
                 userId: currentUser._id,
@@ -1595,7 +1585,7 @@ app.get('/userprofile-reviews', async (req, res) => {
             review.userVote = userVote ? userVote.type : null;
         }
 
-        // Calculate user stats
+        // Calculates user stats
         const userStats = await computeUserStats(currentUser.email);
         const tierProgress = getTierProgress(userStats ? userStats.points : 0);
 
@@ -1627,7 +1617,7 @@ app.post('/update-profile', async (req, res) => {
             return res.status(401).json({ message: "User not authenticated" });
         }
 
-        // Check if username is already taken (if changed)
+        // Checks if username is already taken (if changed)
         if (username !== currentUser.username) {
             const existingUser = await users.findOne({ username: username });
             if (existingUser) {
@@ -1635,7 +1625,7 @@ app.post('/update-profile', async (req, res) => {
             }
         }
 
-        // Check if email is already taken (if changed)
+        // Checks if email is already taken (if changed)
         if (email !== currentUser.email) {
             const existingUser = await users.findOne({ email: email });
             if (existingUser) {
@@ -1643,7 +1633,7 @@ app.post('/update-profile', async (req, res) => {
             }
         }
 
-        // Update user profile
+        // Updates user profile
         const updateData = {
             name: name || currentUser.name,
             username: username || currentUser.username,
@@ -1651,7 +1641,7 @@ app.post('/update-profile', async (req, res) => {
             bio: bio || currentUser.bio
         };
 
-        // Recalculate avatar and initials based on new name
+        // Recalculates avatar and initials based on new name
         updateData.avatar = updateData.name.split(' ').map(word => word[0].toUpperCase()).join('');
         updateData.initials = updateData.name.split(' ').map(word => word[0].toUpperCase()).join('');
 
@@ -1662,7 +1652,7 @@ app.post('/update-profile', async (req, res) => {
             { $set: updateData }
         );
 
-        // update email in all posts collection if email changed
+        // Updates email in all posts collection if email changed
         if (email && email !== oldEmail) {
             const postsCollection = db.collection("posts");
             await postsCollection.updateMany(
@@ -1677,7 +1667,7 @@ app.post('/update-profile', async (req, res) => {
             );
         }
 
-        // Update name and avatar in all posts and comments
+        // Updates name and avatar in all posts and comments
         const postsCollection = db.collection("posts");
         await postsCollection.updateMany(
             { "currentUser.email": updateData.email },
@@ -1720,7 +1710,7 @@ app.get('/settings', (req, res) => {
     });
 });
 
-// server activation
+// Server activation
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
