@@ -98,7 +98,97 @@
 
             <div class="report-actions">
                 <button class="submit-btn report-cancel-btn" onclick="closeReportPopup()">Cancel</button>
-                <button class="submit-btn report-submit-btn" onclick="submitReport()">Report</button>
+                <button class="submit-btn report-confirm-btn" onclick="submitReport()">Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="userProfileModal" class="modal-backdrop hidden" onclick="closeModalOnBackdrop(event)">
+        <div class="modal-container" onclick="event.stopPropagation()">
+            <!-- Header -->
+            <div class="modal-header" id="modalHeader">
+                <button class="modal-close-btn" onclick="closeModal()">✕</button>
+
+                <div class="user-info-row">
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <div class="user-details">
+                        <h2 class="user-name" id="userName"></h2>
+                        <div class="user-username" id="userUsername"></div>
+                        <div class="user-badges">
+                            <span class="tier-pill" id="userTier"></span>
+                            <span class="verified-badge hidden" id="verifiedBadge">✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-bio" id="userBio"></div>
+                <div class="user-joined" id="userJoined"></div>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Stats Grid -->
+                <div class="modal-stats-grid">
+                    <div class="modal-stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-value" id="statReviews" style="color: var(--cerise);"></div>
+                        <div class="stat-label">Reviews</div>
+                    </div>
+                    <div class="modal-stat-card">
+                        <div class="stat-icon">🏅</div>
+                        <div class="stat-value" id="statPoints" style="color: var(--citron);"></div>
+                        <div class="stat-label">Points</div>
+                    </div>
+                    <div class="modal-stat-card">
+                        <div class="stat-icon" id="statTierIcon"></div>
+                        <div class="stat-value" id="statTier"></div>
+                        <div class="stat-label">Tier</div>
+                    </div>
+                </div>
+
+                <!-- Preferences -->
+                <h3 class="section-heading">Preferences</h3>
+                <div class="preferences-grid">
+                    <div class="preference-card">
+                        <div class="preference-label">🍜 Favorite Cuisine</div>
+                        <div class="preference-value" id="prefCuisine"></div>
+                    </div>
+                    <div class="preference-card">
+                        <div class="preference-label">📍 Top Location</div>
+                        <div class="preference-value" id="prefLocation"></div>
+                    </div>
+                </div>
+
+                <!-- Average Ratings -->
+                <div id="ratingsSection">
+                    <h3 class="section-heading">⭐ Average Ratings</h3>
+                    <div class="ratings-container">
+                        <div class="rating-row">
+                            <span class="rating-label">Service</span>
+                            <div class="rating-value-container">
+                                <div class="modal-stars" id="serviceStars"></div>
+                                <span class="rating-number" id="serviceRating"></span>
+                            </div>
+                        </div>
+                        <div class="rating-row">
+                            <span class="rating-label">Taste</span>
+                            <div class="rating-value-container">
+                                <div class="modal-stars" id="tasteStars"></div>
+                                <span class="rating-number" id="tasteRating"></span>
+                            </div>
+                        </div>
+                        <div class="rating-row">
+                            <span class="rating-label">Ambiance</span>
+                            <div class="rating-value-container">
+                                <div class="modal-stars" id="ambianceStars"></div>
+                                <span class="rating-number" id="ambianceRating"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- View Full Profile Button -->
             </div>
         </div>
     </div>
