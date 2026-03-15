@@ -13,10 +13,10 @@ async function main() {
         const usersCollection = db.collection("profile");
         const postsCollection = db.collection("posts");
 
-        // Clear existing data
-        await usersCollection.deleteMany({});
-        await postsCollection.deleteMany({});
-        console.log("Cleared existing data");
+        // Clear existing data is commented out to preserve data
+        // await usersCollection.deleteMany({});
+        // await postsCollection.deleteMany({});
+        console.log("Checking and preserving existing data...");
 
         // --- 1. Create Users ---
 const usersData = [
@@ -172,13 +172,32 @@ const usersData = [
             }
         ];
 
-        const usersResult = await usersCollection.insertMany(usersData);
-        console.log(`${usersResult.insertedCount} users inserted`);
+        let usersInserted = 0;
+        for (const userData of usersData) {
+            const existingUser = await usersCollection.findOne({ username: userData.username });
+            if (!existingUser) {
+                await usersCollection.insertOne(userData);
+                usersInserted++;
+            }
+        }
+        console.log(`${usersInserted} users inserted (skipped ${usersData.length - usersInserted} existing)`);
 
         // Get users back to use in posts (need _id and structure)
         const users = await usersCollection.find().toArray();
         const userMap = {};
         users.forEach(u => userMap[u.username] = u);
+
+        // Helper to create comment object
+        const createComment = (user, text) => ({
+            currentUser: {
+                name: user.name,
+                avatar: user.avatar,
+                rankClass: user.rankClass,
+                initials: user.avatar 
+            },
+            text: text,
+            date: new Date().toLocaleDateString()
+        });
 
         // --- 2. Create Posts ---
         const postsData = [
@@ -197,7 +216,10 @@ const usersData = [
                 scores: { service: 4.0, taste: 5.0, ambiance: 3.0 },
                 likes: 15,
                 dislikes: 1,
-                comments: []
+                comments: [
+                    createComment(userMap['mia_santos'], "Totally agree about the gravy!"),
+                    createComment(userMap['carlo_dc'], "Best fast food chicken hands down.")
+                ]
             },
             {
                 currentUser: userMap['mia_santos'],
@@ -214,7 +236,9 @@ const usersData = [
                 scores: { service: 5.0, taste: 5.0, ambiance: 4.5 },
                 likes: 42,
                 dislikes: 0,
-                comments: []
+                comments: [
+                    createComment(userMap['rina_reyes'], "The miso soup is great too.")
+                ]
             },
             {
                 currentUser: userMap['rina_reyes'],
@@ -231,7 +255,9 @@ const usersData = [
                 scores: { service: 3.0, taste: 4.0, ambiance: 5.0 },
                 likes: 8,
                 dislikes: 1,
-                comments: []
+                comments: [
+                    createComment(userMap['bea_alonzo'], "Oh no, I was planning to go there. Thanks for the heads up!")
+                ]
             },
             {
                 currentUser: userMap['carlo_dc'],
@@ -265,58 +291,91 @@ const usersData = [
                 scores: { service: 4.5, taste: 5.0, ambiance: 4.0 },
                 likes: 25,
                 dislikes: 0,
-                comments: []
+                comments: [
+                    createComment(userMap['lance_chua'], "Adding this to my list!")
+                ]
             }
         ];
 
-        const postsResult = await postsCollection.insertMany(postsData);
-        console.log(`${postsResult.insertedCount} posts inserted`);
+        let postsInserted = 0;
+        for (const postData of postsData) {
+            // Check if post exists by title and author
+            const existingPost = await postsCollection.findOne({ 
+                title: postData.title, 
+                "currentUser.username": postData.currentUser.username 
+            });
+            
+            if (!existingPost) {
+                await postsCollection.insertOne(postData);
+                postsInserted++;
+            }
+        }
+        console.log(`${postsInserted} posts inserted (skipped ${postsData.length - postsInserted} existing)`);
         
-        // Get inserted posts to modify comments
-        const insertedPosts = await postsCollection.find().toArray();
+        // Comments are now included directly in the post data above.
+        
+        // --- 4. Update User Stats Based on Posts ---
+        console.log("Updating user stats...");
+        
+        // Refresh users list cause we need to iterate all of them
+        const allUsers = await usersCollection.find().toArray();
 
-        // --- 3. Add Comments ---
-        // Helper to create comment object
-        const createComment = (user, text) => ({
-            currentUser: {
-                name: user.name,
-                avatar: user.avatar,
-                rankClass: user.rankClass,
-                initials: user.avatar // Assuming avatar holds initials here based on user data above
-            },
-            text: text,
-            date: new Date().toLocaleDateString()
-        });
+        for (const user of allUsers) {
+             const userPosts = await postsCollection.find({ "currentUser.email": user.email }).toArray();
+             
+             if (userPosts.length > 0) {
+                 const totalReviews = userPosts.length;
+                 
+                 // Avg Rating
+                 const totalRating = userPosts.reduce((acc, p) => acc + parseFloat(p.ratingValue || 0), 0);
+                 const avgRating = parseFloat((totalRating / totalReviews).toFixed(1));
 
-        // Add comments to specific posts
-        // Post 0 (Jollibee - Lance) gets comments from Mia and Carlo
-        await postsCollection.updateOne(
-            { _id: insertedPosts[0]._id },
-            { $push: { comments: { $each: [
-                createComment(userMap['mia_santos'], "Totally agree about the gravy!"),
-                createComment(userMap['carlo_dc'], "Best fast food chicken hands down.")
-            ] } } }
-        );
+                 // Locations
+                 const uniqueLocations = new Set(userPosts.map(p => p.location).filter(l => l)).size;
 
-        // Post 1 (Yabu - Mia) gets comment from Rina
-        await postsCollection.updateOne(
-            { _id: insertedPosts[1]._id },
-            { $push: { comments: createComment(userMap['rina_reyes'], "The miso soup is great too.") } }
-        );
+                 // Top Cuisine
+                  const cuisineCounts = {};
+                  let topCuisine = "None";
+                  userPosts.forEach(post => {
+                      const c = post.cuisine;
+                      if (c) cuisineCounts[c] = (cuisineCounts[c] || 0) + 1;
+                  });
+                  if (Object.keys(cuisineCounts).length > 0) {
+                      topCuisine = Object.keys(cuisineCounts).reduce((a, b) => cuisineCounts[a] > cuisineCounts[b] ? a : b);
+                  }
 
-        // Post 2 (Illo - Rina) gets comment from Bea
-        await postsCollection.updateOne(
-            { _id: insertedPosts[2]._id },
-            { $push: { comments: createComment(userMap['bea_alonzo'], "Oh no, I was planning to go there. Thanks for the heads up!") } }
-        );
-         // Post 4 (Gino's - Bea) gets comment from Lance
-         await postsCollection.updateOne(
-            { _id: insertedPosts[4]._id },
-            { $push: { comments: createComment(userMap['lance_chua'], "Adding this to my list!") } }
-        );
+                 // Top Rated
+                 const topRatedPost = userPosts.reduce((prev, current) => (parseFloat(prev.ratingValue || 0) > parseFloat(current.ratingValue || 0)) ? prev : current);
+                 const topRated = topRatedPost.restaurant || "None";
+                 
+                 // Update User
+                 await usersCollection.updateOne(
+                     { _id: user._id },
+                     { $set: { 
+                         totalReviews, 
+                         avgRating, 
+                         locations: uniqueLocations, 
+                         topCuisine, 
+                         topRated 
+                     }}
+                 );
+                 console.log(`Updated stats for ${user.username}`);
+             } else {
+                 // Reset stats if no posts found
+                 await usersCollection.updateOne(
+                     { _id: user._id },
+                     { $set: { 
+                         totalReviews: 0, 
+                         avgRating: 0, 
+                         locations: 0, 
+                         topCuisine: "None", 
+                         topRated: "None" 
+                     }}
+                 );
+             }
+        }
 
-
-        console.log("Comments added");
+        console.log("Seed complete with stat updates!");
 
     } catch (err) {
         console.error(err);

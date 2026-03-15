@@ -618,11 +618,19 @@ async function submitReport() {
 
 // --- UPDATE PASSWORD LOGIC ---
 function openUpdatePassword() {
+    console.log("Opening update password popup...");
     const popup = document.getElementById("updatePasswordPopup");
     if (popup) {
         popup.classList.remove("hidden");
-        document.getElementById("updatePasswordForm").reset();
+        const form = document.getElementById("updatePasswordForm");
+        if (form) form.reset();
         hideInlineError("update-pw-error-msg");
+        console.log("Popup opened.");
+    } else {
+        console.error("Update password popup not found!");
+        // Create popup dynamically if missing? No, user should fix layout.
+        // Alert user for fallback
+        alert("Password popup not found. Please refresh the page.");
     }
 }
 
@@ -716,4 +724,6 @@ function toggleCustomLocation() {//!CHECK
         input.value = '';
     }
 }
+
+
 
