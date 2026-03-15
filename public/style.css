@@ -708,12 +708,23 @@ body {
 }
 
 .options { /* Three-dot menu button */
-    color: #9b9b9b;
-    font-weight: 600;
+    color: #6b7280;
     cursor: pointer;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.05);
+    transition: background-color 0.2s, color 0.2s;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.options:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #374151;
 }
 
 .options-dropdown { /* Dropdown menu for edit/delete */
@@ -721,13 +732,14 @@ body {
     position: absolute;
     right: 0;
     top: 100%;
-    margin-top: 5px;
+    margin-top: 8px;
     background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    min-width: 140px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    min-width: 170px;
     z-index: 100;
+    overflow: hidden;
 }
 
 .options-dropdown.show {  /* Show dropdown when .show class is added to see how it actually looks first */
@@ -735,11 +747,19 @@ body {
 }
 
 .option-item {
-    padding: 12px 16px;
+    padding: 10px 14px;
     cursor: pointer;
-    color: #333;
+    color: #111827;
     font-size: 14px;
     transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.option-item:hover {
+    background: rgba(0, 0, 0, 0.03);
 }
 
 
@@ -1266,6 +1286,135 @@ body {
     display: flex;
     gap: 12px;
     margin-bottom: 15px;
+    position: relative;
+}
+
+.comment-actions {
+    display: none;
+}
+
+.comment-options-container {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.review-user-info {
+    padding-right: 60px;
+}
+
+.comment-options {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 18px;
+}
+
+.comment-options:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.comment-options-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    min-width: 160px;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.comment-options-dropdown.show {
+    display: block;
+}
+
+.comment-option-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    color: #111827;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.comment-option-item:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.comment-delete-btn,
+.comment-edit-btn {
+    display: none;
+}
+
+.comment-edit-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.comment-edit-wrapper .comment-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #36734e;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+    font-family: Arial, sans-serif;
+}
+
+.comment-edit-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.comment-save-btn {
+    background: #36734e;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.comment-save-btn:hover {
+    background: #2d5f40;
+    transform: translateY(-1px);
+}
+
+.comment-cancel-btn {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.comment-cancel-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
 }
 
 /* Add Comment Form */
@@ -1299,6 +1448,7 @@ body {
     border-color: #36734e;
     box-shadow: 0 0 0 2px rgba(54, 115, 78, 0.1);
 }
+
 
 .comment-submit-btn {
     background: #36734e;
@@ -1593,12 +1743,12 @@ body {
     position: absolute;
     right: 0;
     top: 100%;
-    margin-top: 5px;
+    margin-top: 8px;
     background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    min-width: 140px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    min-width: 170px;
     z-index: 100;
     overflow: hidden;
 }
@@ -1608,14 +1758,18 @@ body {
 }
 
 .option-item-3 {
-    padding: 12px 16px;
+    padding: 10px 14px;
     cursor: pointer;
-    color: #333;
+    color: #111827;
     font-size: 14px;
     transition: background-color 0.2s;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+}
+
+.option-item-3:hover {
+    background: rgba(0, 0, 0, 0.03);
 }
 
 .comments {
