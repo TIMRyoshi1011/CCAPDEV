@@ -403,8 +403,6 @@ app.post('/write-review', async (req, res) => { //!CHECK
     }
 });
         
-import { ObjectId } from "mongodb";
-
 // Delete Review
 app.delete('/delete-review/:id', async (req, res) => {
     try {
