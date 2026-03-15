@@ -186,6 +186,95 @@ app.get("/logout", (req, res) => {
     res.redirect("/");
 });
 
+// API Route to fetch user profile data for modal
+app.get("/api/user/:username", async (req, res) => {
+    try {
+        const username = req.params.username;
+        const db = getDb();
+        const usersCollection = db.collection("profile");
+        const postsCollection = db.collection("posts");
+
+        // Find user
+        const user = await usersCollection.findOne({ username: username });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Find all posts by this user to calculate stats
+        // Note: posts collection stores author in 'currentUser' field or we might need to query by 'currentUser.username'
+        // Based on seed.js, posts have `currentUser` object embedded.
+        const userPosts = await postsCollection.find({ "currentUser.username": username }).toArray();
+
+        // Calculate stats
+        let totalReviews = userPosts.length;
+        let locationsSet = new Set();
+        let cuisineCounts = {};
+        let locationCounts = {};
+        
+        let totalService = 0;
+        let totalTaste = 0;
+        let totalAmbiance = 0;
+
+        userPosts.forEach(post => {
+            if (post.location) {
+                locationsSet.add(post.location);
+                locationCounts[post.location] = (locationCounts[post.location] || 0) + 1;
+            }
+            if (post.cuisine) {
+                cuisineCounts[post.cuisine] = (cuisineCounts[post.cuisine] || 0) + 1;
+            }
+            if (post.scores) {
+                totalService += (post.scores.service || 0);
+                totalTaste += (post.scores.taste || 0);
+                totalAmbiance += (post.scores.ambiance || 0);
+            }
+        });
+
+        // Top Location
+        let topLocation = "None";
+        if (Object.keys(locationCounts).length > 0) {
+            topLocation = Object.keys(locationCounts).reduce((a, b) => locationCounts[a] > locationCounts[b] ? a : b);
+        }
+
+        // Top Cuisine (if not already in user object or verifying it)
+        let topCuisine = user.topCuisine || "None";
+        if (Object.keys(cuisineCounts).length > 0) {
+             // prioritizing calculated one if we want dynamic
+             topCuisine = Object.keys(cuisineCounts).reduce((a, b) => cuisineCounts[a] > cuisineCounts[b] ? a : b);
+        }
+
+        const avgService = totalReviews > 0 ? (totalService / totalReviews).toFixed(1) : "0.0";
+        const avgTaste = totalReviews > 0 ? (totalTaste / totalReviews).toFixed(1) : "0.0";
+        const avgAmbiance = totalReviews > 0 ? (totalAmbiance / totalReviews).toFixed(1) : "0.0";
+
+        const responseData = {
+            name: user.name,
+            username: user.username,
+            avatar: user.avatar,
+            badge: user.badge || "Newbie", // Default if missing
+            verified: user.verified || false,
+            bio: user.bio || "No bio yet.",
+            joinDate: user.memberSince || "Unknown",
+            totalReviews: totalReviews,
+            points: user.points || 0,
+            tier: user.tier || "Bronze",
+            topCuisine: topCuisine,
+            topLocation: topLocation,
+            ratings: {
+                service: avgService,
+                taste: avgTaste,
+                ambiance: avgAmbiance
+            }
+        };
+
+        res.json(responseData);
+
+    } catch (err) {
+        console.error("Error fetching user profile:", err);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 // for MongoDB Connection
 connectToMongo((err) => {
     if(err) {

@@ -50,6 +50,178 @@ function showInlineError(elementId, message) {
     }
 }
 
+// --- User Profile Popup ---
+const TIER_CONFIG = {
+    Bronze: {
+        badge: '🥉',
+        color: '#cd7f32',
+        bg: '#fff0e6',
+        border: 'rgba(205, 127, 50, 0.3)',
+        headerGradientFrom: '#fff0e6',
+        headerGradientTo: '#ffffff'
+    },
+    Silver: {
+        badge: '🥈',
+        color: '#999999',
+        bg: '#f0f0f0',
+        border: '#e5e7eb',
+        headerGradientFrom: '#f0f0f0',
+        headerGradientTo: '#ffffff'
+    },
+    Gold: {
+        badge: '🥇',
+        color: '#d4a017',
+        bg: '#fff4cc',
+        border: 'rgba(212, 160, 23, 0.3)',
+        headerGradientFrom: '#fff4cc',
+        headerGradientTo: '#ffffff'
+    },
+    Platinum: {
+        badge: '💎',
+        color: '#0284c7',
+        bg: '#e0f2fe',
+        border: 'rgba(2, 132, 199, 0.3)',
+        headerGradientFrom: '#e0f2fe',
+        headerGradientTo: '#ffffff'
+    },
+    Diamond: {
+        badge: '💠',
+        color: '#d94866',
+        bg: '#ffe2ea',
+        border: 'rgba(217, 72, 102, 0.3)',
+        headerGradientFrom: '#ffe2ea',
+        headerGradientTo: '#ffffff'
+    }
+};
+
+function renderStarsNew(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalf = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+    
+    let html = '';
+    for (let i = 0; i < fullStars; i++) {
+        html += '<span class="modal-star full">★</span>';
+    }
+    if (hasHalf) {
+        html += '<span class="modal-star half">★</span>'; 
+    }
+    for (let i = 0; i < emptyStars; i++) {
+        html += '<span class="modal-star empty">★</span>';
+    }
+    return html;
+}
+
+async function showUserProfile(username) {
+    const modal = document.getElementById('userProfileModal');
+    if (!modal) return;
+
+    // Reset UI
+    document.getElementById('userName').textContent = 'Loading...';
+    
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; 
+
+    try {
+        const response = await fetch(`/api/user/${username}`);
+        if (!response.ok) throw new Error('User not found');
+        const data = await response.json();
+
+        // Tier Config Logic
+        const tierName = data.tier || 'Bronze';
+        const tierConfig = TIER_CONFIG[tierName] || TIER_CONFIG['Bronze'];
+
+        // Set CSS variables
+        const header = document.getElementById('modalHeader');
+        header.style.setProperty('--header-gradient-from', tierConfig.headerGradientFrom);
+        header.style.setProperty('--header-gradient-to', tierConfig.headerGradientTo);
+        header.style.setProperty('--header-border', tierConfig.border);
+        
+        const tierPill = document.getElementById('userTier');
+        tierPill.style.setProperty('--tier-bg', tierConfig.bg);
+        tierPill.style.setProperty('--tier-color', tierConfig.color);
+        tierPill.style.setProperty('--tier-border', tierConfig.border);
+
+        // Populate Data
+        document.getElementById('userAvatar').textContent = data.avatar || data.username.substring(0,2).toUpperCase();
+        document.getElementById('userName').textContent = data.name;
+        document.getElementById('userUsername').textContent = `@${data.username}`;
+        document.getElementById('userBio').textContent = data.bio || 'No bio yet.';
+        document.getElementById('userJoined').textContent = `📅 Joined ${data.joinDate}`;
+
+        // Badges
+        document.getElementById('userTier').textContent = tierName;
+        document.getElementById('statTierIcon').textContent = tierConfig.badge;
+        document.getElementById('statTier').textContent = tierName;
+        document.getElementById('statTier').style.color = tierConfig.color;
+
+        // Verified Check
+        const verifiedBadge = document.getElementById('verifiedBadge');
+        if (data.verified) {
+             verifiedBadge.classList.remove('hidden');
+        } else {
+             verifiedBadge.classList.add('hidden');
+        }
+
+        // Stats
+        document.getElementById('statReviews').textContent = data.totalReviews;
+        document.getElementById('statPoints').textContent = data.points;
+
+        // Preferences
+        document.getElementById('prefCuisine').textContent = data.topCuisine || 'None';
+        document.getElementById('prefLocation').textContent = data.topLocation || 'None';
+
+        // Ratings
+        const ratingsSection = document.getElementById('ratingsSection');
+        if (data.ratings && data.totalReviews > 0) {
+            ratingsSection.classList.remove('hidden');
+            
+            const safeParseFloat = (val) => {
+                const parsed = parseFloat(val);
+                return isNaN(parsed) ? 0.0 : parsed;
+            };
+
+            const serviceVal = safeParseFloat(data.ratings.service);
+            const tasteVal = safeParseFloat(data.ratings.taste);
+            const ambianceVal = safeParseFloat(data.ratings.ambiance);
+
+            document.getElementById('serviceStars').innerHTML = renderStarsNew(serviceVal);
+            document.getElementById('serviceRating').textContent = serviceVal.toFixed(1);
+            
+            document.getElementById('tasteStars').innerHTML = renderStarsNew(tasteVal);
+            document.getElementById('tasteRating').textContent = tasteVal.toFixed(1);
+            
+            document.getElementById('ambianceStars').innerHTML = renderStarsNew(ambianceVal);
+            document.getElementById('ambianceRating').textContent = ambianceVal.toFixed(1);
+        } else {
+            ratingsSection.classList.add('hidden');
+        }
+
+    } catch (e) {
+        console.error(e);
+        document.getElementById('userName').textContent = 'Error loading profile';
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('userProfileModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+}
+
+function closeModalOnBackdrop(event) {
+    if (event.target.classList.contains('modal-backdrop')) {
+        closeModal();
+    }
+}
+
+// Close modal when clicking outside (removed old handler that collided)
+// window.onclick is handled by explicit onclicks in this new design or needs careful merging if other modals rely on window.onclick
+// The new modal uses onclick="closeModalOnBackdrop(event)" directly on the backdrop div.
+
+
 function hideInlineError(elementId) {
     const errEl = document.getElementById(elementId);
     if (errEl) {
