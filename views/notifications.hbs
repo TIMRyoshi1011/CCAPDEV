@@ -18,7 +18,7 @@
 
             <div class="notification-content">
                 <p> {{{this.message}}} </p>
-                <span class="timestamp">{{this.timestamp}}</span>
+                <span class="timestamp">{{timeAgo this.timestamp}}</span>
             </div>
 
             {{#if unread}}
