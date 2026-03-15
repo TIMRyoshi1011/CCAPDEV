@@ -120,7 +120,8 @@
                 </div>
                 {{#if rating}}
                 <div class="rating">
-                    {{stars}} <span class="rating-score">{{rating}}</span>
+                    {{{renderStars rating}}}
+                    <span class="rating-score">{{rating}}</span>
                 </div>
                 {{/if}}
             </div>

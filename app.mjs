@@ -907,7 +907,8 @@ app.post('/comment', async (req, res) => {
                 name: currentUser.name,
                 avatar: currentUser.avatar,
                 rankClass: currentUser.rankClass,
-                initials: currentUser.name.split(' ').map(word => word[0].toUpperCase()).join('')
+                initials: currentUser.name.split(' ').map(word => word[0].toUpperCase()).join(''),
+                email: currentUser.email
             },
             text: text.trim(),
             date: new Date().toLocaleDateString()
@@ -1007,13 +1008,13 @@ async function computeUserStats(userEmail) {
 
         // Get all posts where user commented
         const commentedPosts = await postsCollection.find({
-            "comments.currentUser.name": userData.name
+            "comments.currentUser.email": userEmail
         }).toArray();
 
         // Calculate stats
         const totalReviews = userReviews.length;
         const totalComments = commentedPosts.reduce((sum, post) => {
-            return sum + post.comments.filter(comment => comment.currentUser.name === userData.name).length;
+            return sum + post.comments.filter(comment => comment.currentUser.email === userEmail).length;
         }, 0);
 
         const avgRating = totalReviews > 0 ?
@@ -1180,7 +1181,7 @@ app.get('/userprofile-activity', async (req, res) => {
 
         // Get posts where user commented
         const commentedPosts = await postsCollection.find({
-            "comments.currentUser.name": currentUser.name
+            "comments.currentUser.email": currentUser.email
         }).toArray();
 
         const activities = [];
@@ -1205,7 +1206,7 @@ app.get('/userprofile-activity', async (req, res) => {
         // Add comment activities
         commentedPosts.forEach(post => {
             const userComments = post.comments.filter(comment =>
-                comment.currentUser.name === currentUser.name
+                comment.currentUser.email === currentUser.email
             );
 
             userComments.forEach(comment => {
@@ -1269,12 +1270,52 @@ app.post('/update-profile', async (req, res) => {
             bio: bio || currentUser.bio
         };
 
+        // Recalculate avatar and initials based on new name
+        updateData.avatar = updateData.name.split(' ').map(word => word[0].toUpperCase()).join('');
+        updateData.initials = updateData.name.split(' ').map(word => word[0].toUpperCase()).join('');
+
+        const oldEmail = currentUser.email;
+
         await users.updateOne(
             { email: currentUser.email },
             { $set: updateData }
         );
 
-        // Update currentUser object
+        // update email in all posts collection if email changed
+        if (email && email !== oldEmail) {
+            const postsCollection = db.collection("posts");
+            await postsCollection.updateMany(
+                { "currentUser.email": oldEmail },
+                { $set: { "currentUser.email": email } }
+            );
+
+            await postsCollection.updateMany(
+                { "comments.currentUser.email": oldEmail },
+                { $set: { "comments.$[elem].currentUser.email": email } },
+                { arrayFilters: [{ "elem.currentUser.email": oldEmail }] }
+            );
+        }
+
+        // Update name and avatar in all posts and comments
+        const postsCollection = db.collection("posts");
+        await postsCollection.updateMany(
+            { "currentUser.email": updateData.email },
+            { $set: { 
+                "currentUser.name": updateData.name,
+                "currentUser.avatar": updateData.avatar
+            } }
+        );
+
+        await postsCollection.updateMany(
+            { "comments.currentUser.email": updateData.email },
+            { $set: { 
+                "comments.$[elem].currentUser.name": updateData.name,
+                "comments.$[elem].currentUser.avatar": updateData.avatar,
+                "comments.$[elem].currentUser.initials": updateData.initials
+            } },
+            { arrayFilters: [{ "elem.currentUser.email": updateData.email }] }
+        );
+
         Object.assign(currentUser, updateData);
 
         res.json({ message: "Profile updated successfully" });
