@@ -370,12 +370,149 @@ function editReview(id) {
     window.location.href = `/edit-review/${id}`;
 }
 
-function reportReview(id) {
-    // For now, simple alert
-    showCustomAlert(`Review ${id} has been reported to the moderators.`);
+let currentReportPostId = null;
+let currentReportElement = null;
+
+function reportReview(id, element) {
+    if (element && element.dataset.reported === 'true') {
+        return; // Already reported
+    }
+    currentReportPostId = id;
+    currentReportElement = element;
+    
+    // Reset report form
+    const reasonInput = document.getElementById("report-reason");
+    if (reasonInput) reasonInput.value = "";
+    hideInlineError("report-error-msg");
+    
+    const popup = document.getElementById("reportReviewPopup");
+    if (popup) popup.classList.remove("hidden");
 }
 
-// Toggle Custom Input Fields for Write Review
+function closeReportPopup() {
+    const popup = document.getElementById("reportReviewPopup");
+    if (popup) popup.classList.add("hidden");
+    currentReportPostId = null;
+    currentReportElement = null;
+}
+
+async function submitReport() {
+    const reasonInput = document.getElementById("report-reason");
+    const reason = reasonInput ? reasonInput.value.trim() : "";
+    
+    if (!reason) {
+        showInlineError("report-error-msg", "Please provide a reason for reporting.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/report-review/${currentReportPostId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ reason })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            closeReportPopup();
+            showCustomAlert("Report successful!");
+            
+            // Update the UI
+            if (currentReportElement) {
+                currentReportElement.innerHTML = "🚩 Reported";
+                currentReportElement.style.color = "#d94866";
+                currentReportElement.dataset.reported = "true";
+                currentReportElement.style.cursor = "default";
+            }
+        } else {
+            showInlineError("report-error-msg", data.message || "Failed to report.");
+        }
+
+    } catch (err) {
+        console.error(err);
+        showInlineError("report-error-msg", "Something went wrong.");
+    }
+}
+
+
+// --- UPDATE PASSWORD LOGIC ---
+function openUpdatePassword() {
+    const popup = document.getElementById("updatePasswordPopup");
+    if (popup) {
+        popup.classList.remove("hidden");
+        document.getElementById("updatePasswordForm").reset();
+        hideInlineError("update-pw-error-msg");
+    }
+}
+
+function closeUpdatePassword() {
+    const popup = document.getElementById("updatePasswordPopup");
+    if (popup) {
+        popup.classList.add("hidden");
+    }
+}
+
+async function submitUpdatePassword(e) {
+    if (e) e.preventDefault();
+    hideInlineError("update-pw-error-msg");
+
+    const currentPassword = document.getElementById("current-password").value;
+    const newPassword = document.getElementById("new-update-password").value;
+    const confirmPassword = document.getElementById("confirm-update-password").value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showInlineError("update-pw-error-msg", "All fields are required.");
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showInlineError("update-pw-error-msg", "New password must be at least 6 characters long.");
+        return;
+    }
+
+    if (newPassword === currentPassword) {
+        showInlineError("update-pw-error-msg", "New password must not be the same as current password.");
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showInlineError("update-pw-error-msg", "New passwords do not match.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/update-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            closeUpdatePassword();
+            openSuccessPassword();
+        } else {
+            showInlineError("update-pw-error-msg", data.message || "Failed to update password.");
+        }
+    } catch (err) {
+        showInlineError("update-pw-error-msg", "An error occurred. Please try again.");
+    }
+}
+
+function openSuccessPassword() {
+    const popup = document.getElementById("successPasswordPopup");
+    if (popup) popup.classList.remove("hidden");
+}
+
+function closeSuccessPassword() {
+    const popup = document.getElementById("successPasswordPopup");
+    if (popup) popup.classList.add("hidden");
+}
+
 function toggleCustomCuisine() { //!CHECK
     const select = document.getElementById('cuisineSelect');
     const input = document.getElementById('customCuisineInput');

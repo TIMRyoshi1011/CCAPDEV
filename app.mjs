@@ -193,6 +193,42 @@ app.post("/change-password", async (req, res) => {
     }
 });
 
+// Update Password for signed in user
+app.post("/update-password", async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    try {
+        if (!currentUser) {
+            return res.status(401).json({ message: "Not logged in." });
+        }
+
+        const db = getDb();
+        const users = db.collection("profile");
+
+        // Verify current password first
+        if (currentUser.password !== currentPassword) {
+            return res.status(400).json({ message: "Current password is incorrect." });
+        }
+
+        const result = await users.updateOne(
+            { email: currentUser.email },
+            { $set: { password: newPassword } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // Update local session mock
+        currentUser.password = newPassword;
+
+        res.json({ message: "Password updated successfully!" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error." });
+    }
+});
+
 // After login, redirect to feed
 app.get("/feed", async (req, res) => { //!CHECK
     try {
@@ -389,7 +425,40 @@ app.delete('/delete-review/:id', async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
+// Report Review
+app.post('/report-review/:id', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const postId = req.params.id;
+        const { reason } = req.body;
 
+        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+
+        // Add a reports array if it doesn't exist, and push the new report
+        await postsCollection.updateOne(
+            { _id: new ObjectId(postId) },
+            { 
+                $push: { 
+                    reports: {
+                        reporterEmail: currentUser ? currentUser.email : "anonymous",
+                        reason: reason || "No reason provided",
+                        timestamp: new Date()
+                    }
+                } 
+            }
+        );
+
+        res.status(200).json({ message: "Review successfully reported", success: true });
+    } catch (err) {
+        console.error("Error reporting review:", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
 // Edit Review Page
 app.get('/edit-review/:id', async (req, res) => {
     try {
@@ -412,9 +481,9 @@ app.get('/edit-review/:id', async (req, res) => {
             pageTitle: "Edit Review",
             currentUser,
             editing: true,
-            post, // Pass existing post data to view
-            cuisines, // Pass cuisines for dropdown
-            locations // Pass locations for dropdown
+            post, 
+            cuisines, 
+            locations 
         });
 
     } catch (err) {

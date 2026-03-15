@@ -418,6 +418,31 @@
         </div>
     </div>
 
+    <!-- Report Post Popup -->
+    <div id="reportReviewPopup" class="popup hidden">
+        <div class="popup-content">
+            <span class="close" onclick="closeReportPopup()">&times;</span>
+            <div class="report-header">
+                <h2 class="report-title">
+                    <span class="report-title-icon">🚩</span> Report this post?
+                </h2>
+                <p class="report-description">This will flag the post for review. Please tell us why.</p>
+            </div>
+
+            <div class="report-textarea-group">
+                <textarea id="report-reason" class="report-textarea" rows="3" placeholder="Reason for reporting..."
+                    required></textarea>
+            </div>
+
+            <div id="report-error-msg" class="form-error-message"></div>
+
+            <div class="report-actions">
+                <button class="submit-btn report-cancel-btn" onclick="closeReportPopup()">Cancel</button>
+                <button class="submit-btn report-submit-btn" onclick="submitReport()">Report</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     </div>
 
