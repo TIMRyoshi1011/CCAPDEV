@@ -158,67 +158,172 @@ async function submitChangePassword() {
 }
 
 // Sign Up
-signupForm.addEventListener("submit", async function(e) {
-    e.preventDefault();
+const signupForm = document.getElementById("signupForm");
+if (signupForm) {
+    signupForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
 
-    const name = document.getElementById("signup-name").value;
-    const email = document.getElementById("signup-email").value;
-    const password = document.getElementById("signup-password").value;
-    const confirm = document.getElementById("signup-confirm").value;
+        const name = document.getElementById("signup-name").value;
+        const email = document.getElementById("signup-email").value;
+        const password = document.getElementById("signup-password").value;
+        const confirm = document.getElementById("signup-confirm").value;
 
-    if (password !== confirm) {
-        alert("Passwords do not match!");
-        return;
-    }
-
-    try {
-        const response = await fetch("http://localhost:3000/signup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email, password }) 
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            document.getElementById("accountName").textContent = name;
-
-            showAccountSuccess();
-        } else {
-            alert(data.message); 
+        if (password !== confirm) {
+            alert("Passwords do not match!");
+            return;
         }
-    } catch (err) {
-        console.error(err);
-        alert("Something went wrong. Please try again.");
-    }
-});
+
+        try {
+            const response = await fetch("http://localhost:3000/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password }) 
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById("accountName").textContent = name;
+
+                showAccountSuccess();
+            } else {
+                alert(data.message); 
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Something went wrong. Please try again.");
+        }
+    });
+}
 
 // Login
 const loginForm = document.getElementById("loginForm");
 
-loginForm.addEventListener("submit", async function(e) {
-    e.preventDefault();
+if (loginForm) {
+    loginForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
 
-    const email = document.getElementById("login-email").value;
-    const password = document.getElementById("login-password").value;
+        const email = document.getElementById("login-email").value;
+        const password = document.getElementById("login-password").value;
 
-    try {
-        const response = await fetch("http://localhost:3000/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-        });
+        try {
+            const response = await fetch("http://localhost:3000/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (response.ok) {
-            closeLoginPopup();
-            window.location.href = "/feed";
-        } else {
-            alert(data.message); 
+            if (response.ok) {
+                closeLoginPopup();
+                window.location.href = "/feed";
+            } else {
+                alert(data.message); 
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Something went wrong. Please try again.");
         }
-    } catch (err) {
-        console.error(err);
-        alert("Something went wrong. Please try again.");
-    }
+    });
+}
+
+// Dropdown toggle logic
+document.addEventListener('DOMContentLoaded', () => {
+    // We use a delegated event listener since elements might be dynamically added or not present initially
+    document.body.addEventListener('click', function(e) {
+        if (e.target.closest('.options')) {
+            e.stopPropagation();
+            const trigger = e.target.closest('.options');
+            
+            // Try to find container
+            const container = trigger.closest('.options-container') || trigger.closest('.options-container-3');
+            
+            if (container) {
+                // Try to find dropdown
+                const dropdown = container.querySelector('.options-dropdown') || container.querySelector('.options-dropdown-3');
+                
+                if (dropdown) {
+                    const wasVisible = dropdown.classList.contains('show');
+                    
+                    // Close all others first
+                    document.querySelectorAll('.options-dropdown, .options-dropdown-3').forEach(d => {
+                        d.classList.remove('show');
+                    });
+                    
+                    // Toggle current one
+                    if (!wasVisible) {
+                        dropdown.classList.add('show');
+                    }
+                }
+            }
+        } else {
+             // Close dropdowns when clicking outside
+             document.querySelectorAll('.options-dropdown.show, .options-dropdown-3.show').forEach(d => {
+                d.classList.remove('show');
+            });
+        }
+    });
+
 });
+
+// Post Actions
+async function deleteReview(id) {
+    if (confirm("Are you sure you want to delete this review?")) {
+        try {
+            const response = await fetch(`/delete-review/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                // If on feed, refresh feed, if on profile, refresh profile
+                // Simplest is to reload page
+                window.location.reload();
+            } else {
+                const data = await response.json();
+                alert(data.message || "Failed to delete review");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error deleting review");
+        }
+    }
+}
+
+function editReview(id) {
+    // Redirect to edit page
+    window.location.href = `/edit-review/${id}`;
+}
+
+function reportReview(id) {
+    // For now, simple alert
+    alert(`Review ${id} has been reported to the moderators.`);
+}
+
+// Toggle Custom Input Fields for Write Review
+function toggleCustomCuisine() { //!CHECK
+    const select = document.getElementById('cuisineSelect');
+    const input = document.getElementById('customCuisineInput');
+    if (select.value === 'Other') {
+        input.style.display = 'block';
+        input.required = true;
+    } else {
+        input.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+
+function toggleCustomLocation() {//!CHECK
+    const select = document.getElementById('locationSelect');
+    const input = document.getElementById('customLocationInput');
+    if (select.value === 'Other') {
+        input.style.display = 'block';
+        input.required = true;
+    } else {
+        input.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+
