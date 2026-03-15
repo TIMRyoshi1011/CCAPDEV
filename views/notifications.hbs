@@ -14,13 +14,11 @@
         {{#each notifications}}
 
         <div class="{{#if unread}}unread{{else}}notification{{/if}}">
-            <span class="icon">{{icon}}</span>
+            <span class="notif-icon">{{this.icon}}</span>
 
             <div class="notification-content">
-                <p>
-                    {{{message}}}
-                </p>
-                <span class="timestamp">{{timestamp}}</span>
+                <p> {{{this.message}}} </p>
+                <span class="timestamp">{{this.timestamp}}</span>
             </div>
 
             {{#if unread}}
