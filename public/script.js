@@ -673,6 +673,11 @@ if (signupForm) {
 
         hideInlineError("signup-error-msg");
 
+        if (password.length < 6 ) {
+            showInlineError("signup-error-msg", "Password must be at least 6 characters long.");
+            return;
+        }
+
         if (password !== confirm) {
             showInlineError("signup-error-msg", "Passwords do not match!");
             return;

@@ -25,7 +25,12 @@
 
     <!-- Filters -->
     <div class="filters">
-        <form id="filterForm" action="/feed" method="GET" style="display: flex; gap: 15px; align-items: center;">
+        <form id="filterForm" class="filter-form" action="/feed" method="GET">
+            <div class="filter-group filter-search-group">
+                <span>🔎</span>
+                <input type="text" name="search" value="{{selectedSearch}}" placeholder="Search restaurants, titles, cuisines, or users">
+            </div>
+
             <div class="filter-group">
                 <span>🍽️</span>
                 <select name="cuisine" onchange="this.form.submit()">
@@ -54,6 +59,8 @@
                     {{/each}}
                 </select>
             </div>
+
+            <button type="submit" class="search-btn">Search</button>
         </form>
 
         <button class="write-review-btn" onclick="window.location.href='/write-review'">
