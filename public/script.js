@@ -332,10 +332,6 @@ function goToProfile() {
     window.location.href = "/userprofile-reviews";
 }
 
-function goToActivity() {
-    window.location.href = "/userprofile-activity";
-}
-
 function goToSettings() {
     window.location.href = "/settings";
 }

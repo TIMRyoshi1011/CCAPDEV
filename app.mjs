@@ -1171,7 +1171,8 @@ app.post('/vote', async (req, res) => {
                         userId: currentUser._id, 
                         postId: new ObjectId(postId), 
                         type: currentVote,
-                        userEmail: userEmail // for easier querying
+                        userEmail: userEmail, // for easier querying
+                        date: new Date() // Add timestamp for activity tracking
                     }
                 },
                 { upsert: true }
@@ -1312,88 +1313,112 @@ app.post('/comment', async (req, res) => {
     }
 });
 
+
 // Notifications
-// Get Recent Notifications
+// Get Recent Notifications 
 app.get('/notifications', async (req, res) => {
     try {
         const db = getDb();
-        const notifsCollect = db.collection("notifications");
+        const postsCollection = db.collection("posts");
+        const votesCollection = db.collection("votes");
 
-        //User must be logged in to view notifications
+        // User must be logged in to view notifications
         if (!currentUser || !currentUser.email) {
             return res.redirect('/');
         }
 
-        //To categorize the notification types
-        const notifTypes = {
-            review: {
-                icon: "🖋",
-                message: (n) => `<highlight>${n.prompt || 'Your post'}</highlight> on ${n.restaurant} got a new comment!`
-            },
-            comment: {
-                icon: "💬", 
-                message: (n) => `<highlight>${n.prompt || 'Your review'}</highlight> on ${n.restaurant} got a new reply!`
-            },
-            upvote: {
-                icon: "🔺", 
-                message: (n) => `<highlight>${n.prompt || 'Your comment'}</highlight> on ${n.restaurant} received an upvote!`
-            },
-            downvote: {
-                icon: "🔻", 
-                message: (n) => `<highlight>${n.prompt || 'Your comment'}</highlight> on ${n.restaurant} received a downvote.`
-            },
-            tier_status: {
-                icon: "🌟", 
-                message: (n) => `Congratulations! <highlight>${n.prompt || 'Your tier'}</highlight> is promoted to <highlight>${n.getTierProgress}</highlight> tier!`
-            },
-        };
+        // Get user reviews
+        const userReviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
 
-        //To get the newest notifications first
-        const userNotifs = await notifsCollect
-            .find({ recipientEmail: currentUser.email }) //logged-in user is the only one who can see their notifications
-            .sort({ timestamp: -1 }) //ensure that the newest notifications are collected first
-            .toArray(); //stores all notifications in an array
+        // Get posts where user commented
+        const commentedPosts = await postsCollection.find({
+            "comments.currentUser.email": currentUser.email
+        }).toArray();
 
-        const checkedNotifications = userNotifs.map(n => {
-            const format = notifTypes[n.type] || {icon : "🔔", message: (n) => n.message || "You have a new notification"};
+        const activities = [];
 
-            return {
-                id: n._id,
-                icon: format.icon,
-                message: format.message(n),
-                timestamp: n.timestamp,
-                unread: !n.read
-            };
+        // Add review activities
+        userReviews.forEach(review => {
+            activities.push({
+                icon: "✍️",
+                title: `You reviewed ${review.restaurant}`,
+                date: review.date,
+                rating: review.ratingValue,
+                stars: review.ratingStars,
+                reviewTitle: review.title,
+                content: review.content.substring(0, 150) + (review.content.length > 150 ? "..." : ""),
+                footer: {
+                    likes: review.likes || 0,
+                    comments: review.comments ? review.comments.length : 0
+                }
+            });
+
+            // Add incoming comments on user's reviews
+            if (review.comments && review.comments.length > 0) {
+                review.comments.forEach(comment => {
+                    if (comment.currentUser.email !== currentUser.email) {
+                        activities.push({
+                            icon: "💬",
+                            title: `New comment from ${comment.currentUser.name} on your review of ${review.restaurant}`,
+                            date: comment.date,
+                            content: comment.text,
+                            footer: { author: comment.currentUser.name }
+                        });
+                    }
+                });
+            }
+        });
+
+        // Add incoming votes on user's reviews
+        const userPostIds = userReviews.map(p => p._id);
+        const incomingVotes = await votesCollection.find({
+            postId: { $in: userPostIds },
+            userId: { $ne: currentUser._id }
+        }).toArray();
+
+        incomingVotes.forEach(vote => {
+            if (vote.date) { // Only show votes with timestamps
+                const relatedPost = userReviews.find(p => p._id.toString() === vote.postId.toString());
+                if (relatedPost) {
+                    activities.push({
+                        icon: vote.type === 'upvote' ? '🔺' : '🔻',
+                        title: `Received ${vote.type} on your review of ${relatedPost.restaurant}`,
+                        date: vote.date,
+                        content: relatedPost.title || relatedPost.content.substring(0, 50) + "..."
+                    });
+                }
+            }
+        });
+
+        // Add outgoing comment activities
+        commentedPosts.forEach(post => {
+            const userComments = post.comments.filter(comment =>
+                comment.currentUser.email === currentUser.email
+            );
+
+            userComments.forEach(comment => {
+                activities.push({
+                    icon: "💬",
+                    title: `You commented on ${post.restaurant}`,
+                    date: comment.date,
+                    content: comment.text
+                });
+            });
+        });
+
+        activities.sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
         });
 
         res.render("notifications", {
             pageTitle: "Notifications",
             activePage: "notifs",
             currentUser,
-            notifications: checkedNotifications
+            notifications: activities
         });
     } catch (err) {
         console.error("Error fetching notifications:", err);
-        return res.status(500).json({ message: "Server error" });
-    }
-});
-
-//Marking notifications as read
-app.post('/notifications/mark-read', async (req, res) => {
-    try {
-        const db = getDb();
-        if (!currentUser || !currentUser.email) {
-            return res.status(401).json({ message: "User not authenticated" });
-        }
-
-        await db.collection("notifications").updateMany(
-            {recipientEmail: currentUser.email, read: false},
-            {$set: {read: true}}
-        );
-        res.status(200).json({ message: "Notifications marked as read", success: true });
-    } catch (err) {
-        console.error("Error marking notification as read:", err);
-        return res.status(500).json({ message: "Server error" });
+        return res.status(500).send("Server error");
     }
 });
 
@@ -1563,79 +1588,6 @@ app.get('/userprofile-reviews', async (req, res) => {
         });
     } catch (err) {
         console.error("Error loading user reviews:", err);
-        res.status(500).send("Server error");
-    }
-});
-
-app.get('/userprofile-activity', async (req, res) => {
-    try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-
-        // Calculate user stats
-        const userStats = await computeUserStats(currentUser.email);
-        const tierProgress = getTierProgress(userStats ? userStats.points : 0);
-
-        if (userStats) {
-            const updatedUser = { ...currentUser, ...userStats, ...tierProgress };
-            currentUser = updatedUser;
-        }
-
-        // Get user reviews
-        const userReviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
-
-        // Get posts where user commented
-        const commentedPosts = await postsCollection.find({
-            "comments.currentUser.email": currentUser.email
-        }).toArray();
-
-        const activities = [];
-
-        // Add review activities
-        userReviews.forEach(review => {
-            activities.push({
-                icon: "✍️",
-                title: `Reviewed ${review.restaurant}`,
-                date: review.date,
-                rating: review.ratingValue,
-                stars: review.ratingStars,
-                reviewTitle: review.title,
-                content: review.content.substring(0, 150) + (review.content.length > 150 ? "..." : ""),
-                footer: {
-                    likes: review.likes || 0,
-                    comments: review.comments ? review.comments.length : 0
-                }
-            });
-        });
-
-        // Add comment activities
-        commentedPosts.forEach(post => {
-            const userComments = post.comments.filter(comment =>
-                comment.currentUser.email === currentUser.email
-            );
-
-            userComments.forEach(comment => {
-                activities.push({
-                    icon: "💬",
-                    title: `Commented on ${post.restaurant}`,
-                    date: comment.date,
-                    content: comment.text
-                });
-            });
-        });
-
-        activities.sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
-        });
-
-        res.render("userprofile-activity", {
-            pageTitle: "Profile-Activity",
-            activePage: "profile",
-            currentUser,
-            activities: activities
-        });
-    } catch (err) {
-        console.error("Error loading user activity:", err);
         res.status(500).send("Server error");
     }
 });

@@ -30,8 +30,8 @@
             </div>
             <div class="sidebar-nav-item {{#if (eq activePage 'notifs')}}active{{/if}}" onclick="goToNotifications()">
                 🔔 Notifications
-                {{#if notifications}}
-                <span class="notif-badge">{{notifications}}</span> 
+                {{#if notifications.length}}
+                <span class="notif-badge">{{notifications.length}}</span> 
                 {{/if}}
             </div>
             <div class="sidebar-nav-item {{#if (eq activePage 'profile')}}active{{/if}}" onclick="goToProfile()">

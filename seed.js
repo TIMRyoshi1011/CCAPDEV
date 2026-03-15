@@ -12,10 +12,12 @@ async function main() {
         const db = client.db(dbName);
         const usersCollection = db.collection("profile");
         const postsCollection = db.collection("posts");
+        const votesCollection = db.collection("votes");
 
         // Clear existing data is commented out to preserve data
         await usersCollection.deleteMany({});
         await postsCollection.deleteMany({});
+        await votesCollection.deleteMany({});
         console.log("Checking and preserving existing data...");
 
         // --- 1. Create Users ---
@@ -117,8 +119,7 @@ async function main() {
                 memberSince: "January 5, 2025",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 12, // Post: Chef Babs (Likes: 1, Dislikes: 0, Comments: 0)
-                            // Points: 10 + 1*2 + 0 + 0 = 12
+                points: 12,
                 nextTier: "Silver",
                 verified: false,
                 bio: "New to the city!",
@@ -168,8 +169,7 @@ async function main() {
                 memberSince: "February 14, 2024",
                 tier: "Bronze",
                 tierIcon: "🥉",
-                points: 17, // Post: Ginos (Likes: 3, Dislikes: 0, Comments: 1)
-                            // Points: 10 + 3*2 + 0 + 1 = 17
+                points: 17, 
                 nextTier: "Silver",
                 verified: false,
                 bio: "Dessert lover.",
@@ -206,7 +206,8 @@ async function main() {
                 name: user.name,
                 avatar: user.avatar,
                 rankClass: user.rankClass,
-                initials: user.avatar 
+                initials: user.avatar,
+                email: user.email // Crucial for activity tracking
             },
             text: text,
             date: new Date().toLocaleDateString()
@@ -227,8 +228,8 @@ async function main() {
                 ownPost: true, 
                 tags: [],
                 scores: { service: 4.0, taste: 5.0, ambiance: 3.0 },
-                likes: 4,  // Realistic: 4/5 other users
-                dislikes: 1, // Realistic: 1/5 other users
+                likes: 4, 
+                dislikes: 1, 
                 comments: [
                     createComment(userMap['mia_santos'], "Totally agree about the gravy!"),
                     createComment(userMap['carlo_dc'], "Best fast food chicken hands down.")
@@ -395,6 +396,75 @@ async function main() {
         
         // Comments are now included directly in the post data above.
         
+        // --- 3. Create Votes (Notifications) ---
+        console.log("Creating votes for notifications...");
+        const allPosts = await postsCollection.find().toArray();
+        const allUsersForVotes = await usersCollection.find().toArray();
+        
+        for (const post of allPosts) {
+            let availableVoters = allUsersForVotes.filter(u => u.email !== post.currentUser.email);
+            let userVotes = {};
+            
+            // Add Upvotes
+            for (let i = 0; i < (post.likes || 0); i++) {
+                if (availableVoters.length === 0) break;
+                
+                // Pick random user
+                const voterIndex = Math.floor(Math.random() * availableVoters.length);
+                const voter = availableVoters.splice(voterIndex, 1)[0];
+                
+                // Add to votes collection (CRITICAL for notifications)
+                await votesCollection.updateOne(
+                    { userId: voter._id, postId: post._id },
+                    { 
+                        $set: { 
+                            userId: voter._id, 
+                            postId: post._id, 
+                            type: 'upvote',
+                            userEmail: voter.email,
+                            date: new Date() // CRITICAL: Only votes with dates show as notifications
+                        } 
+                    },
+                    { upsert: true }
+                );
+                
+                userVotes[voter.email] = 'upvote';
+            }
+            
+            // Add Downvotes
+            for (let i = 0; i < (post.dislikes || 0); i++) {
+                if (availableVoters.length === 0) break;
+                
+                const voterIndex = Math.floor(Math.random() * availableVoters.length);
+                const voter = availableVoters.splice(voterIndex, 1)[0];
+                
+                await votesCollection.updateOne(
+                    { userId: voter._id, postId: post._id },
+                    { 
+                        $set: { 
+                            userId: voter._id, 
+                            postId: post._id, 
+                            type: 'downvote',
+                            userEmail: voter.email,
+                            date: new Date() 
+                        } 
+                    },
+                    { upsert: true }
+                );
+                
+                userVotes[voter.email] = 'downvote';
+            }
+            
+            // Update post with userVotes map so buttons show correct state
+            if (Object.keys(userVotes).length > 0) {
+               await postsCollection.updateOne(
+                   { _id: post._id },
+                   { $set: { userVotes: userVotes } }
+               );
+            }
+        }
+        console.log("Votes created.");
+
         // --- 4. Update User Stats Based on Posts ---
         console.log("Updating user stats...");
         
