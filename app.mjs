@@ -63,12 +63,7 @@ app.engine("hbs", exphbs.engine({
                 }
             }
             return stars;
-        },
-        formatDate: (dateStr) => {
-            const date = new Date(dateStr);
-            if (isNaN(date)) return dateStr;
-            return date.toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'});
-        },
+        }
     },
     layoutsDir: path.join(__dirname, "views/layouts")
 }));
@@ -184,95 +179,6 @@ app.get('/community-reviews', async (req, res) => {
 app.get("/logout", (req, res) => {
     currentUser = {}; // Clear server side mock session
     res.redirect("/");
-});
-
-// API Route to fetch user profile data for modal
-app.get("/api/user/:username", async (req, res) => {
-    try {
-        const username = req.params.username;
-        const db = getDb();
-        const usersCollection = db.collection("profile");
-        const postsCollection = db.collection("posts");
-
-        // Find user
-        const user = await usersCollection.findOne({ username: username });
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        // Find all posts by this user to calculate stats
-        // Note: posts collection stores author in 'currentUser' field or we might need to query by 'currentUser.username'
-        // Based on seed.js, posts have `currentUser` object embedded.
-        const userPosts = await postsCollection.find({ "currentUser.username": username }).toArray();
-
-        // Calculate stats
-        let totalReviews = userPosts.length;
-        let locationsSet = new Set();
-        let cuisineCounts = {};
-        let locationCounts = {};
-        
-        let totalService = 0;
-        let totalTaste = 0;
-        let totalAmbiance = 0;
-
-        userPosts.forEach(post => {
-            if (post.location) {
-                locationsSet.add(post.location);
-                locationCounts[post.location] = (locationCounts[post.location] || 0) + 1;
-            }
-            if (post.cuisine) {
-                cuisineCounts[post.cuisine] = (cuisineCounts[post.cuisine] || 0) + 1;
-            }
-            if (post.scores) {
-                totalService += (post.scores.service || 0);
-                totalTaste += (post.scores.taste || 0);
-                totalAmbiance += (post.scores.ambiance || 0);
-            }
-        });
-
-        // Top Location
-        let topLocation = "None";
-        if (Object.keys(locationCounts).length > 0) {
-            topLocation = Object.keys(locationCounts).reduce((a, b) => locationCounts[a] > locationCounts[b] ? a : b);
-        }
-
-        // Top Cuisine (if not already in user object or verifying it)
-        let topCuisine = user.topCuisine || "None";
-        if (Object.keys(cuisineCounts).length > 0) {
-             // prioritizing calculated one if we want dynamic
-             topCuisine = Object.keys(cuisineCounts).reduce((a, b) => cuisineCounts[a] > cuisineCounts[b] ? a : b);
-        }
-
-        const avgService = totalReviews > 0 ? (totalService / totalReviews).toFixed(1) : "0.0";
-        const avgTaste = totalReviews > 0 ? (totalTaste / totalReviews).toFixed(1) : "0.0";
-        const avgAmbiance = totalReviews > 0 ? (totalAmbiance / totalReviews).toFixed(1) : "0.0";
-
-        const responseData = {
-            name: user.name,
-            username: user.username,
-            avatar: user.avatar,
-            badge: user.badge || "Newbie", // Default if missing
-            verified: user.verified || false,
-            bio: user.bio || "No bio yet.",
-            joinDate: user.memberSince || "Unknown",
-            totalReviews: totalReviews,
-            points: user.points || 0,
-            tier: user.tier || "Bronze",
-            topCuisine: topCuisine,
-            topLocation: topLocation,
-            ratings: {
-                service: avgService,
-                taste: avgTaste,
-                ambiance: avgAmbiance
-            }
-        };
-
-        res.json(responseData);
-
-    } catch (err) {
-        console.error("Error fetching user profile:", err);
-        res.status(500).json({ error: "Internal server error" });
-    }
 });
 
 // for MongoDB Connection
@@ -431,7 +337,7 @@ app.post("/update-password", async (req, res) => {
 
     try {
         if (!currentUser) {
-            return res.status(401).json({ message: "Not logged in." });
+            return res.status(401).json({ message: "User not authenticated" });
         }
 
         const db = getDb();
@@ -632,7 +538,7 @@ app.post('/write-review', async (req, res) => { //!CHECK
                 location,
                 title: title,
                 content,
-                date: new Date().toISOString(),
+                date: new Date().toLocaleDateString(),
                 ratingStars: "⭐".repeat(Math.round(avgRating)),
                 ratingValue: avgRating,
                 ownPost: true,
@@ -1050,7 +956,7 @@ app.post('/comment', async (req, res) => {
                 email: currentUser.email
             },
             text: text.trim(),
-            date: new Date().toISOString()
+            date: new Date().toLocaleDateString()
         };
 
         // Add comment to post
@@ -1084,51 +990,108 @@ app.post('/comment', async (req, res) => {
     }
 });
 
-// Notifications
-app.get('/notifications', (req, res) => {
-    res.render("notifications", {
-        pageTitle: "Notifications",
-        activePage: "notifs",
-        currentUser,
-        // notifications: [
-        //     {
-        //     icon: "🖋",
-        //     message: "You left a review for <highlight>Yabu</highlight>",
-        //     timestamp: "2 minutes ago",
-        //     unread: true
-        //     },
-        //     {
-        //     icon: "🖋",
-        //     message: "You left a review for <highlight>Kodawari</highlight>",
-        //     timestamp: "1 week ago",
-        //     unread: false
-        //     },
-        //     {
-        //     icon: "💬",
-        //     message: "<highlight>Lee Dokyeom</highlight> left a comment under your review on <highlight>Kodawari</highlight>",
-        //     timestamp: "1 day ago",
-        //     unread: false
-        //     },
-        //     {
-        //     icon: "🔺",
-        //     message: "<highlight>Carlo Dela Cruz</highlight> upvoted your review on <highlight>Yabu</highlight>",
-        //     timestamp: "4 days ago",
-        //     unread: false
-        //     },
-        //     {
-        //     icon: "🔻",
-        //     message: "<highlight>Charles Sanchez</highlight> downvoted your review on <highlight>Kodawari</highlight>",
-        //     timestamp: "4 days ago",
-        //     unread: true
-        //     },
-        //     {
-        //     icon: "🌟",
-        //     message: "Your status has been upgraded to the <highlight>Bronze tier</highlight>",
-        //     timestamp: "1 week ago",
-        //     unread: false
-        //     }
-        // ]
+// Get Recent Notifications
+app.get('/notifications', async (req, res) => {
+    try {
+        const db = getDb();
+        const notifsCollect = db.collection("notifications");
+
+        //User must be logged in to view notifications
+        if (!currentUser || !currentUser.email) {
+            return res.redirect('/');
+        }
+
+        //To categorize the notification types
+        const notifTypes = {
+            review: {
+                icon: "🖋",
+                message: (n) => `<highlight>${n.prompt || 'Your post'}</highlight> on ${n.restaurant} got a new comment!`
+            },
+            comment: {
+                icon: "💬", 
+                message: (n) => `<highlight>${n.prompt || 'Your review'}</highlight> on ${n.restaurant} got a new reply!`
+            },
+            upvote: {
+                icon: "🔺", 
+                message: (n) => `<highlight>${n.prompt || 'Your comment'}</highlight> on ${n.restaurant} received an upvote!`
+            },
+            downvote: {
+                icon: "🔻", 
+                message: (n) => `<highlight>${n.prompt || 'Your comment'}</highlight> on ${n.restaurant} received a downvote.`
+            },
+            tier_status: {
+                icon: "🌟", 
+                message: (n) => `Congratulations! <highlight>${n.prompt || 'Your tier'}</highlight> is promoted to <highlight>${n.getTierProgress}</highlight> tier!`
+            },
+        };
+
+        //To get the newest notifications first
+        const userNotifs = await notifsCollect
+            .find({ recipientEmail: currentUser.email }) //logged-in user is the only one who can see their notifications
+            .sort({ timestamp: -1 }) //ensure that the newest notifications are collected first
+            .toArray(); //stores all notifications in an array
+
+        const checkedNotifications = userNotifs.map(n => {
+            const format = notifTypes[n.type] || {icon : "🔔", message: (n) => n.message || "You have a new notification"};
+
+            return {
+                id: n._id,
+                icon: format.icon,
+                message: format.message(n),
+                timestamp: timeAgo(n.timestamp),
+                unread: !n.read
+            };
         });
+
+        res.render("notifications", {
+            pageTitle: "Notifications",
+            activePage: "notifs",
+            currentUser,
+            notifications: checkedNotifications
+        });
+    } catch (err) {
+        console.error("Error fetching notifications:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
+//To compute for timestamp
+function timeAgo(date) {
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return `${seconds} seconds ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} minutes ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hours ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days} days ago`;
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) return `${weeks} weeks ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months} months ago`;
+    const years = Math.floor(days / 365);
+    return `${years} years ago`;
+}
+
+//Marking notifications as read
+app.post('/notifications/mark-read', async (req, res) => {
+    try {
+        const db = getDb();
+        if (!currentUser || !currentUser.email) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        await db.collection("notifications").updateMany(
+            {recipientEmail: currentUser.email, read: false},
+            {$set: {read: true}}
+        );
+        res.status(200).json({ message: "Notifications marked as read", success: true });
+    } catch (err) {
+        console.error("Error marking notification as read:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
 });
 
 // compute user stats
@@ -1157,7 +1120,7 @@ async function computeUserStats(userEmail) {
         }, 0);
 
         const avgRating = totalReviews > 0 ?
-            userReviews.reduce((sum, review) => sum + parseFloat(review.ratingValue || 0), 0) / totalReviews : 0;
+            userReviews.reduce((sum, review) => sum + review.ratingValue, 0) / totalReviews : 0;
 
         // Count cuisines
         const cuisineCount = {};
@@ -1264,7 +1227,7 @@ app.get('/userprofile-reviews', async (req, res) => {
         const db = getDb();
         const postsCollection = db.collection("posts");
         const votesCollection = db.collection("votes");
-        const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).sort({ _id: -1 }).toArray();
+        const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
 
         // Loop through all reviews
         for (let i = 0; i < reviews.length; i++) {
@@ -1337,7 +1300,6 @@ app.get('/userprofile-activity', async (req, res) => {
                 content: review.content.substring(0, 150) + (review.content.length > 150 ? "..." : ""),
                 footer: {
                     likes: review.likes || 0,
-                    dislikes: review.dislikes || 0,
                     comments: review.comments ? review.comments.length : 0
                 }
             });
@@ -1360,10 +1322,7 @@ app.get('/userprofile-activity', async (req, res) => {
         });
 
         activities.sort((a, b) => {
-            const dateA = new Date(a.date);
-            const dateB = new Date(b.date);
-            if (isNaN(dateA) || isNaN(dateB)) return 0;
-            return dateB - dateA;
+            return new Date(b.date) - new Date(a.date);
         });
 
         res.render("userprofile-activity", {
