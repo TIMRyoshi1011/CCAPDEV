@@ -621,7 +621,8 @@ app.get("/feed", async (req, res) => {
         const allPosts = db.collection("posts");
         const votesCollection = db.collection("votes");
 
-        const { cuisine, location, sort } = req.query;
+        const { cuisine, location, sort, search } = req.query;
+        const searchTerm = (search || "").trim();
         let query = {};
 
         if (cuisine && cuisine !== '') {
@@ -630,6 +631,18 @@ app.get("/feed", async (req, res) => {
 
         if (location && location !== '') {
             query.location = location;
+        }
+
+        if (searchTerm) {
+            query.$or = [
+                { title: { $regex: searchTerm, $options: "i" } },
+                { content: { $regex: searchTerm, $options: "i" } },
+                { restaurant: { $regex: searchTerm, $options: "i" } },
+                { cuisine: { $regex: searchTerm, $options: "i" } },
+                { location: { $regex: searchTerm, $options: "i" } },
+                { "currentUser.name": { $regex: searchTerm, $options: "i" } },
+                { "currentUser.username": { $regex: searchTerm, $options: "i" } }
+            ];
         }
 
         let cursor = allPosts.find(query);
@@ -773,7 +786,8 @@ app.get("/feed", async (req, res) => {
             posts: posts,
             selectedCuisine: cuisine,
             selectedLocation: location,
-            selectedSort: sort
+            selectedSort: sort,
+            selectedSearch: searchTerm
         });
 
     } catch (err) {

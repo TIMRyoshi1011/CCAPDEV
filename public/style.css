@@ -1136,22 +1136,73 @@ body {
     margin-bottom: 20px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
     gap: 15px;
+}
+
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .filter-group {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
 }
 
 .filter-group select {
+    width: 100%;
+    min-width: 170px;
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 8px;
     background: white;
     cursor: pointer;
     font-size: 14px;
+}
+
+.filter-search-group {
+    min-width: 220px;
+    flex: 1 1 320px;
+}
+
+.filter-search-group input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    font-family: Arial, sans-serif;
+}
+
+.filter-search-group input:focus {
+    border-color: #36734e;
+    box-shadow: 0 0 0 2px rgba(54, 115, 78, 0.1);
+}
+
+.search-btn {
+    background: #36734e;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+.search-btn:hover {
+    background: #2d5f40;
 }
 
 .write-review-btn { /* pink button to create new review */
@@ -1163,6 +1214,40 @@ body {
     cursor: pointer;
     font-weight: bold;
     font-size: 14px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+}
+
+@media (max-width: 1320px) {
+    .filters {
+        align-items: stretch;
+    }
+
+    .filter-form {
+        flex-wrap: wrap;
+    }
+
+    .filter-form .filter-group:not(.filter-search-group) {
+        flex: 1 1 220px;
+    }
+
+    .search-btn {
+        width: 120px;
+    }
+}
+
+@media (max-width: 900px) {
+    .filter-search-group,
+    .filter-form .filter-group:not(.filter-search-group),
+    .search-btn,
+    .write-review-btn {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    .filter-group select {
+        min-width: 0;
+    }
 }
 
 /* ============= COMMENTS ============= */
