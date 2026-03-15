@@ -396,6 +396,11 @@ function closeReportPopup() {
     currentReportElement = null;
 }
 
+function closeReportSuccessPopup() {
+    const popup = document.getElementById("reportSuccessPopup");
+    if (popup) popup.classList.add("hidden");
+}
+
 async function submitReport() {
     const reasonInput = document.getElementById("report-reason");
     const reason = reasonInput ? reasonInput.value.trim() : "";
@@ -417,15 +422,19 @@ async function submitReport() {
         const data = await response.json();
         
         if (response.ok) {
+            const reportEl = currentReportElement;
             closeReportPopup();
-            showCustomAlert("Report successful!");
+            
+            // showCustomAlert("Report successful!");
+            const popup = document.getElementById("reportSuccessPopup");
+            if (popup) popup.classList.remove("hidden");
             
             // Update the UI
-            if (currentReportElement) {
-                currentReportElement.innerHTML = "🚩 Reported";
-                currentReportElement.style.color = "#d94866";
-                currentReportElement.dataset.reported = "true";
-                currentReportElement.style.cursor = "default";
+            if (reportEl) {
+                reportEl.innerHTML = "🚩 Reported";
+                reportEl.style.color = "#d94866";
+                reportEl.dataset.reported = "true";
+                reportEl.style.cursor = "default";
             }
         } else {
             showInlineError("report-error-msg", data.message || "Failed to report.");

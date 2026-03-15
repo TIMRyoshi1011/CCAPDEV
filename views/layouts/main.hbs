@@ -54,9 +54,12 @@
     <div id="customAlertPopup" class="popup hidden">
         <div class="popup-content" style="text-align: center;">
             <span class="close" onclick="closeCustomAlert()">&times;</span>
-            <h2 style="margin-bottom: 20px;">Notice</h2>
-            <h1 id="customAlertMessage" style="margin-bottom: 30px; font-size: 16px; font-weight: normal; color: #4b5563;"></h1>
-            <button class="submit-btn" onclick="closeCustomAlert()" style="width: auto; padding: 10px 40px; margin: 0 auto; display: block;">OK</button>
+            <div class="success-icon-container">
+                <span>✓</span>
+            </div>
+            <h2 class="success-title">Notice</h2>
+            <p id="customAlertMessage" class="success-message"></p>
+            <button class="success-done-btn" onclick="closeCustomAlert()">OK</button>
         </div>
     </div>
 
@@ -64,11 +67,14 @@
     <div id="customConfirmPopup" class="popup hidden">
         <div class="popup-content" style="text-align: center;">
             <span class="close" onclick="closeCustomConfirm(false)">&times;</span>
-            <h2 style="margin-bottom: 20px;">Confirm</h2>
-            <h1 id="customConfirmMessage" style="margin-bottom: 30px; font-size: 16px; font-weight: normal; color: #4b5563;"></h1>
-            <div style="display: flex; justify-content: center; gap: 15px;">
-                <button class="submit-btn" onclick="closeCustomConfirm(true)" style="width: auto; padding: 10px 30px;">Yes</button>
-                <button class="submit-btn" onclick="closeCustomConfirm(false)" style="width: auto; padding: 10px 30px; background: #9ca3af; box-shadow: none;">Cancel</button>
+            <div class="success-icon-container" style="background-color: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                <span>?</span>
+            </div>
+            <h2 class="success-title">Confirm</h2>
+            <p id="customConfirmMessage" class="success-message"></p>
+            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;">
+                <button class="success-done-btn" onclick="closeCustomConfirm(true)" style="width: 120px; background-color: #d94866;">Yes</button>
+                <button class="success-done-btn" onclick="closeCustomConfirm(false)" style="width: 120px; background-color: #f3f4f6; color: #4b5563; box-shadow: none;">Cancel</button>
             </div>
         </div>
     </div>
@@ -94,6 +100,19 @@
                 <button class="submit-btn report-cancel-btn" onclick="closeReportPopup()">Cancel</button>
                 <button class="submit-btn report-submit-btn" onclick="submitReport()">Report</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Report Success Popup -->
+    <div id="reportSuccessPopup" class="popup hidden">
+        <div class="popup-content" style="text-align: center;">
+            <span class="close" onclick="closeReportSuccessPopup()">&times;</span>
+            <div class="success-icon-container" style="background-color: #d97706; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);">
+                <span style="font-size: 28px;">🚩</span>
+            </div>
+            <h2 class="success-title">Report Submitted</h2>
+            <p class="success-message" style="margin-bottom: 24px;">Thank you for helping keep our community safe. We'll review this post and take appropriate action.</p>
+            <button class="success-done-btn" onclick="closeReportSuccessPopup()">Done</button>
         </div>
     </div>
 

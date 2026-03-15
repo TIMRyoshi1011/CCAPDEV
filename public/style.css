@@ -1571,3 +1571,87 @@ body {
     cursor: pointer;
     box-shadow: none;
 }
+
+/* Report Popup Styles */
+#reportReviewPopup .popup-content {
+    max-width: 400px;
+    padding: 35px 30px;
+    text-align: left;
+}
+
+#reportReviewPopup h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #1f2937;
+}
+
+#reportReviewPopup p {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+#reportReviewPopup .report-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    margin-bottom: 20px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#reportReviewPopup .report-textarea:focus {
+    border-color: #36734e;
+    box-shadow: 0 0 0 3px rgba(54, 115, 78, 0.1);
+}
+
+.report-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 5px;
+}
+
+.report-actions .submit-btn {
+    flex: 1;
+    width: auto;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    text-transform: uppercase;
+    border: none;
+    transition: all 0.2s ease;
+    margin: 0;
+    box-shadow: none;
+}
+
+.report-cancel-btn {
+    background-color: #f3f4f6 !important;
+    color: #4b5563 !important;
+}
+
+.report-cancel-btn:hover {
+    background-color: #e5e7eb !important;
+}
+
+.report-submit-btn {
+    background-color: #36734e !important; 
+    color: white !important;
+}
+
+.report-submit-btn:hover {
+    background-color: #2d5f40 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(54, 115, 78, 0.2) !important;
+}
