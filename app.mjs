@@ -144,6 +144,11 @@ app.engine("hbs", exphbs.engine({
     extname: ".hbs",
     defaultLayout: "main",
     helpers: {
+        formatDate: (date) => {
+            if (!date) return '';
+            const d = new Date(date);
+            return isNaN(d.getTime()) ? date : d.toLocaleDateString();
+        },
         eq: (a, b) => a == b,
         toString: (obj) => obj ? obj.toString() : '',
         userVoteClass: (post, voteType) => {
