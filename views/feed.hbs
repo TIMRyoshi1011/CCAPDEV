@@ -111,11 +111,31 @@
                     <span class="badge-location">📍 {{location}}</span>
                     {{/if}}
                 </div>
-                <div class="review-rating">{{ratingStars}} {{ratingValue}}</div>
+                <div class="star-rating">
+                    {{{renderStars ratingValue}}}
+                    <span class="rating-number">{{ratingValue}}</span>
+                </div>
             </div>
 
             <div class="review-scores">
-                Service: {{scores.service}} &nbsp; Taste: {{scores.taste}} &nbsp; Ambiance: {{scores.ambiance}}
+                <div class="score-item">
+                    <span class="score-label">Service:</span>
+                    <div class="star-rating small">
+                        {{{renderStars scores.service}}}
+                    </div>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">Taste:</span>
+                    <div class="star-rating small">
+                        {{{renderStars scores.taste}}}
+                    </div>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">Ambiance:</span>
+                    <div class="star-rating small">
+                        {{{renderStars scores.ambiance}}}
+                    </div>
+                </div>
             </div>
 
             <div class="review-title-2">{{title}}</div>

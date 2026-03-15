@@ -48,12 +48,6 @@
                 <button type="submit" class="submit-btn">Login</button>
             </form>
 
-            <div class="divider">
-                <span>OR</span>
-            </div>
-
-            <button class="google-btn">Continue with Google</button>
-
             <p class="popup-footer">Don't have an account? <a href="#" onclick="switchToSignUp()">Sign up here</a></p>
         </div>
     </div>
@@ -116,7 +110,8 @@
     <div id="signupPopup" class="popup hidden">
         <div class="popup-content">
             <span class="close" onclick="closeSignUpPopup()">&times;</span>
-            <h2>Register for your Bite<span>Back</span> <span style="display:block;text-align:center;">Account</span>
+            <h2 style="text-align: center;">Register for your own<span style="display:block;">Bite<span>Back</span>
+                    Account</span>
             </h2>
             <form id="signupForm">
                 <div class="form-group">
@@ -140,12 +135,6 @@
 
                 <button type="submit" class="submit-btn">Register Account</button>
             </form>
-
-            <div class="divider">
-                <span>OR</span>
-            </div>
-
-            <button class="google-btn">Sign up with Google</button>
 
             <p class="popup-footer">Already have an account? <a href="#" onclick="switchToLogin()">Login</a></p>
         </div>
@@ -403,7 +392,7 @@
         </div>
     </div>
 
-    <!-- Global Confirm Popup -->
+    <!-- Confirm Popup -->
     <div id="customConfirmPopup" class="popup hidden">
         <div class="popup-content" style="text-align: center;">
             <span class="close" onclick="closeCustomConfirm(false)">&times;</span>

@@ -157,8 +157,9 @@
                     </div>
                 </div>
 
-                <div class="rating-3">
-                    {{ratingStars}} {{ratingValue}}
+                <div class="rating-3 star-rating">
+                    {{{renderStars ratingValue}}}
+                    <span class="rating-number">{{ratingValue}}</span>
                 </div>
             </div>
 
@@ -174,12 +175,24 @@
 
             <br>
             <br>
-
-            <span style="font-size:15px; color:#777;">
-                Service: {{scores.service}}
-                Taste: {{scores.taste}}
-                Ambiance: {{scores.ambiance}}
-            </span>
+            
+            <div class="review-scores">
+                <div class="score-item">
+                    <span class="score-label">Service:</span>
+                    <div class="star-rating small">
+                        {{{renderStars scores.service}}}
+                    </div>
+                </div>
+                <div class="score-item">
+                        <span class="score-label">Taste:</span>
+                        <div class="star-rating small">
+                            {{{renderStars scores.taste}}}
+                        </div>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">Ambiance:</span>
+                    <div class="star-rating small">
+            </div>
 
             <div class="review-title-3">
                 {{title}}

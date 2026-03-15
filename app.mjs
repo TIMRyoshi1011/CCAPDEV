@@ -31,13 +31,30 @@ app.engine("hbs", exphbs.engine({
     extname: ".hbs",
     defaultLayout: "main",
     helpers: {
-        eq: (a, b) => a === b,
+        eq: (a, b) => a == b,
         toString: (obj) => obj ? obj.toString() : '',
         userVoteClass: (post, voteType) => {
+            // Handle Handlebars options object or missing voteType
+            if (typeof voteType !== 'string') {
+                voteType = 'upvote';
+            }
             if (post.userVote === voteType) {
                 return 'voted';
             }
             return '';
+        },
+        renderStars: (rating) => {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (rating >= i) {
+                    stars += '<span class="star full">★</span>';
+                } else if (rating >= i - 0.5) {
+                    stars += '<span class="star half">★</span>';
+                } else {
+                    stars += '<span class="star empty">★</span>';
+                }
+            }
+            return stars;
         }
     },
     layoutsDir: path.join(__dirname, "views/layouts")
@@ -48,8 +65,106 @@ app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static('public')); // launches the html files
 
-app.get('/', (req, res) => {
-    res.sendFile(path.resolve('public/Landing.html')); // make Landing.html default
+app.get('/', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const votesCollection = db.collection("votes");
+        const allPosts = await postsCollection.find({}).toArray();
+
+        // Calculate Stats
+        const totalReviews = allPosts.length;
+        // Use Set to count unique restaurants (case-insensitive)
+        const restaurants = new Set(allPosts.map(p => p.restaurant ? p.restaurant.trim().toLowerCase() : "")).size;
+        // Use Set to count unique locations
+        const locations = new Set(allPosts.map(p => p.location ? p.location.trim() : "")).size;
+        
+        let totalRating = 0;
+        allPosts.forEach(p => {
+            totalRating += parseFloat(p.ratingValue || 0);
+        });
+        const avgRating = totalReviews > 0 ? (totalRating / totalReviews).toFixed(1) : "0.0";
+
+        // Add ownership and vote info
+        for (let post of allPosts) {
+            // Check ownership
+            if (currentUser.email && post.currentUser && post.currentUser.email === currentUser.email) {
+                post.ownPost = true;
+            } else {
+                post.ownPost = false;
+            }
+
+            // Get user vote
+            if (currentUser._id) {
+                const userVote = await votesCollection.findOne({
+                    userId: currentUser._id,
+                    postId: post._id
+                });
+                post.userVote = userVote ? userVote.type : null;
+            } else {
+                post.userVote = null;
+            }
+        }
+
+        // Top Reviews (Sort by rating descending)
+        // Clone array before sorting to avoid modifying original list if needed later
+        const topReviews = [...allPosts].sort((a, b) => parseFloat(b.ratingValue) - parseFloat(a.ratingValue)).slice(0, 3);
+
+        res.render('landing', {
+            layout: false,
+            stats: {
+                reviews: totalReviews,
+                restaurants: restaurants, // Approximate unique count
+                locations: locations,
+                avgRating: avgRating
+            },
+            topReviews: topReviews,
+            currentUser // Pass current user to view
+        });
+    } catch(err) {
+        console.error("Error loading landing page:", err);
+        // Fallback to static if DB fails, or show error
+        res.status(500).send("Error loading landing page");
+    }
+});
+
+app.get('/community-reviews', async (req, res) => {
+    try {
+        const db = getDb();
+        const postsCollection = db.collection("posts");
+        const votesCollection = db.collection("votes"); // Need votes collection
+        const allPosts = await postsCollection.find({}).sort({ _id: -1 }).toArray();
+        
+        // Add ownership and vote info
+        for (let post of allPosts) {
+            // Check ownership
+            if (currentUser.email && post.currentUser && post.currentUser.email === currentUser.email) {
+                post.ownPost = true;
+            } else {
+                post.ownPost = false;
+            }
+
+            // Get user vote
+            if (currentUser._id) {
+                const userVote = await votesCollection.findOne({
+                    userId: currentUser._id,
+                    postId: post._id
+                });
+                post.userVote = userVote ? userVote.type : null;
+            } else {
+                post.userVote = null;
+            }
+        }
+
+        res.render('community-reviews', {
+            layout: false,
+            posts: allPosts,
+            currentUser // Pass current user to view
+        });
+    } catch(err) {
+        console.error("Error loading community reviews:", err);
+        res.status(500).send("Error loading community reviews");
+    }
 });
 
 // for MongoDB Connection
@@ -358,6 +473,11 @@ app.post('/write-review', async (req, res) => { //!CHECK
         }
 
         if (content && content.trim() !== '') {
+            const service = parseFloat(serviceRating);
+            const taste = parseFloat(foodRating);
+            const ambiance = parseFloat(ambianceRating);
+            const avgRating = ((service + taste + ambiance) / 3).toFixed(1);
+
             const newPost = {
                 currentUser,
                 restaurant,
@@ -366,11 +486,11 @@ app.post('/write-review', async (req, res) => { //!CHECK
                 title: title,
                 content,
                 date: new Date().toLocaleDateString(),
-                ratingStars: "⭐".repeat(foodRating),
-                ratingValue: parseInt(foodRating),
+                ratingStars: "⭐".repeat(Math.round(avgRating)),
+                ratingValue: avgRating,
                 ownPost: true,
                 tags: [],
-                scores: { service: parseInt(serviceRating), taste: parseInt(foodRating), ambiance: parseInt(ambianceRating) },
+                scores: { service: service.toFixed(1), taste: taste.toFixed(1), ambiance: ambiance.toFixed(1) },
                 likes: 0,
                 dislikes: 0,
                 comments: []
@@ -550,6 +670,11 @@ app.post('/edit-review/:id', async (req, res) => {
             }
             location = customLocation;
         }
+
+        const service = parseFloat(serviceRating);
+        const taste = parseFloat(foodRating);
+        const ambiance = parseFloat(ambianceRating);
+        const avgRating = ((service + taste + ambiance) / 3).toFixed(1);
         
         const updatedPost = {
             restaurant,
@@ -559,9 +684,9 @@ app.post('/edit-review/:id', async (req, res) => {
             content,
             edited: true,
             editedDate: new Date().toLocaleDateString(), 
-            ratingStars: "⭐".repeat(foodRating),
-            ratingValue: parseInt(foodRating),
-            scores: { service: parseInt(serviceRating), taste: parseInt(foodRating), ambiance: parseInt(ambianceRating) }
+            ratingStars: "⭐".repeat(Math.round(avgRating)),
+            ratingValue: avgRating,
+            scores: { service: service.toFixed(1), taste: taste.toFixed(1), ambiance: ambiance.toFixed(1) }
         };
         
         await postsCollection.updateOne(

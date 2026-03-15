@@ -11,7 +11,7 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <h3 class="name" onclick="goToLanding()" style="cursor: pointer;">Bite<span>Back</span></h3>
+        <h3 class="name" onclick="window.location.href='/'" style="cursor: pointer;">Bite<span>Back</span></h3>
 
         <div class="buttons">
             <button class="login" onclick="openLoginPopup()">Login</button>
@@ -169,20 +169,20 @@
     <!-- Stats -->
     <section class="stats">
         <div class="stat">
-            <h2>6</h2>
+            <h2>{{stats.restaurants}}</h2>
             <p>🍽️ Restaurants</p>
         </div>
         <div class="stat">
-            <h2>6</h2>
+            <h2>{{stats.reviews}}</h2>
             <p>📝 Reviews</p>
         </div>
         <div class="stat">
-            <h2>4</h2>
+            <h2>{{stats.locations}}</h2>
             <p>📍 Locations</p>
         </div>
         <div class="stat">
-            <h2>3.7★</h2>
-            <p>⭐ Avg Rating</p>
+            <h2>{{stats.avgRating}}★</h2>
+            <p>⭐ Average Rating</p>
         </div>
     </section>
 
@@ -219,144 +219,118 @@
                 <h2>🔥 Top Reviews</h2>
                 <p>See what the community is loving right now</p>
             </div>
-            <button class="view-all" onclick="window.location='Community-Reviews.html'">View All →</button>
+            <button class="view-all" onclick="window.location='/community-reviews'">View All →</button>
         </div>
 
-        <div class="review-grid">
-
-            <!-- Review -->
-            <div class="review-card">
-                <div class="review-title">
-                    <h3>Kodawari</h3>
-                    <span class="rating">★★★★★ 5.0</span>
-                </div>
-
-                <div class="review-user">
-                    <span class="avatar">MS</span>
-                    <div>
-                        <strong>Mia Santos</strong>
-                        <span class="badge-1 platinum">💎 Platinum</span>
-                        <div class="verified-1">✔ Verified · Jan 20, 2026</div>
+        <div class="review-grid-2">
+            {{#each topReviews}}
+            <div class="review-card-2" data-user-vote="{{userVote}}">
+                <div class="review-header">
+                    <h3>{{restaurant}}</h3>
+                     <div class="options-container" data-post-id="{{_id}}">
+                        {{#if ownPost}}
+                        <div class="options">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item" onclick="editReview('{{_id}}')">✏️ Edit</div>
+                            <div class="option-item" onclick="deleteReview('{{_id}}')">🗑️ Delete</div>
+                        </div>
+                        {{else}}
+                        <div class="options">...</div>
+                        <div class="options-dropdown">
+                            <div class="option-item" onclick="reportReview('{{_id}}', this)">🚩 Report</div>
+                        </div>
+                        {{/if}}
                     </div>
                 </div>
 
-                <div class="tags">
-                    <span class="tag">Japanese</span>
-                    <span class="tag">📍 BGC</span>
-                </div>
-
-                <div class="scores">
-                    Service: ★★★★★ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★★
-                </div>
-
-                <h4>Gyudon so bomb</h4>
-                <p class="review-text">
-                    The Japanese Gyudon here is genuinely one of the best I’ve had.
-                    The marinade is unreal...
-                </p>
-            </div>
-
-            <!-- Review -->
-            <div class="review-card">
-                <div class="review-title">
-                    <h3>Yabu</h3>
-                    <span class="rating">★★★★★ 4.7</span>
-                </div>
-
-                <div class="review-user">
-                    <span class="avatar">MS</span>
-                    <div>
-                        <strong>Mia Santos</strong>
-                        <span class="badge-1 platinum">💎 Platinum</span>
-                        <div class="verified-1">✔ Verified · Jan 26, 2026</div>
+                <div class="review-user-2">
+                    <div class="review-avatar {{currentUser.rankClass}}">{{currentUser.avatar}}</div>
+                    <div class="review-user-info">
+                        <div>
+                            <highlight>{{currentUser.name}}</highlight>
+                            <span class="badge {{currentUser.rankClass}}">{{currentUser.badge}}</span>
+                            {{#if currentUser.verified}}
+                            <span class="verified-2">✔ Verified</span>
+                            {{/if}}
+                        </div>
+                        <div class="review-date">{{date}}</div>
                     </div>
                 </div>
 
-                <div class="tags">
-                    <span class="tag">Indian</span>
-                    <span class="tag">📍 Makati</span>
-                </div>
-
-                <div class="scores">
-                    Service: ★★★★☆ &nbsp; Taste: ★★★★★ &nbsp; Ambiance: ★★★★☆
-                </div>
-
-                <h4>Best Butter Chicken in Manila</h4>
-                <p class="review-text">
-                    I've tried a LOT of Indian restaurants and this one takes
-                    the cake. The butter chicken...
-                </p>
-            </div>
-
-            <!-- Review -->
-            <div class="review-card">
-                <div class="review-title">
-                    <h3>Chef Bab's Sisig</h3>
-                    <span class="rating">★★★★☆ 3.3</span>
-                </div>
-
-                <div class="review-user">
-                    <span class="avatar dark">CD</span>
-                    <div>
-                        <strong>Carlo Dela Cruz</strong>
-                        <span class="badge-1 bronze">🥉 Bronze</span>
-                        <div class="verified-1">Jan 22, 2026</div>
+                <div class="review-meta-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; margin-top: 10px;">
+                    <div class="review-meta-left" style="display: flex; gap: 10px;">
+                        {{#if cuisine}}
+                        <span class="badge-cuisine">{{cuisine}}</span>
+                        {{/if}}
+                        {{#if location}}
+                        <span class="badge-location">📍 {{location}}</span>
+                        {{/if}}
+                    </div>
+                    <div class="star-rating">
+                        {{{renderStars ratingValue}}}
+                        <span class="rating-number">{{ratingValue}}</span>
                     </div>
                 </div>
 
-                <div class="tags">
-                    <span class="tag">Filipino</span>
-                    <span class="tag">📍 Quezon City</span>
+                <div class="review-scores">
+                    <div class="score-item">
+                        <span class="score-label">Service:</span>
+                        <div class="star-rating small">
+                            {{{renderStars scores.service}}}
+                        </div>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Taste:</span>
+                        <div class="star-rating small">
+                            {{{renderStars scores.taste}}}
+                        </div>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">Ambiance:</span>
+                        <div class="star-rating small">
+                            {{{renderStars scores.ambiance}}}
+                        </div>
+                    </div>
                 </div>
 
-                <div class="scores">
-                    Service: ★★★☆☆ &nbsp; Taste: ★★★★☆ &nbsp; Ambiance: ★★☆☆☆
+                <div class="review-title-2">{{title}}</div>
+                <div class="review-text-2">{{content}}</div>
+
+                <div class="review-actions">
+                    <button class="vote-btn upvote-btn {{userVoteClass this}}" data-post-id="{{toString _id}}" data-action="upvote">👍 {{likes}}</button>
+                    <button class="vote-btn downvote-btn {{userVoteClass this 'downvote'}}" data-post-id="{{toString _id}}" data-action="downvote">👎 {{dislikes}}</button>
+                    <span class="toggle-comments">💬 {{comments.length}} Comments ▶</span>
                 </div>
 
-                <h4>Sizzling Sisig Heaven</h4>
-                <p class="review-text">
-                    This place is loud, cramped, and the beer is always cold.
-                    The sisig here is legendary...
-                </p>
+                <div class="comments-section" style="display: none;">
+                    {{#each comments}}
+                    <div class="comment-item">
+                        <div class="comment-avatar {{currentUser.rankClass}}">{{currentUser.initials}}</div>
+                        <div class="review-user-info">
+                            <highlight>{{currentUser.name}} <span class="review-date">· {{date}}</span></highlight>
+                            <div class="review-text-2">{{text}}</div>
+                        </div>
+                    </div>
+                    {{/each}}
+                    
+                    <!-- Add Comment Form -->
+                    <div class="add-comment">
+                         {{#if ../currentUser.name}}
+                        <div class="comment-avatar {{../currentUser.rankClass}}">{{../currentUser.avatar}}</div>
+                        {{else}}
+                         <div class="comment-avatar">?</div>
+                        {{/if}}
+                        <div class="comment-input-container">
+                            <input type="text" class="comment-input" placeholder="Write a comment..." data-post-id="{{toString _id}}">
+                            <button class="comment-submit-btn" data-post-id="{{toString _id}}">Post</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-
+            {{/each}}
         </div>
     </section>
 
-    <!-- Global Alert Popup -->
-    <div id="customAlertPopup" class="popup hidden">
-        <div class="popup-content" style="text-align: center;">
-            <span class="close" onclick="closeCustomAlert()">&times;</span>
-            <div class="success-icon-container">
-                <span>✓</span>
-            </div>
-            <h2 class="success-title">Notice</h2>
-            <p id="customAlertMessage" class="success-message"></p>
-            <button class="success-done-btn" onclick="closeCustomAlert()">OK</button>
-        </div>
-    </div>
-
-    <!-- Global Confirm Popup -->
-    <div id="customConfirmPopup" class="popup hidden">
-        <div class="popup-content" style="text-align: center;">
-            <span class="close" onclick="closeCustomConfirm(false)">&times;</span>
-            <div class="success-icon-container"
-                style="background-color: #f59e0b; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
-                <span>?</span>
-            </div>
-            <h2 class="success-title">Confirm</h2>
-            <p id="customConfirmMessage" class="success-message"></p>
-            <div style="display: flex; justify-content: center; gap: 12px; margin-top: 20px;">
-                <button class="success-done-btn" onclick="closeCustomConfirm(true)"
-                    style="width: 120px; background-color: #d94866;">Yes</button>
-                <button class="success-done-btn" onclick="closeCustomConfirm(false)"
-                    style="width: 120px; background-color: #f3f4f6; color: #4b5563; box-shadow: none;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
+    <script src="script.js"></script>
 </body>
-
-<script src="script.js"></script>
-
 </html>
