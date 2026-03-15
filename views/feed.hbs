@@ -67,7 +67,7 @@
     <!-- Reviews -->
     <div class="review-grid-2">
         {{#each posts}}
-        <div class="review-card-2">
+        <div class="review-card-2" data-user-vote="{{userVote}}">
             <div class="review-header">
                 <h3>{{restaurant}}</h3>
                 <div class="options-container">
@@ -115,8 +115,8 @@
             <div class="review-text-2">{{content}}</div>
 
             <div class="review-actions">
-                <span>👍 {{likes}}</span>
-                <span>👎 {{dislikes}}</span>
+                <button class="vote-btn upvote-btn {{userVoteClass this}}" data-post-id="{{toString _id}}" data-action="upvote">👍 {{likes}}</button>
+                <button class="vote-btn downvote-btn {{userVoteClass this 'downvote'}}" data-post-id="{{toString _id}}" data-action="downvote">👎 {{dislikes}}</button>
                 <span class="toggle-comments">💬 {{comments.length}} Comments ▶</span>
             </div>
 
@@ -130,6 +130,15 @@
                     </div>
                 </div>
                 {{/each}}
+                
+                <!-- Add Comment Form -->
+                <div class="add-comment">
+                    <div class="comment-avatar {{currentUser.rankClass}}">{{currentUser.avatar}}</div>
+                    <div class="comment-input-container">
+                        <input type="text" class="comment-input" placeholder="Write a comment..." data-post-id="{{toString _id}}">
+                        <button class="comment-submit-btn" data-post-id="{{toString _id}}">Post</button>
+                    </div>
+                </div>
             </div>
         </div>
         {{/each}}
