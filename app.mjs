@@ -4,7 +4,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import exphbs from "express-handlebars";
-import { connectToMongo, getDb } from "./db/conn.js";
+import { connectToMongo, getDb } from "./model/conn.js";
 import { ObjectId } from "mongodb";
 
 const app = express();
@@ -475,7 +475,6 @@ app.post("/signup", async (req, res) => {
             locations: 0,    
             topRated: 'None',    
             comments: 0,
-            points: 0,
             upvotes: 0,
             downvotes: 0
             // achievements: ["✍ First Review", "👍 Community Fave", "🔥 Viral Post"]
@@ -1201,19 +1200,19 @@ app.post('/vote', async (req, res) => {
 
         
         if (userVoteChange !== 0) {
-            const userUpdateField = action === 'upvote' ? 'upvotes' : 'downvotes';
+            const ownerField = action === 'upvote' ? 'upvotes' : 'downvotes';
+
             await users.updateOne(
-                { email: currentUser.email },
-                { $inc: { [userUpdateField]: userVoteChange } }
+                { email: post.currentUser.email },
+                { $inc: { [ownerField]: userVoteChange } }
             );
-            currentUser[userUpdateField] = (currentUser[userUpdateField] || 0) + userVoteChange;
         } else if (previousVote && previousVote !== action) {
             // User switched votes - update both counters
             const oldField = previousVote === 'upvote' ? 'upvotes' : 'downvotes';
             const newField = action === 'upvote' ? 'upvotes' : 'downvotes';
 
             await users.updateOne(
-                { email: currentUser.email },
+                { email: post.currentUser.email },
                 {
                     $inc: {
                         [oldField]: -1,
@@ -1221,8 +1220,10 @@ app.post('/vote', async (req, res) => {
                     }
                 }
             );
-            currentUser[oldField] = (currentUser[oldField] || 0) - 1;
-            currentUser[newField] = (currentUser[newField] || 0) + 1;
+            if (post.currentUser.email === currentUser.email) {
+                currentUser[oldField] = (currentUser[oldField] || 0) - 1;
+                currentUser[newField] = (currentUser[newField] || 0) + 1;
+            }
         }
 
         // Award/Dedudct points for post owner (if not voting on own post)
