@@ -1237,20 +1237,13 @@ app.post('/comment', async (req, res) => {
             return res.status(400).json({ message: "Post ID and comment text are required" });
         }
 
-        // Creates new comment
         const newComment = {
-            currentUser: {
-                name: currentUser.name,
-                avatar: currentUser.avatar,
-                rankClass: currentUser.rankClass,
-                initials: currentUser.name.split(' ').map(word => word[0].toUpperCase()).join(''),
-                email: currentUser.email
-            },
+            currentUser: currentUser._id, 
             text: text.trim(),
             date: new Date().toLocaleDateString()
         };
 
-        // Adds comment to post
+        // Add comment to post
         const result = await Post.updateOne(
             { _id: postId },
             { $push: { comments: newComment } }
@@ -1260,26 +1253,39 @@ app.post('/comment', async (req, res) => {
             return res.status(500).json({ message: "Failed to add comment" });
         }
 
+        // Update user profile comment count
         await Profile.updateOne(
             { email: currentUser.email },
             { $inc: { comments: 1 } }
         );
-
         currentUser.comments = (currentUser.comments || 0) + 1;
 
-        const updatedPost = await Post.findById(postId);
+        const updatedPost = await Post.findById(postId)
+            .populate('comments.currentUser', 'name avatar rankClass email')
+            .populate('currentUser', 'name email');
 
-        // Update reputation for the comment author
+        let lastComment = updatedPost.comments[updatedPost.comments.length - 1].toObject();
+
+        if (lastComment.currentUser && lastComment.currentUser.name) {
+            lastComment.currentUser.initials = lastComment.currentUser.name
+                .split(' ')
+                .map(word => word[0].toUpperCase())
+                .join('');
+        } else {
+            lastComment.currentUser.initials = '';
+        }
+
+        const d = new Date(lastComment.date);
+        lastComment.date = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+
         await updateUserReputation(currentUser.email, POINTS.ADD_COMMENT);
-
-        // Update reputation for the post author (if not self)
-        if (updatedPost && updatedPost.currentUser && updatedPost.currentUser.email !== currentUser.email) {
+        if (updatedPost.currentUser._id.toString() !== currentUser._id.toString()) {
             await updateUserReputation(updatedPost.currentUser.email, POINTS.RECEIVE_COMMENT);
         }
 
         res.json({
             message: "Comment added successfully",
-            comment: newComment,
+            comment: lastComment, 
             commentCount: updatedPost.comments.length
         });
 
