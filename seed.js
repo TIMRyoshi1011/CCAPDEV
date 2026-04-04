@@ -7,13 +7,15 @@ const MONGO_URI = "mongodb://adminUser:adminUserPassword@ac-tcyvp62-shard-00-00.
 
 async function main() {
     try {
-        await mongoose.connect(MONGO_URI);
-        console.log("Connected to MongoDB (Mongoose)");
+        await mongoose.connect(MONGO_URI, {
+            dbName: "forum"
+        });
+        console.log("Connected successfully to server");
 
         await Profile.deleteMany({});
         await Post.deleteMany({});
         await Vote.deleteMany({});
-        console.log("Database cleared");
+        console.log("Checking and preserving existing data...");
 
         const usersData = [
             {
@@ -229,7 +231,7 @@ async function main() {
         console.error(err);
     } finally {
         await mongoose.disconnect();
-        console.log("Disconnected from MongoDB");
+        console.log("Connection closed");
     }
 }
 
