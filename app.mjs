@@ -205,7 +205,9 @@ app.use(express.static('public'));
 
 app.get('/', async (req, res) => {
     try {
-        const allPosts = await Post.find({}).populate('currentUser', 'avatar name username tier badge rankClass verified').lean();
+        const allPosts = await Post.find({})
+            .populate('currentUser', 'avatar name username tier badge rankClass verified')
+            .lean();
 
         // Gets total number of posts (reviews)
         const totalReviews = allPosts.length;
@@ -267,7 +269,9 @@ app.get('/community-reviews', async (req, res) => {
     try {
         await refreshCurrentUser(); 
 
-        const allPosts = await Post.find({}).sort({ _id: -1 }).populate('currentUser', 'avatar name username tier badge rankClass verified').lean();
+        const allPosts = await Post.find({}).sort({ _id: -1 })
+            .populate('currentUser', 'avatar name username tier badge rankClass verified')
+            .lean();
         
         // Add ownership and vote info
         for (let post of allPosts) {
@@ -337,7 +341,9 @@ app.get("/api/user/:username", async (req, res) => {
         }
 
         // Find all posts by this user to calculate stats
-        const userPosts = await Post.find({ "currentUser.username": username }).lean();
+        const userPosts = await Post.find({ "currentUser": user._id })
+            .populate('currentUser', 'avatar name username tier badge rankClass verified')
+            .lean();
 
         // Calculate stats
         let totalReviews = userPosts.length;
@@ -634,6 +640,7 @@ app.get("/feed", async (req, res) => {
 
             if (usernames.size > 0) {
                 const freshUsers = await Profile.find({ username: { $in: [...usernames] } }).lean();
+                    // .populate('currentUser', 'avatar name username tier badge rankClass verified')
                 const userMap = {};
                 freshUsers.forEach(u => userMap[u.username] = u);
 
@@ -681,7 +688,9 @@ app.get("/feed", async (req, res) => {
 
         // Gets all the reviews posted by every user
         if (currentUser) {
-            const globalPosts = await Post.find({}).lean();
+            const globalPosts = await Post.find({})
+                .populate('currentUser', 'avatar name username tier badge rankClass verified')
+                .lean();
             if (globalPosts.length > 0) {
                 currentUser.totalReviews = globalPosts.length;
                 
@@ -1354,12 +1363,16 @@ app.get('/notifications', async (req, res) => {
         }
 
         // Gets user reviews
-        const userReviews = await Post.find({ "currentUser.email": currentUser.email }).lean();
+        const userReviews = await Post.find({ "currentUser": currentUser._id })
+            .populate('currentUser', 'avatar name username tier badge rankClass verified')
+            .lean();
 
         // Gets posts where user commented
         const commentedPosts = await Post.find({
-            "comments.currentUser.email": currentUser.email
-        }).lean();
+            "comments.currentUser": currentUser._id
+        })
+        .populate('currentUser', 'avatar name username tier badge rankClass verified')
+        .lean();
 
         const activities = [];
 
@@ -1400,11 +1413,15 @@ app.get('/notifications', async (req, res) => {
         const incomingVotes = await Vote.find({
             postId: { $in: userPostIds },
             userId: { $ne: currentUser._id }
-        }).lean();
+        })
+        .populate('currentUser', 'avatar name username tier badge rankClass verified')
+        .lean();
 
         incomingVotes.forEach(vote => {
             if (vote.date) { // Only show votes with timestamps
-                const relatedPost = userReviews.find(p => p._id.toString() === vote.postId.toString()).lean();
+                const relatedPost = userReviews.find(p => p._id.toString() === vote.postId.toString())
+                    .populate('currentUser', 'avatar name username tier badge rankClass verified')
+                    .lean();
                 if (relatedPost) {
                     activities.push({
                         icon: vote.type === 'upvote' ? '🔺' : '🔻',
@@ -1456,18 +1473,24 @@ async function computeUserStats(userEmail) {
         const userData = await Profile.findOne({ email: userEmail }).lean();
         if (!userData) return null;
 
+        const userId = userData._id;
+
         // Gets all reviews made by user
-        const userReviews = await Post.find({ "currentUser.email": userEmail }).lean();
+        const userReviews = await Post.find({ "currentUser": userId })
+            .populate('currentUser', 'avatar name username tier badge rankClass verified')
+            .lean();
 
         // Gets all posts where user commented
         const commentedPosts = await Post.find({
-            "comments.currentUser.email": userEmail
-        }).lean();
+            "comments.currentUser": userId
+        })
+        .populate('currentUser', 'avatar name username tier badge rankClass verified')
+        .lean();
 
         // Gets total reviews and comments made by user
         const totalReviews = userReviews.length;
         const totalComments = commentedPosts.reduce((sum, post) => {
-            return sum + post.comments.filter(comment => comment.currentUser.email === userEmail).length;
+            return sum + post.comments.filter(comment => comment.currentUser === userId).length;
         }, 0);
 
         // Computes for average rating of reviews made by user
@@ -1576,7 +1599,9 @@ function getTierProgress(points) {
 // User profile-reviews
 app.get('/userprofile-reviews', async (req, res) => {
     try {
-        const reviews = await Post.find({ "currentUser.email": currentUser.email }).lean();
+        const reviews = await Post.find({ "currentUser": currentUser._id })
+          .populate('currentUser', 'avatar name username tier badge rankClass verified email')
+          .lean();
 
         // Loops through all reviews
         for (let i = 0; i < reviews.length; i++) {
