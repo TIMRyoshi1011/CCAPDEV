@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
+import 'dotenv/config';
 
-const mongoURI = "mongodb://adminUser:adminUserPassword@ac-tcyvp62-shard-00-00.ccrzj8t.mongodb.net:27017,ac-tcyvp62-shard-00-01.ccrzj8t.mongodb.net:27017,ac-tcyvp62-shard-00-02.ccrzj8t.mongodb.net:27017/?ssl=true&replicaSet=atlas-10gktb-shard-0&authSource=admin&appName=Cluster0"
+const mongoURI = process.env.MONGODB_URL;
+const dbName = process.env.DB_NAME;
 
 const connectToMongoose = async () => {
   try {
     await mongoose.connect(mongoURI, {
-      dbName: 'forum'
+      dbName: dbName
     }); 
     console.log('Connected to MongoDB server');
   } catch (err) {

@@ -8,9 +8,9 @@ import connectToMongoose from "./db/conn.js";
 import Profile from './models/Profile.js';
 import Post from './models/Post.js';
 import Vote from './models/Vote.js';
+import 'dotenv/config';
 
 const app = express();
-const port = 3000;
 const filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(filename);
 
@@ -1714,6 +1714,6 @@ app.get('/settings', (req, res) => {
 });
 
 // Server activation
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+app.listen(process.env.PORT, () => {
+    console.log(`Server running at http://localhost:${process.env.PORT}`);
 });
