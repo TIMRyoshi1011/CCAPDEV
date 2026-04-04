@@ -4,8 +4,10 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import exphbs from "express-handlebars";
-import { connectToMongo, getDb } from "./model/conn.js";
-import { ObjectId } from "mongodb";
+import connectToMongoose from "./db/conn.js";
+import Profile from './models/Profile.js';
+import Post from './models/Post.js';
+import Vote from './models/Vote.js';
 
 const app = express();
 const port = 3000;
@@ -41,10 +43,7 @@ const TIER_THRESHOLDS = {
 // Helper function to update user points and tier
 async function updateUserReputation(userEmail, pointsDelta) {
     try {
-        const db = getDb();
-        const users = db.collection("profile");
-        
-        const user = await users.findOne({ email: userEmail });
+        const user = await Profile.findOne({ email: userEmail }).lean();
         if (!user) return;
         
         // Prevent negative points
@@ -89,7 +88,7 @@ async function updateUserReputation(userEmail, pointsDelta) {
             nextTier = "Gold";
         }
         
-        await users.updateOne(
+        await Profile.updateOne(
             { email: userEmail },
             { 
                 $set: { 
@@ -124,9 +123,7 @@ let currentUser = {};
 async function refreshCurrentUser() {
     if (currentUser && currentUser.email) {
         try {
-            const db = getDb();
-            const users = db.collection("profile");
-            const freshUser = await users.findOne({ email: currentUser.email });
+            const freshUser = await Profile.findOne({ email: currentUser.email }).lean();
             if (freshUser) {
                 // Merge fresh data into currentUser, preserving session-specific fields if any
                 Object.assign(currentUser, freshUser);
@@ -181,7 +178,7 @@ app.engine("hbs", exphbs.engine({
             // Handles timestamp computations
         const pastDate = new Date(date);
         const now = new Date();
-        const seconds = Math.floor((now - past) / 1000);
+        const seconds = Math.floor((now - pastDate) / 1000);
 
         if (seconds < 60) return `${seconds} seconds ago`;
         const minutes = Math.floor(seconds / 60);
@@ -208,10 +205,7 @@ app.use(express.static('public'));
 
 app.get('/', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-        const votesCollection = db.collection("votes");
-        const allPosts = await postsCollection.find({}).toArray();
+        const allPosts = await Post.find({}).populate('currentUser', 'avatar name username tier badge rankClass verified').lean();
 
         // Gets total number of posts (reviews)
         const totalReviews = allPosts.length;
@@ -237,10 +231,10 @@ app.get('/', async (req, res) => {
 
             // Get user vote
             if (currentUser._id) {
-                const userVote = await votesCollection.findOne({
+                const userVote = await Vote.findOne({
                     userId: currentUser._id,
                     postId: post._id
-                });
+                }).lean();
                 post.userVote = userVote ? userVote.type : null;
             } else {
                 post.userVote = null;
@@ -273,10 +267,7 @@ app.get('/community-reviews', async (req, res) => {
     try {
         await refreshCurrentUser(); 
 
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-        const votesCollection = db.collection("votes");
-        const allPosts = await postsCollection.find({}).sort({ _id: -1 }).toArray();
+        const allPosts = await Post.find({}).sort({ _id: -1 }).populate('currentUser', 'avatar name username tier badge rankClass verified').lean();
         
         // Add ownership and vote info
         for (let post of allPosts) {
@@ -289,10 +280,10 @@ app.get('/community-reviews', async (req, res) => {
 
             // Get user vote
             if (currentUser._id) {
-                const userVote = await votesCollection.findOne({
+                const userVote = await Vote.findOne({
                     userId: currentUser._id,
                     postId: post._id
-                });
+                }).lean();
                 post.userVote = userVote ? userVote.type : null;
             } else {
                 post.userVote = null;
@@ -322,10 +313,8 @@ app.delete("/delete-user", async (req, res) => {
         if (!currentUser || !currentUser.username) {
             return res.status(401).json({ message: "Not logged in" });
         }
-        const db = getDb();
-        const users = db.collection("profile");
         
-        await users.deleteOne({ username: currentUser.username }); 
+        await Profile.deleteOne({ username: currentUser.username }); 
         
         currentUser = {}; // Clear session
         
@@ -340,18 +329,15 @@ app.delete("/delete-user", async (req, res) => {
 app.get("/api/user/:username", async (req, res) => {
     try {
         const username = req.params.username;
-        const db = getDb();
-        const usersCollection = db.collection("profile");
-        const postsCollection = db.collection("posts");
 
         // Find user
-        const user = await usersCollection.findOne({ username: username });
+        const user = await Profile.findOne({ username: username }).lean();
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
 
         // Find all posts by this user to calculate stats
-        const userPosts = await postsCollection.find({ "currentUser.username": username }).toArray();
+        const userPosts = await Post.find({ "currentUser.username": username }).lean();
 
         // Calculate stats
         let totalReviews = userPosts.length;
@@ -423,25 +409,24 @@ app.get("/api/user/:username", async (req, res) => {
     }
 });
 
+connectToMongoose()
 // for MongoDB Connection
-connectToMongo((err) => {
-    if(err) {
-        console.log("error occurred");
-        console.error(err);
-        process.exit();
-    }
-    console.log("Connected to MongoDB server");
-});
+// connectToMongo((err) => {
+//     if(err) {
+//         console.log("error occurred");
+//         console.error(err);
+//         process.exit();
+//     }
+//     console.log("Connected to MongoDB server");
+// });
 
 // Sign Up
 app.post("/signup", async (req, res) => {
     try {
-        const db = getDb();
-        const users = db.collection("profile");
         const { name, email, password } = req.body;
 
         // check if user already exists
-        const existingUser = await users.findOne({ email });
+        const existingUser = await Profile.findOne({ email }).lean();
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
         }
@@ -480,9 +465,9 @@ app.post("/signup", async (req, res) => {
         currentUser = newUser;
 
         // insert user
-        const result = await users.insertOne(newUser); 
+        const result = await Profile.create(newUser); 
+        console.log("User created:", result._id);
 
-        console.log("User created:", result.insertedId);
         res.json({ message: "Signup successful" });
     } catch (err) {
         console.error("Signup error:", err);
@@ -493,14 +478,11 @@ app.post("/signup", async (req, res) => {
 // Login
 app.post("/login", async (req, res) => {
     try {
-        const db = getDb();
-        const users = db.collection("profile");
-
         const { email, password } = req.body;
-        const acc = await users.findOne({
+        const acc = await Profile.findOne({
             email: email,
             password: password
-        });
+        }).lean();
 
         if (!acc) {
             return res.status(400).json({ message: "Invalid credentials" });
@@ -518,10 +500,7 @@ app.post("/login", async (req, res) => {
 app.post("/forgot-password", async (req, res) => {
     const { email } = req.body;
     try {
-        const db = getDb();
-        const users = db.collection("profile");
-
-        const user = await users.findOne({ email: email });
+        const user = await Profile.findOne({ email: email }).lean();
 
         if (!user) {
             return res.json({
@@ -543,10 +522,7 @@ app.post("/change-password", async (req, res) => {
         const { email, newPassword } = req.body;
         console.log(`[Change Password] Request for ${email}`);
 
-        const db = getDb();
-        const users = db.collection("profile");
-
-        const result = await users.updateOne(
+        const result = await Profile.updateOne(
             { email: email },
             { $set: { password: newPassword } }
         );
@@ -570,15 +546,12 @@ app.post("/update-password", async (req, res) => {
             return res.status(401).json({ message: "User not authenticated" });
         }
 
-        const db = getDb();
-        const users = db.collection("profile");
-
         // Verify current password first
         if (currentUser.password !== currentPassword) {
             return res.status(400).json({ message: "Current password is incorrect." });
         }
 
-        const result = await users.updateOne(
+        const result = await Profile.updateOne(
             { email: currentUser.email },
             { $set: { password: newPassword } }
         );
@@ -601,10 +574,6 @@ app.post("/update-password", async (req, res) => {
 app.get("/feed", async (req, res) => { 
     try {
         await refreshCurrentUser(); 
-
-        const db = getDb();  
-        const allPosts = db.collection("posts");
-        const votesCollection = db.collection("votes");
 
         const { cuisine, location, sort, search } = req.query;
         const searchTerm = (search || "").trim();
@@ -630,9 +599,11 @@ app.get("/feed", async (req, res) => {
             ];
         }
 
-        let cursor = allPosts.find(query).sort({ _id: -1 });
-
-        posts = await cursor.toArray();
+        let cursor = Post.find(query)
+            .sort({ _id: -1 })
+            .populate('currentUser', 'avatar name username tier badge rankClass verified')
+            .populate('comments.currentUser', 'avatar name username tier badge rankClass verified');
+        posts = await cursor.lean();
 
         if (sort === 'Top Rated') {
             posts.sort((a, b) => {
@@ -649,9 +620,7 @@ app.get("/feed", async (req, res) => {
         }
 
         // Refresh post author badges/tiers for display
-        if (posts.length > 0) {
-            const usersCollection = db.collection("profile");
-            
+        if (posts.length > 0) {  
             // Collect all unique usernames
             const usernames = new Set();
             posts.forEach(p => {
@@ -664,7 +633,7 @@ app.get("/feed", async (req, res) => {
             });
 
             if (usernames.size > 0) {
-                const freshUsers = await usersCollection.find({ username: { $in: [...usernames] } }).toArray();
+                const freshUsers = await Profile.find({ username: { $in: [...usernames] } }).lean();
                 const userMap = {};
                 freshUsers.forEach(u => userMap[u.username] = u);
 
@@ -712,7 +681,7 @@ app.get("/feed", async (req, res) => {
 
         // Gets all the reviews posted by every user
         if (currentUser) {
-            const globalPosts = await allPosts.find({}).toArray();
+            const globalPosts = await Post.find({}).lean();
             if (globalPosts.length > 0) {
                 currentUser.totalReviews = globalPosts.length;
                 
@@ -760,10 +729,10 @@ app.get("/feed", async (req, res) => {
 
         // Add user vote information to each post
         for (let post of posts) {
-            const userVote = await votesCollection.findOne({
+            const userVote = await Vote.findOne({
                 userId: currentUser._id,
                 postId: post._id
-            });
+            }).lean();
             post.userVote = userVote ? userVote.type : null;
         }
 
@@ -801,9 +770,6 @@ app.get("/write-review", (req, res) => {
 // Posting the review
 app.post('/write-review', async (req, res) => { 
     try {
-        const db = getDb();
-        const users = db.collection("profile");
-        const uploadPost = db.collection("posts");
         let { restaurant, cuisine, customCuisine, location, customLocation, content, foodRating, serviceRating, ambianceRating, title } = req.body;
 
         // Handle Custom Cuisine
@@ -858,13 +824,13 @@ app.post('/write-review', async (req, res) => {
 
             posts.unshift(newPost);
 
-            const rev = await uploadPost.insertOne(newPost); 
-            console.log("User created:", rev.insertedId);
+            const rev = await Post.create(newPost); 
+            console.log("Post created:", rev._id);
 
             let nReviews = currentUser.totalReviews + 1;
             currentUser.totalReviews += 1;
 
-            const result = await users.updateOne(
+            const result = await Profile.updateOne(
                 { email: currentUser.email },        
                 { $set: { totalReviews: nReviews } } 
             );
@@ -890,12 +856,9 @@ app.post('/write-review', async (req, res) => {
 // Delete Review
 app.delete('/delete-review/:id', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-        const users = db.collection("profile");
         const postId = req.params.id;
 
-        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        const post = await Post.findById(postId);
 
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
@@ -906,7 +869,7 @@ app.delete('/delete-review/:id', async (req, res) => {
             return res.status(403).json({ message: "Unauthorized" });
         }
 
-        await postsCollection.deleteOne({ _id: new ObjectId(postId) });
+        await Post.deleteOne({ _id: postId });
         
         // Decrement user reviews count
         let nReviews = currentUser.totalReviews - 1;
@@ -914,7 +877,7 @@ app.delete('/delete-review/:id', async (req, res) => {
         
         currentUser.totalReviews = nReviews;
 
-        await users.updateOne(
+        await Profile.updateOne(
             { email: currentUser.email },        
             { $set: { totalReviews: nReviews } } 
         );
@@ -932,20 +895,18 @@ app.delete('/delete-review/:id', async (req, res) => {
 // Report Review
 app.post('/report-review/:id', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
         const postId = req.params.id;
         const { reason } = req.body;
 
-        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        const post = await Post.findById(postId);
 
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
 
         // Add a reports array if it doesn't exist, and push the new report
-        await postsCollection.updateOne(
-            { _id: new ObjectId(postId) },
+        await Post.updateOne(
+            { _id: postId },
             { $push: { 
                     reports: {
                         reporterEmail: currentUser ? currentUser.email : "anonymous",
@@ -966,11 +927,9 @@ app.post('/report-review/:id', async (req, res) => {
 // Edit Review Page
 app.get('/edit-review/:id', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
         const postId = req.params.id;
         
-        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        const post = await Post.findById(postId);
 
         if (!post) {
             return res.status(404).send("Post not found");
@@ -999,13 +958,11 @@ app.get('/edit-review/:id', async (req, res) => {
 // Update Review Page
 app.post('/edit-review/:id', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
         const postId = req.params.id;
         
         let { restaurant, cuisine, customCuisine, location, customLocation, content, foodRating, serviceRating, ambianceRating, title } = req.body;
         
-        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        const post = await Post.findById(postId);
         
         if (!post) {
             return res.status(404).send("Post not found");
@@ -1057,8 +1014,8 @@ app.post('/edit-review/:id', async (req, res) => {
             scores: { service: service.toFixed(1), taste: taste.toFixed(1), ambiance: ambiance.toFixed(1) }
         };
         
-        await postsCollection.updateOne(
-            { _id: new ObjectId(postId) },
+        await Post.updateOne(
+            { _id: postId },
             { $set: updatedPost }
         );
         
@@ -1073,10 +1030,6 @@ app.post('/edit-review/:id', async (req, res) => {
 // Voting route
 app.post('/vote', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-        const votesCollection = db.collection("votes");
-        const users = db.collection("profile");
         const { postId, action } = req.body;
 
         if (!currentUser || !currentUser.email) {
@@ -1092,7 +1045,7 @@ app.post('/vote', async (req, res) => {
         }
 
         // Looks for post in existing collection
-        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        const post = await Post.findById(postId);
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
@@ -1158,8 +1111,8 @@ app.post('/vote', async (req, res) => {
             updateObj.$inc.dislikes = dislikesChange;
         }
 
-        const result = await postsCollection.updateOne(
-            { _id: new ObjectId(postId) },
+        const result = await Post.updateOne(
+            { _id: postId },
             updateObj
         );
 
@@ -1171,12 +1124,12 @@ app.post('/vote', async (req, res) => {
         const currentVote = post.userVotes[userEmail];
         if (currentVote) {
             // Saves user's vote in votes collection if there was a vote made 
-            await votesCollection.updateOne(
-                { userId: currentUser._id, postId: new ObjectId(postId) },
+            await Vote.updateOne(
+                { userId: currentUser._id, postId: postId },
                 { 
                     $set: { 
                         userId: currentUser._id, 
-                        postId: new ObjectId(postId), 
+                        postId: postId, 
                         type: currentVote,
                         userEmail: userEmail, 
                         date: new Date()
@@ -1186,9 +1139,9 @@ app.post('/vote', async (req, res) => {
             );
         } else {
             // Deletes user's vote in votes collection if vote was removed
-            await votesCollection.deleteOne({
+            await Vote.deleteOne({
                 userId: currentUser._id,
-                postId: new ObjectId(postId)
+                postId: postId
             });
         }
 
@@ -1196,7 +1149,7 @@ app.post('/vote', async (req, res) => {
         if (userVoteChange !== 0) {
             const ownerField = action === 'upvote' ? 'upvotes' : 'downvotes';
 
-            await users.updateOne(
+            await Profile.updateOne(
                 { email: post.currentUser.email },
                 { $inc: { [ownerField]: userVoteChange } }
             );
@@ -1205,7 +1158,7 @@ app.post('/vote', async (req, res) => {
             const oldField = previousVote === 'upvote' ? 'upvotes' : 'downvotes';
             const newField = action === 'upvote' ? 'upvotes' : 'downvotes';
 
-            await users.updateOne(
+            await Profile.updateOne(
                 { email: post.currentUser.email },
                 {
                     $inc: {
@@ -1247,7 +1200,7 @@ app.post('/vote', async (req, res) => {
         }
 
         // Gets updated post data
-        const updatedPost = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        const updatedPost = await Post.findById(postId);
 
         res.json({
             message: "Vote updated successfully",
@@ -1265,9 +1218,6 @@ app.post('/vote', async (req, res) => {
 // Comment functionality
 app.post('/comment', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-        const users = db.collection("profile");
         const { postId, text } = req.body;
 
         if (!currentUser || !currentUser.email) {
@@ -1292,8 +1242,8 @@ app.post('/comment', async (req, res) => {
         };
 
         // Adds comment to post
-        const result = await postsCollection.updateOne(
-            { _id: new ObjectId(postId) },
+        const result = await Post.updateOne(
+            { _id: postId },
             { $push: { comments: newComment } }
         );
 
@@ -1301,14 +1251,14 @@ app.post('/comment', async (req, res) => {
             return res.status(500).json({ message: "Failed to add comment" });
         }
 
-        await users.updateOne(
+        await Profile.updateOne(
             { email: currentUser.email },
             { $inc: { comments: 1 } }
         );
 
         currentUser.comments = (currentUser.comments || 0) + 1;
 
-        const updatedPost = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        const updatedPost = await Post.findById(postId);
 
         // Update reputation for the comment author
         await updateUserReputation(currentUser.email, POINTS.ADD_COMMENT);
@@ -1333,11 +1283,9 @@ app.post('/comment', async (req, res) => {
 // Delete Comment
 app.delete('/comment/:postId/:commentIndex', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
         const { postId, commentIndex } = req.params;
 
-        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        const post = await Post.findById(postId);
         if (!post) return res.status(404).json({ message: "Post not found" });
 
         const comment = post.comments[commentIndex];
@@ -1350,8 +1298,8 @@ app.delete('/comment/:postId/:commentIndex', async (req, res) => {
 
         // Remove comment by index
         post.comments.splice(commentIndex, 1);
-        await postsCollection.updateOne(
-            { _id: new ObjectId(postId) },
+        await Post.updateOne(
+            { _id: postId },
             { $set: { comments: post.comments } }
         );
 
@@ -1365,8 +1313,6 @@ app.delete('/comment/:postId/:commentIndex', async (req, res) => {
 // Edit Comment
 app.patch('/comment/:postId/:commentIndex', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
         const { postId, commentIndex } = req.params;
         const { text } = req.body;
 
@@ -1374,7 +1320,7 @@ app.patch('/comment/:postId/:commentIndex', async (req, res) => {
             return res.status(400).json({ message: "Comment text is required" });
         }
 
-        const post = await postsCollection.findOne({ _id: new ObjectId(postId) });
+        const post = await Post.findById(postId);
         if (!post) return res.status(404).json({ message: "Post not found" });
 
         const comment = post.comments[commentIndex];
@@ -1386,8 +1332,8 @@ app.patch('/comment/:postId/:commentIndex', async (req, res) => {
         }
 
         // Update comment text
-        await postsCollection.updateOne(
-            { _id: new ObjectId(postId) },
+        await Post.updateOne(
+            { _id: postId },
             { $set: { [`comments.${commentIndex}.text`]: text.trim() } }
         );
 
@@ -1402,22 +1348,18 @@ app.patch('/comment/:postId/:commentIndex', async (req, res) => {
 // Get Recent Notifications 
 app.get('/notifications', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-        const votesCollection = db.collection("votes");
-
         // Allows viewing of notifications for user that is logged in
         if (!currentUser || !currentUser.email) {
             return res.redirect('/');
         }
 
         // Gets user reviews
-        const userReviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
+        const userReviews = await Post.find({ "currentUser.email": currentUser.email }).lean();
 
         // Gets posts where user commented
-        const commentedPosts = await postsCollection.find({
+        const commentedPosts = await Post.find({
             "comments.currentUser.email": currentUser.email
-        }).toArray();
+        }).lean();
 
         const activities = [];
 
@@ -1455,14 +1397,14 @@ app.get('/notifications', async (req, res) => {
 
         // Adds incoming votes on user's reviews
         const userPostIds = userReviews.map(p => p._id);
-        const incomingVotes = await votesCollection.find({
+        const incomingVotes = await Vote.find({
             postId: { $in: userPostIds },
             userId: { $ne: currentUser._id }
-        }).toArray();
+        }).lean();
 
         incomingVotes.forEach(vote => {
             if (vote.date) { // Only show votes with timestamps
-                const relatedPost = userReviews.find(p => p._id.toString() === vote.postId.toString());
+                const relatedPost = userReviews.find(p => p._id.toString() === vote.postId.toString()).lean();
                 if (relatedPost) {
                     activities.push({
                         icon: vote.type === 'upvote' ? '🔺' : '🔻',
@@ -1510,21 +1452,17 @@ app.get('/notifications', async (req, res) => {
 // Computes user stats
 async function computeUserStats(userEmail) {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-        const users = db.collection("profile");
-
         // Gets user
-        const userData = await users.findOne({ email: userEmail });
+        const userData = await Profile.findOne({ email: userEmail }).lean();
         if (!userData) return null;
 
         // Gets all reviews made by user
-        const userReviews = await postsCollection.find({ "currentUser.email": userEmail }).toArray();
+        const userReviews = await Post.find({ "currentUser.email": userEmail }).lean();
 
         // Gets all posts where user commented
-        const commentedPosts = await postsCollection.find({
+        const commentedPosts = await Post.find({
             "comments.currentUser.email": userEmail
-        }).toArray();
+        }).lean();
 
         // Gets total reviews and comments made by user
         const totalReviews = userReviews.length;
@@ -1638,10 +1576,7 @@ function getTierProgress(points) {
 // User profile-reviews
 app.get('/userprofile-reviews', async (req, res) => {
     try {
-        const db = getDb();
-        const postsCollection = db.collection("posts");
-        const votesCollection = db.collection("votes");
-        const reviews = await postsCollection.find({ "currentUser.email": currentUser.email }).toArray();
+        const reviews = await Post.find({ "currentUser.email": currentUser.email }).lean();
 
         // Loops through all reviews
         for (let i = 0; i < reviews.length; i++) {
@@ -1650,10 +1585,10 @@ app.get('/userprofile-reviews', async (req, res) => {
 
         // Adds user vote information to each review
         for (let review of reviews) {
-            const userVote = await votesCollection.findOne({
+            const userVote = await Vote.findOne({
                 userId: currentUser._id,
                 postId: review._id
-            });
+            }).lean();
             review.userVote = userVote ? userVote.type : null;
         }
 
@@ -1681,8 +1616,6 @@ app.get('/userprofile-reviews', async (req, res) => {
 // Profile Update Route
 app.post('/update-profile', async (req, res) => {
     try {
-        const db = getDb();
-        const users = db.collection("profile");
         const { name, username, email, bio } = req.body;
 
         if (!currentUser || !currentUser.email) {
@@ -1691,7 +1624,7 @@ app.post('/update-profile', async (req, res) => {
 
         // Checks if username is already taken (if changed)
         if (username !== currentUser.username) {
-            const existingUser = await users.findOne({ username: username });
+            const existingUser = await Profile.findOne({ username: username }).lean();
             if (existingUser) {
                 return res.status(400).json({ message: "Username already taken" });
             }
@@ -1699,7 +1632,7 @@ app.post('/update-profile', async (req, res) => {
 
         // Checks if email is already taken (if changed)
         if (email !== currentUser.email) {
-            const existingUser = await users.findOne({ email: email });
+            const existingUser = await Profile.findOne({ email: email }).lean();
             if (existingUser) {
                 return res.status(400).json({ message: "Email already taken" });
             }
@@ -1719,20 +1652,19 @@ app.post('/update-profile', async (req, res) => {
 
         const oldEmail = currentUser.email;
 
-        await users.updateOne(
+        await Profile.updateOne(
             { email: currentUser.email },
             { $set: updateData }
         );
 
         // Updates email in all posts collection if email changed
         if (email && email !== oldEmail) {
-            const postsCollection = db.collection("posts");
-            await postsCollection.updateMany(
+            await Post.updateMany(
                 { "currentUser.email": oldEmail },
                 { $set: { "currentUser.email": email } }
             );
 
-            await postsCollection.updateMany(
+            await Post.updateMany(
                 { "comments.currentUser.email": oldEmail },
                 { $set: { "comments.$[elem].currentUser.email": email } },
                 { arrayFilters: [{ "elem.currentUser.email": oldEmail }] }
@@ -1740,8 +1672,7 @@ app.post('/update-profile', async (req, res) => {
         }
 
         // Updates name and avatar in all posts and comments
-        const postsCollection = db.collection("posts");
-        await postsCollection.updateMany(
+        await Post.updateMany(
             { "currentUser.email": updateData.email },
             { $set: { 
                 "currentUser.name": updateData.name,
@@ -1749,7 +1680,7 @@ app.post('/update-profile', async (req, res) => {
             } }
         );
 
-        await postsCollection.updateMany(
+        await Post.updateMany(
             { "comments.currentUser.email": updateData.email },
             { $set: { 
                 "comments.$[elem].currentUser.name": updateData.name,
