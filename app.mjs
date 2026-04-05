@@ -1,5 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
+import bcrypt from "bcrypt";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -467,10 +468,8 @@ app.post("/signup", async (req, res) => {
             downvotes: 0
         };
 
-        // update the currentUser object
         currentUser = newUser;
 
-        // insert user
         const result = await Profile.create(newUser); 
         console.log("User created:", result._id);
 
@@ -485,15 +484,18 @@ app.post("/signup", async (req, res) => {
 app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-        const acc = await Profile.findOne({
-            email: email,
-            password: password
-        }).lean();
+        const acc = await Profile.findOne({ email: email });
 
         if (!acc) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
-        currentUser = acc;
+
+        const isPasswordMatch = await acc.comparePassword(password);
+        if (!isPasswordMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        currentUser = acc.toObject();
 
         res.json({ message: "Login successful" });
     } catch (err) {
@@ -528,9 +530,11 @@ app.post("/change-password", async (req, res) => {
         const { email, newPassword } = req.body;
         console.log(`[Change Password] Request for ${email}`);
 
+        const hashedPassword = await Profile.hashPassword(newPassword);
+
         const result = await Profile.updateOne(
             { email: email },
-            { $set: { password: newPassword } }
+            { $set: { password: hashedPassword } }
         );
 
         if (result.matchedCount === 0) {
@@ -552,22 +556,28 @@ app.post("/update-password", async (req, res) => {
             return res.status(401).json({ message: "User not authenticated" });
         }
 
-        // Verify current password first
-        if (currentUser.password !== currentPassword) {
+        const user = await Profile.findOne({ email: currentUser.email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        const isPasswordMatch = await user.comparePassword(currentPassword);
+        if (!isPasswordMatch) {
             return res.status(400).json({ message: "Current password is incorrect." });
         }
 
+        const hashedPassword = await Profile.hashPassword(newPassword);
+
         const result = await Profile.updateOne(
             { email: currentUser.email },
-            { $set: { password: newPassword } }
+            { $set: { password: hashedPassword } }
         );
 
         if (result.matchedCount === 0) {
             return res.status(404).json({ message: "User not found." });
         }
 
-        // Update local session mock
-        currentUser.password = newPassword;
+        await refreshCurrentUser();
 
         res.json({ message: "Password updated successfully!" });
     } catch (err) {

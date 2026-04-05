@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-// import bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 
 const profileSchema = new mongoose.Schema({
     name: { 
@@ -100,6 +100,28 @@ const profileSchema = new mongoose.Schema({
         default: 0 
     }
 }, { timestamps: true });
+
+profileSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) {
+        return next();
+    }
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
+
+profileSchema.methods.comparePassword = async function(plainPassword) {
+    return await bcrypt.compare(plainPassword, this.password);
+};
+
+profileSchema.statics.hashPassword = async function(password) {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
+};
 
 const Profile = mongoose.model('Profile', profileSchema);
 
