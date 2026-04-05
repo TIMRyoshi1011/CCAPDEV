@@ -300,6 +300,41 @@ function closeEditProfilePopup() {
     document.getElementById("editProfilePopup").classList.add("hidden");
 }
 
+// cookie logic
+function saveStoredValue(key, value, durationDays) {
+    let expiryDate = new Date();
+    expiryDate.setTime(expiryDate.getTime() + (durationDays * 24 * 60 * 60 * 1000));
+    document.cookie = key + "=" + encodeURIComponent(value) + ";expires=" + expiryDate.toUTCString() + ";path=/";
+}
+
+// getting the saved value
+function getStoredValue(key) {
+    let cookieParts = document.cookie.split(";");
+
+    for (let i = 0; i < cookieParts.length; i++) {
+        let part = cookieParts[i].trim();
+        let pair = part.split("=");
+
+        if (pair[0] === key) {
+            return decodeURIComponent(pair.slice(1).join("="));
+        }
+    }
+
+    return null;
+}
+
+// clearing the saved data
+function clearStoredValue(key) {
+    document.cookie = key + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+}
+
+function clearFeedFilterCookies() {
+    clearStoredValue("feedCuisine");
+    clearStoredValue("feedLocation");
+    clearStoredValue("feedSort");
+    clearStoredValue("feedSearch");
+}
+
 window.onclick = function(event) {
     const loginPopup = document.getElementById("loginPopup");
     const signUpPopup = document.getElementById("signupPopup");
@@ -342,10 +377,85 @@ function goToLanding() {
 }
 
 function logout() {
+    clearFeedFilterCookies();
+
     fetch("/logout").then(() => {
         window.location.href = "/";
     });
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    // get stored values
+    let savedCuisine = getStoredValue("feedCuisine");
+    let savedLocation = getStoredValue("feedLocation");
+    let savedSort = getStoredValue("feedSort");
+    let savedSearch = getStoredValue("feedSearch");
+
+    // get page elements
+    let filterForm = document.getElementById("filterForm");
+    let cuisineSelect = null;
+    let locationSelect = null;
+    let sortSelect = null;
+    let searchInput = null;
+
+    if (filterForm) {
+        cuisineSelect = filterForm.querySelector("select[name='cuisine']");
+        locationSelect = filterForm.querySelector("select[name='location']");
+        sortSelect = filterForm.querySelector("select[name='sort']");
+        searchInput = filterForm.querySelector("input[name='search']");
+    }
+
+    // set defaults
+    let hasQueryValues = window.location.search && window.location.search.length > 1;
+
+    // override defaults if stored values exist
+    if (filterForm && !hasQueryValues) {
+        if (savedCuisine && cuisineSelect) cuisineSelect.value = savedCuisine;
+        if (savedLocation && locationSelect) locationSelect.value = savedLocation;
+        if (savedSort && sortSelect) sortSelect.value = savedSort;
+        if (savedSearch && searchInput) searchInput.value = savedSearch;
+
+        if (savedCuisine || savedLocation || savedSort || savedSearch) {
+            let params = [];
+
+            if (cuisineSelect && cuisineSelect.value !== "") {
+                params.push("cuisine=" + encodeURIComponent(cuisineSelect.value));
+            }
+
+            if (locationSelect && locationSelect.value !== "") {
+                params.push("location=" + encodeURIComponent(locationSelect.value));
+            }
+
+            if (sortSelect && sortSelect.value !== "") {
+                params.push("sort=" + encodeURIComponent(sortSelect.value));
+            }
+
+            if (searchInput && searchInput.value.trim() !== "") {
+                params.push("search=" + encodeURIComponent(searchInput.value.trim()));
+            }
+
+            if (params.length > 0) {
+                window.location.href = "/feed?" + params.join("&");
+                return;
+            }
+        }
+    }
+
+    // add button listeners
+    if (filterForm) {
+        filterForm.addEventListener("submit", function () {
+            let cuisineValue = cuisineSelect ? cuisineSelect.value : "";
+            let locationValue = locationSelect ? locationSelect.value : "";
+            let sortValue = sortSelect ? sortSelect.value : "";
+            let searchValue = searchInput ? searchInput.value.trim() : "";
+
+            saveStoredValue("feedCuisine", cuisineValue, 7);
+            saveStoredValue("feedLocation", locationValue, 7);
+            saveStoredValue("feedSort", sortValue, 7);
+            saveStoredValue("feedSearch", searchValue, 7);
+        });
+    }
+});
 
 // Voting functionality
 document.addEventListener('DOMContentLoaded', function() {
