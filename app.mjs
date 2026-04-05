@@ -484,7 +484,7 @@ app.post("/signup", async (req, res) => {
 app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-        const acc = await Profile.findOne({ email: email }).lean();
+        const acc = await Profile.findOne({ email: email });
 
         if (!acc) {
             return res.status(400).json({ message: "Invalid credentials" });
