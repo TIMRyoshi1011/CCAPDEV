@@ -70,6 +70,22 @@ const postSchema = new mongoose.Schema({
             }
         }
     ],
+    reports: [
+        {
+            reporterEmail: {
+                type: String,
+                default: 'anonymous'
+            },
+            reason: {
+                type: String,
+                default: 'No reason provided'
+            },
+            timestamp: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
     edited: {
         type: Boolean,
         default: false

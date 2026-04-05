@@ -1,4 +1,4 @@
-// --- Custom System Dialogs using Existing Popups ---
+// Custom System Dialogs using Existing Popups
 let alertResolve = null;
 let confirmResolve = null;
 let deleteCommentContext = null;
@@ -42,6 +42,8 @@ function closeCustomConfirm(result) {
         confirmResolve = null;
     }
 }
+
+
 // --- Inline Error Helpers ---
 function showInlineError(elementId, message) {
     const errEl = document.getElementById(elementId);
@@ -99,13 +101,12 @@ function renderStarsNew(rating) {
     const fullStars = Math.floor(rating);
     const hasHalf = rating % 1 >= 0.5;
     const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
-    
     let html = '';
     for (let i = 0; i < fullStars; i++) {
         html += '<span class="modal-star full">★</span>';
     }
     if (hasHalf) {
-        html += '<span class="modal-star half">★</span>'; 
+        html += '<span class="modal-star half">★</span>';
     }
     for (let i = 0; i < emptyStars; i++) {
         html += '<span class="modal-star empty">★</span>';
@@ -119,9 +120,9 @@ async function showUserProfile(username) {
 
     // Reset UI
     document.getElementById('userName').textContent = 'Loading...';
-    
+
     modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; 
+    document.body.style.overflow = 'hidden';
 
     try {
         const response = await fetch(`/api/user/${username}`);
@@ -137,14 +138,14 @@ async function showUserProfile(username) {
         header.style.setProperty('--header-gradient-from', tierConfig.headerGradientFrom);
         header.style.setProperty('--header-gradient-to', tierConfig.headerGradientTo);
         header.style.setProperty('--header-border', tierConfig.border);
-        
+
         const tierPill = document.getElementById('userTier');
         tierPill.style.setProperty('--tier-bg', tierConfig.bg);
         tierPill.style.setProperty('--tier-color', tierConfig.color);
         tierPill.style.setProperty('--tier-border', tierConfig.border);
 
         // Populate Data
-        document.getElementById('userAvatar').textContent = data.avatar || data.username.substring(0,2).toUpperCase();
+        document.getElementById('userAvatar').textContent = data.avatar || data.username.substring(0, 2).toUpperCase();
         document.getElementById('userName').textContent = data.name;
         document.getElementById('userUsername').textContent = `@${data.username}`;
         document.getElementById('userBio').textContent = data.bio || 'No bio yet.';
@@ -159,9 +160,9 @@ async function showUserProfile(username) {
         // Verified Check
         const verifiedBadge = document.getElementById('verifiedBadge');
         if (data.verified) {
-             verifiedBadge.classList.remove('hidden');
+            verifiedBadge.classList.remove('hidden');
         } else {
-             verifiedBadge.classList.add('hidden');
+            verifiedBadge.classList.add('hidden');
         }
 
         // Stats
@@ -176,7 +177,7 @@ async function showUserProfile(username) {
         const ratingsSection = document.getElementById('ratingsSection');
         if (data.ratings && data.totalReviews > 0) {
             ratingsSection.classList.remove('hidden');
-            
+
             const safeParseFloat = (val) => {
                 const parsed = parseFloat(val);
                 return isNaN(parsed) ? 0.0 : parsed;
@@ -188,10 +189,10 @@ async function showUserProfile(username) {
 
             document.getElementById('serviceStars').innerHTML = renderStarsNew(serviceVal);
             document.getElementById('serviceRating').textContent = serviceVal.toFixed(1);
-            
+
             document.getElementById('tasteStars').innerHTML = renderStarsNew(tasteVal);
             document.getElementById('tasteRating').textContent = tasteVal.toFixed(1);
-            
+
             document.getElementById('ambianceStars').innerHTML = renderStarsNew(ambianceVal);
             document.getElementById('ambianceRating').textContent = ambianceVal.toFixed(1);
         } else {
@@ -218,11 +219,6 @@ function closeModalOnBackdrop(event) {
     }
 }
 
-// Close modal when clicking outside (removed old handler that collided)
-// window.onclick is handled by explicit onclicks in this new design or needs careful merging if other modals rely on window.onclick
-// The new modal uses onclick="closeModalOnBackdrop(event)" directly on the backdrop div.
-
-
 function hideInlineError(elementId) {
     const errEl = document.getElementById(elementId);
     if (errEl) {
@@ -230,7 +226,7 @@ function hideInlineError(elementId) {
         errEl.textContent = "";
     }
 }
-// --- End Custom form Dialogs ---
+
 
 function openLoginPopup() {
     document.getElementById("loginPopup").classList.remove("hidden");
@@ -243,14 +239,29 @@ function closeLoginPopup() {
     hideInlineError("login-error-msg");
 }
 
-function openForgotPasswordPopup() {
+function openSecurityRecoveryPopup() {
     closeLoginPopup();
-    document.getElementById('forgotPasswordPopup').classList.remove('hidden');
-    hideInlineError("forgot-error-msg");
+    const popup = document.getElementById('securityRecoveryPopup');
+    if (popup) popup.classList.remove('hidden');
+    hideInlineError("recovery-email-error-msg");
 }
 
-function closeForgotPasswordPopup() {
-    document.getElementById('forgotPasswordPopup').classList.add('hidden');
+function closeSecurityRecoveryPopup() {
+    const popup = document.getElementById('securityRecoveryPopup');
+    if (popup) popup.classList.add('hidden');
+    hideInlineError("recovery-email-error-msg");
+}
+
+function openResetPasswordPopup() {
+    const popup = document.getElementById('resetPasswordPopup');
+    if (popup) popup.classList.remove('hidden');
+    hideInlineError("change-pw-error-msg");
+}
+
+function closeResetPasswordPopup() {
+    const popup = document.getElementById('resetPasswordPopup');
+    if (popup) popup.classList.add('hidden');
+    hideInlineError("change-pw-error-msg");
 }
 
 function openSignUpPopup() {
@@ -281,15 +292,6 @@ function showAccountSuccess() {
 
 function closeAccountSuccess() {
     document.getElementById("accountCreatedPopup").classList.add("hidden");
-}
-
-function openChangePassword() {
-    document.getElementById("changePasswordPopup").classList.remove("hidden");
-    hideInlineError("change-pw-error-msg");
-}
-
-function closeChangePassword() {
-    document.getElementById("changePasswordPopup").classList.add("hidden");
 }
 
 function openEditProfilePopup() {
@@ -335,11 +337,64 @@ function clearFeedFilterCookies() {
     clearStoredValue("feedSearch");
 }
 
+function clearFeedFilters() {
+    clearFeedFilterCookies();
+
+    let filterForm = document.getElementById("filterForm");
+    if (filterForm) {
+        let cuisineSelect = filterForm.querySelector("select[name='cuisine']");
+        let locationSelect = filterForm.querySelector("select[name='location']");
+        let sortSelect = filterForm.querySelector("select[name='sort']");
+        let searchInput = filterForm.querySelector("input[name='search']");
+
+        if (cuisineSelect) cuisineSelect.value = "";
+        if (locationSelect) locationSelect.value = "";
+        if (sortSelect) sortSelect.selectedIndex = 0;
+        if (searchInput) searchInput.value = "";
+    }
+
+    window.location.href = "/feed";
+}
+
+function clearReviewDraftCookies(draftPrefix) {
+    let cookieParts = document.cookie.split(";");
+
+    for (let i = 0; i < cookieParts.length; i++) {
+        let part = cookieParts[i].trim();
+        if (!part) continue;
+
+        let equalIndex = part.indexOf("=");
+        let key = equalIndex >= 0 ? part.substring(0, equalIndex) : part;
+
+        if (key.indexOf(draftPrefix) === 0) {
+            clearStoredValue(key);
+        }
+    }
+}
+
+function clearStoredValuesByPrefix(prefix) {
+    let cookieParts = document.cookie.split(";");
+
+    for (let i = 0; i < cookieParts.length; i++) {
+        let part = cookieParts[i].trim();
+        if (!part) continue;
+
+        let equalIndex = part.indexOf("=");
+        let key = equalIndex >= 0 ? part.substring(0, equalIndex) : part;
+
+        if (key.indexOf(prefix) === 0) {
+            clearStoredValue(key);
+        }
+    }
+}
+
 window.onclick = function(event) {
     const loginPopup = document.getElementById("loginPopup");
     const signUpPopup = document.getElementById("signupPopup");
     const successPopup = document.getElementById("successPopup");
     const editProfilePopup = document.getElementById("editProfilePopup");
+    const securityRecoveryPopup = document.getElementById("securityRecoveryPopup");
+    const resetPasswordPopup = document.getElementById("resetPasswordPopup");
     
     if (event.target === loginPopup) {
         loginPopup.classList.add("hidden");
@@ -352,6 +407,12 @@ window.onclick = function(event) {
     }
     if (event.target === editProfilePopup) {
         editProfilePopup.classList.add("hidden");
+    }
+    if (event.target === securityRecoveryPopup) {
+        securityRecoveryPopup.classList.add("hidden");
+    }
+    if (event.target === resetPasswordPopup) {
+        resetPasswordPopup.classList.add("hidden");
     }
 }
 
@@ -455,6 +516,76 @@ document.addEventListener("DOMContentLoaded", function () {
             saveStoredValue("feedSearch", searchValue, 7);
         });
     }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    let reviewForm = document.querySelector('form[action="/write-review"], form[action^="/edit-review/"]');
+    if (!reviewForm) return;
+
+    let action = reviewForm.getAttribute("action") || "";
+    let modeKey = "write";
+
+    if (action.indexOf("/edit-review/") === 0) {
+        modeKey = action.replace("/", "").replace(/\//g, "-");
+    }
+
+    let draftPrefix = "reviewDraft-" + modeKey + "-";
+
+    let fieldNames = [
+        "restaurant",
+        "cuisine",
+        "customCuisine",
+        "location",
+        "customLocation",
+        "foodRating",
+        "serviceRating",
+        "ambianceRating",
+        "title",
+        "content"
+    ];
+
+    function getFieldKey(fieldName) {
+        return draftPrefix + fieldName;
+    }
+
+    // check and restore the saved values 
+    for (let i = 0; i < fieldNames.length; i++) {
+        let fieldName = fieldNames[i];
+        let field = reviewForm.querySelector('[name="' + fieldName + '"]');
+        if (!field) continue;
+
+        let savedValue = getStoredValue(getFieldKey(fieldName));
+        if (savedValue !== null && savedValue !== "") {
+            field.value = savedValue;
+        }
+    }
+
+    // js for the other option
+    if (typeof toggleCustomCuisine === "function") {
+        toggleCustomCuisine();
+    }
+    if (typeof toggleCustomLocation === "function") {
+        toggleCustomLocation();
+    }
+
+    // save values on change
+    for (let i = 0; i < fieldNames.length; i++) {
+        let fieldName = fieldNames[i];
+        let field = reviewForm.querySelector('[name="' + fieldName + '"]');
+        if (!field) continue;
+
+        let saveFn = function () {
+            saveStoredValue(getFieldKey(fieldName), field.value || "", 7);
+        };
+
+        field.addEventListener("input", saveFn);
+        field.addEventListener("change", saveFn);
+    }
+
+    // clear after submission
+    reviewForm.addEventListener("submit", function () {
+        clearReviewDraftCookies(draftPrefix);
+    });
 });
 
 // Voting functionality
@@ -682,11 +813,19 @@ function cancelEditComment(btn, originalText) {
     textDiv.textContent = originalText;
 }
 
-// Forgot Password
-async function submitForgotPassword() {
-    const email = document.getElementById("forgot-email").value;
-    
-    hideInlineError("forgot-error-msg");
+// Security Question Recovery
+async function submitSecurityRecoveryStep() {
+    const emailEl = document.getElementById("recovery-email-step");
+    const resetEmailEl = document.getElementById("reset-email");
+    const questionEl = document.getElementById("recovery-question");
+    const email = emailEl ? emailEl.value.trim() : "";
+
+    hideInlineError("recovery-email-error-msg");
+
+    if (!email) {
+        showInlineError("recovery-email-error-msg", "Please enter your email.");
+        return;
+    }
 
     try {
         const response = await fetch("/forgot-password", {
@@ -695,30 +834,60 @@ async function submitForgotPassword() {
             body: JSON.stringify({ email })
         });
 
-        const data = await response.json();
-        if (data.success) {
-            window.resetEmail = email; 
-            closeForgotPasswordPopup();
-            openChangePassword();
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            data = { message: "Something went wrong. Please try again." };
+        }
+
+        const message = data.message || "Could not load security question.";
+        const resolvedQuestion = ((data && data.securityQuestion) || "").trim();
+
+        if (response.ok && data && data.success && resolvedQuestion && questionEl) {
+            questionEl.value = resolvedQuestion;
+            if (resetEmailEl) {
+                resetEmailEl.value = email;
+            }
+            saveStoredValue("recoveryEmail", email, 7);
+            closeSecurityRecoveryPopup();
+            openResetPasswordPopup();
         } else {
-            showInlineError("forgot-error-msg", data.message || "Email not found");
+            if (questionEl) questionEl.value = "";
+            showInlineError("recovery-email-error-msg", message);
         }
     } catch (err) {
-        console.error("Forgot password error:", err);
-        showInlineError("forgot-error-msg", "An error occurred.");
+        console.error("Security question error:", err);
+        showInlineError("recovery-email-error-msg", "Something went wrong. Please try again.");
     }
 }
 
-// Change Password
-async function submitChangePassword() {
-    console.log("submitChangePassword called");
+async function submitSecurityRecovery() {
     const newPassword = document.getElementById("new-password").value;
     const confirmPassword = document.getElementById("confirm-password").value;
+    const email = (document.getElementById("reset-email") || {}).value || "";
+    const securityAnswer = (document.getElementById("recovery-answer") || {}).value || "";
+    const securityQuestion = (document.getElementById("recovery-question") || {}).value || "";
 
     hideInlineError("change-pw-error-msg");
 
+    if (!email.trim()) {
+        showInlineError("change-pw-error-msg", "Please enter your email.");
+        return;
+    }
+
+    if (!securityQuestion.trim()) {
+        showInlineError("change-pw-error-msg", "Load your security question first.");
+        return;
+    }
+
+    if (!securityAnswer.trim()) {
+        showInlineError("change-pw-error-msg", "Please enter your security answer.");
+        return;
+    }
+
     if (newPassword.length < 6) {
-        showInlineError("change-pw-error-msg", "New password must be at least 6 characters long.");
+        showInlineError("change-pw-error-msg", "Password must be at least 6 characters.");
         return;
     }
 
@@ -727,14 +896,6 @@ async function submitChangePassword() {
         return;
     }
 
-    if (!window.resetEmail) {
-        console.error("No reset email in session");
-        showInlineError("change-pw-error-msg", "Session expired. Please restart the process.");
-        return;
-    }
-    
-    console.log("Sending request for:", window.resetEmail);
-
     try {
         const response = await fetch("/change-password", {
             method: "POST",
@@ -742,29 +903,78 @@ async function submitChangePassword() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                email: window.resetEmail,
+                email: email.trim(),
+                securityAnswer: securityAnswer,
                 newPassword: newPassword
             })
         });
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            data = { message: "Something went wrong. Please try again." };
+        }
+
+        const message = data.message || "Could not reset password.";
         console.log("Response:", data);
 
-        if (response.ok && data.message !== "User not found.") {
-            closeChangePassword();
+        if (response.ok) {
+            clearStoredValue("recoveryEmail");
+            closeResetPasswordPopup();
             openSuccessPassword();
         } else {
-            showInlineError("change-pw-error-msg", data.message || "Failed to change password");
+            showInlineError("change-pw-error-msg", message);
         }
     } catch (error) {
         console.error("Error changing password:", error);
-        showInlineError("change-pw-error-msg", "An error occurred. Please try again.");
+        showInlineError("change-pw-error-msg", "Something went wrong. Please try again.");
     }
 }
 
 // Sign Up
 const signupForm = document.getElementById("signupForm");
 if (signupForm) {
+    const signupCookiePrefix = "signupDraft-";
+
+    const signupName = document.getElementById("signup-name");
+    const signupEmail = document.getElementById("signup-email");
+    const signupSecurityQuestion = document.getElementById("signup-security-question");
+    const signupSecurityQuestionCustom = document.getElementById("signup-security-question-custom");
+
+    if (signupName) signupName.value = getStoredValue(signupCookiePrefix + "name") || signupName.value;
+    if (signupEmail) signupEmail.value = getStoredValue(signupCookiePrefix + "email") || signupEmail.value;
+    if (signupSecurityQuestion) signupSecurityQuestion.value = getStoredValue(signupCookiePrefix + "securityQuestion") || signupSecurityQuestion.value;
+    if (signupSecurityQuestionCustom) signupSecurityQuestionCustom.value = getStoredValue(signupCookiePrefix + "securityQuestionCustom") || signupSecurityQuestionCustom.value;
+
+    if (typeof toggleCustomSecurityQuestion === "function") {
+        toggleCustomSecurityQuestion();
+    }
+
+    if (signupName) {
+        signupName.addEventListener("input", function() {
+            saveStoredValue(signupCookiePrefix + "name", signupName.value || "", 7);
+        });
+    }
+
+    if (signupEmail) {
+        signupEmail.addEventListener("input", function() {
+            saveStoredValue(signupCookiePrefix + "email", signupEmail.value || "", 7);
+        });
+    }
+
+    if (signupSecurityQuestion) {
+        signupSecurityQuestion.addEventListener("change", function() {
+            saveStoredValue(signupCookiePrefix + "securityQuestion", signupSecurityQuestion.value || "", 7);
+        });
+    }
+
+    if (signupSecurityQuestionCustom) {
+        signupSecurityQuestionCustom.addEventListener("input", function() {
+            saveStoredValue(signupCookiePrefix + "securityQuestionCustom", signupSecurityQuestionCustom.value || "", 7);
+        });
+    }
+
     signupForm.addEventListener("submit", async function(e) {
         e.preventDefault();
 
@@ -772,8 +982,26 @@ if (signupForm) {
         const email = document.getElementById("signup-email").value;
         const password = document.getElementById("signup-password").value;
         const confirm = document.getElementById("signup-confirm").value;
+        const securityQuestion = (document.getElementById("signup-security-question") || {}).value || "";
+        const securityQuestionCustom = (document.getElementById("signup-security-question-custom") || {}).value || "";
+        const securityAnswer = (document.getElementById("signup-security-answer") || {}).value || "";
 
         hideInlineError("signup-error-msg");
+
+        if (!securityQuestion) {
+            showInlineError("signup-error-msg", "Please select a security question.");
+            return;
+        }
+
+        if (securityQuestion === "Other" && !securityQuestionCustom.trim()) {
+            showInlineError("signup-error-msg", "Please enter your custom security question.");
+            return;
+        }
+
+        if (!securityAnswer.trim()) {
+            showInlineError("signup-error-msg", "Please provide a security answer.");
+            return;
+        }
 
         if (password.length < 6 ) {
             showInlineError("signup-error-msg", "Password must be at least 6 characters long.");
@@ -789,12 +1017,13 @@ if (signupForm) {
             const response = await fetch("http://localhost:3000/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password }) 
+                body: JSON.stringify({ name, email, password, securityQuestion, securityQuestionCustom, securityAnswer }) 
             });
 
             const data = await response.json();
 
             if (response.ok) {
+                clearStoredValuesByPrefix(signupCookiePrefix);
                 document.getElementById("accountName").textContent = name;
 
                 showAccountSuccess();
@@ -812,6 +1041,19 @@ if (signupForm) {
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
+    const loginEmailInput = document.getElementById("login-email");
+    const savedLoginEmail = getStoredValue("loginEmail");
+
+    if (loginEmailInput && savedLoginEmail) {
+        loginEmailInput.value = savedLoginEmail;
+    }
+
+    if (loginEmailInput) {
+        loginEmailInput.addEventListener("input", function() {
+            saveStoredValue("loginEmail", loginEmailInput.value || "", 7);
+        });
+    }
+
     loginForm.addEventListener("submit", async function(e) {
         e.preventDefault();
 
@@ -828,6 +1070,7 @@ if (loginForm) {
             const data = await response.json();
 
             if (response.ok) {
+                saveStoredValue("loginEmail", email, 7);
                 closeLoginPopup();
                 window.location.href = "/feed";
             } else {
@@ -1101,6 +1344,23 @@ function toggleCustomLocation() {//!CHECK
     }
 }
 
+function toggleCustomSecurityQuestion() {
+    const select = document.getElementById('signup-security-question');
+    const group = document.getElementById('signup-custom-security-question-group');
+    const input = document.getElementById('signup-security-question-custom');
+
+    if (!select || !group || !input) return;
+
+    if (select.value === 'Other') {
+        group.style.display = 'block';
+        input.required = true;
+    } else {
+        group.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+
 
 // Profile Update
 async function submitProfileUpdate(event) {
@@ -1126,6 +1386,7 @@ async function submitProfileUpdate(event) {
         const data = await response.json();
 
         if (response.ok) {
+            clearStoredValuesByPrefix('profileDraft-');
             await showCustomAlert('Profile updated successfully!');
             closeEditProfilePopup();
             window.location.reload();
@@ -1137,6 +1398,51 @@ async function submitProfileUpdate(event) {
         await showCustomAlert('Failed to update profile. Please try again.');
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    let profileForm = document.querySelector('#editProfilePopup form');
+    if (!profileForm) return;
+
+    let profileCookiePrefix = 'profileDraft-';
+    let fields = ['name', 'username', 'email', 'bio'];
+
+    for (let i = 0; i < fields.length; i++) {
+        let fieldName = fields[i];
+        let field = profileForm.querySelector('[name="' + fieldName + '"]');
+        if (!field) continue;
+
+        let savedValue = getStoredValue(profileCookiePrefix + fieldName);
+        if (savedValue !== null && savedValue !== '') {
+            field.value = savedValue;
+        }
+
+        let saveFn = function () {
+            saveStoredValue(profileCookiePrefix + fieldName, field.value || '', 7);
+        };
+
+        field.addEventListener('input', saveFn);
+        field.addEventListener('change', saveFn);
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    let recoveryEmailInput = document.getElementById("recovery-email-step");
+    let resetEmailInput = document.getElementById("reset-email");
+    if (!recoveryEmailInput && !resetEmailInput) return;
+
+    let savedRecoveryEmail = getStoredValue("recoveryEmail");
+    if (savedRecoveryEmail) {
+        if (recoveryEmailInput) recoveryEmailInput.value = savedRecoveryEmail;
+        if (resetEmailInput) resetEmailInput.value = savedRecoveryEmail;
+    }
+
+    if (recoveryEmailInput) {
+        recoveryEmailInput.addEventListener("input", function () {
+            saveStoredValue("recoveryEmail", recoveryEmailInput.value || "", 7);
+            if (resetEmailInput) resetEmailInput.value = recoveryEmailInput.value || "";
+        });
+    }
+});
 
 // --- Delete Account Logic ---
 function openDeleteAccountConfirm() {

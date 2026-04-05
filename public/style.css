@@ -480,9 +480,35 @@ body {
     font-family: Arial, sans-serif;
 }
 
+.form-group select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    outline: none;
+    background: #fafafa;
+    font-family: Arial, sans-serif;
+    color: #111827;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #6b7280 50%), linear-gradient(135deg, #6b7280 50%, transparent 50%);
+    background-position: calc(100% - 18px) calc(50% + 1px), calc(100% - 12px) calc(50% + 1px);
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+}
+
 .form-group input:focus {
     border-color: #36734e;
     background: white;
+    box-shadow: 0 0 0 3px rgba(54, 115, 78, 0.08);
+}
+
+.form-group select:focus {
+    border-color: #36734e;
+    background-color: white;
     box-shadow: 0 0 0 3px rgba(54, 115, 78, 0.08);
 }
 

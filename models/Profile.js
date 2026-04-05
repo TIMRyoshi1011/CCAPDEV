@@ -19,6 +19,14 @@ const profileSchema = new mongoose.Schema({
         required: true, 
         unique: true 
     },
+    securityQuestion: {
+        type: String,
+        default: ''
+    },
+    securityAnswer: {
+        type: String,
+        default: ''
+    },
     password: { 
         type: String, 
         required: true 
@@ -102,12 +110,16 @@ const profileSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 profileSchema.pre('save', async function() {
-    if (!this.isModified('password')) {
-        return;
-    }
     try {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
+        if (this.isModified('password')) {
+            const salt = await bcrypt.genSalt(10);
+            this.password = await bcrypt.hash(this.password, salt);
+        }
+
+        if (this.isModified('securityAnswer') && this.securityAnswer) {
+            const answerSalt = await bcrypt.genSalt(10);
+            this.securityAnswer = await bcrypt.hash(this.securityAnswer, answerSalt);
+        }
     } catch (err) {
         throw err;
     }
@@ -115,6 +127,10 @@ profileSchema.pre('save', async function() {
 
 profileSchema.methods.comparePassword = async function(plainPassword) {
     return await bcrypt.compare(plainPassword, this.password);
+};
+
+profileSchema.methods.compareSecurityAnswer = async function(plainAnswer) {
+    return await bcrypt.compare(plainAnswer, this.securityAnswer);
 };
 
 profileSchema.statics.hashPassword = async function(password) {

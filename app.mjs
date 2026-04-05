@@ -120,6 +120,28 @@ async function updateUserReputation(userEmail, pointsDelta) {
 // current active user
 let currentUser = {};
 
+function toBaseUsername(name) {
+    const raw = (name || "").trim().toLowerCase();
+    const normalized = raw
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+
+    return normalized || "user";
+}
+
+async function buildUniqueUsername(name) {
+    const base = toBaseUsername(name);
+    let candidate = base;
+    let counter = 1;
+
+    while (await Profile.exists({ username: candidate })) {
+        counter += 1;
+        candidate = base + "_" + counter;
+    }
+
+    return candidate;
+}
+
 // Helper to refresh current user data from DB
 async function refreshCurrentUser() {
     if (currentUser && currentUser.email) {
@@ -133,6 +155,15 @@ async function refreshCurrentUser() {
             console.error("Error refreshing user data:", err);
         }
     }
+}
+
+function isPostOwner(post, user) {
+    if (!post || !post.currentUser || !user || !user._id) {
+        return false;
+    }
+
+    const ownerId = post.currentUser._id ? post.currentUser._id : post.currentUser;
+    return ownerId.toString() === user._id.toString();
 }
 
 // current posts
@@ -430,26 +461,48 @@ connectToMongoose()
 // Sign Up
 app.post("/signup", async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, securityQuestion, securityQuestionCustom, securityAnswer } = req.body;
 
-        // check if user already exists
-        const existingUser = await Profile.findOne({ email }).lean();
+        const cleanName = (name || "").trim();
+        const cleanEmail = (email || "").trim().toLowerCase();
+        const cleanPassword = password || "";
+        const cleanSecurityAnswer = (securityAnswer || "").trim();
+        const resolvedSecurityQuestion = securityQuestion === "Other" ? (securityQuestionCustom || "") : (securityQuestion || "");
+
+        if (!cleanName || !cleanEmail || !cleanPassword) {
+            return res.status(400).json({ message: "Name, email, and password are required" });
+        }
+
+        if (!resolvedSecurityQuestion.trim() || !cleanSecurityAnswer) {
+            return res.status(400).json({ message: "Security question and answer are required" });
+        }
+
+        const existingUser = await Profile.findOne({ email: cleanEmail }).lean();
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
         }
 
+        const uniqueUsername = await buildUniqueUsername(cleanName);
+        const avatar = cleanName
+            .split(' ')
+            .filter(Boolean)
+            .map(word => word[0].toUpperCase())
+            .join('') || "US";
+
         const newUser = {
-            name: name,   
-            username: name.toLowerCase().replace(/\s+/g, '_'),
-            avatar: name.split(' ').map(word => word[0].toUpperCase()).join(''),
-            email: email,
-            password: password,         
-            badge: "🥉 Bronze", 
+            name: cleanName,
+            username: uniqueUsername,
+            avatar,
+            email: cleanEmail,
+            password: cleanPassword,
+            securityQuestion: resolvedSecurityQuestion.trim(),
+            securityAnswer: cleanSecurityAnswer,
+            badge: "🥉 Bronze",
             membership: "Bronze",
             memberSince: new Date().toLocaleDateString('en-US', {
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric'  
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
             }),
             tier: "Bronze",
             tierIcon: "🥉",
@@ -458,24 +511,35 @@ app.post("/signup", async (req, res) => {
             verified: false,
             bio: "Bio",
             rankClass: "bronze",
-            totalReviews: 0,  
-            topCuisine: 'None',   
-            avgRating: 0,    
-            locations: 0,    
-            topRated: 'None',    
+            totalReviews: 0,
+            topCuisine: 'None',
+            avgRating: 0,
+            locations: 0,
+            topRated: 'None',
             comments: 0,
             upvotes: 0,
             downvotes: 0
         };
 
-        currentUser = newUser;
-
-        const result = await Profile.create(newUser); 
+        const result = await Profile.create(newUser);
         console.log("User created:", result._id);
+
+        currentUser = result.toObject();
 
         res.json({ message: "Signup successful" });
     } catch (err) {
         console.error("Signup error:", err);
+
+        if (err && err.code === 11000) {
+            if (err.keyPattern && err.keyPattern.email) {
+                return res.status(400).json({ message: "User already exists" });
+            }
+            if (err.keyPattern && err.keyPattern.username) {
+                return res.status(400).json({ message: "Display name already exists. Try adding a middle initial." });
+            }
+            return res.status(400).json({ message: "Account already exists" });
+        }
+
         res.status(500).json({ message: "Server error" });
     }
 });
@@ -504,46 +568,96 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// Forgot Password
-app.post("/forgot-password", async (req, res) => {
-    const { email } = req.body;
-    try {
-        const user = await Profile.findOne({ email: email }).lean();
+async function handleForgotPasswordRequest(req, res) {
+    const email = (req.body.email || "").trim().toLowerCase();
 
-        if (!user) {
-            return res.json({
-                success: false,
-                message: "Email not found."
-            });
+    try {
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Please enter your email." });
         }
 
-        res.json({ success: true });
+        const user = await Profile.findOne({ email }).lean();
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Email not found." });
+        }
+
+        const securityQuestion = (user.securityQuestion || "").trim();
+        if (!securityQuestion) {
+            return res.status(400).json({ success: false, message: "No security question set for this account." });
+        }
+
+        return res.json({ success: true, securityQuestion });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false });
+        console.error("Forgot password error:", err);
+        return res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
     }
-});
+}
+
+// Forgot Password
+app.post("/forgot-password", handleForgotPasswordRequest);
+app.post("/security-question", handleForgotPasswordRequest);
 
 // Change Password
 app.post("/change-password", async (req, res) => {
     try {
-        const { email, newPassword } = req.body;
-        console.log(`[Change Password] Request for ${email}`);
+        const email = (req.body.email || "").trim().toLowerCase();
+        const securityAnswer = (req.body.securityAnswer || "").trim();
+        const newPassword = req.body.newPassword || "";
+
+        if (!email) {
+            return res.status(400).json({ message: "Please enter your email." });
+        }
+
+        if (!securityAnswer) {
+            return res.status(400).json({ message: "Please enter your security answer." });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters." });
+        }
+
+        const user = await Profile.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "Email not found." });
+        }
+
+        if (!user.securityAnswer) {
+            return res.status(400).json({ message: "No security answer set for this account." });
+        }
+
+        let isSecurityAnswerMatch = false;
+        const storedSecurityAnswer = String(user.securityAnswer || "").trim();
+        const normalizedInputAnswer = securityAnswer.trim();
+
+        // Support both bcrypt-hashed answers and legacy plain-text seeded answers.
+        if (/^\$2[aby]\$\d{2}\$/.test(storedSecurityAnswer)) {
+            isSecurityAnswerMatch = await user.compareSecurityAnswer(normalizedInputAnswer);
+            if (!isSecurityAnswerMatch) {
+                isSecurityAnswerMatch = await user.compareSecurityAnswer(normalizedInputAnswer.toLowerCase());
+            }
+        } else {
+            isSecurityAnswerMatch = storedSecurityAnswer.toLowerCase() === normalizedInputAnswer.toLowerCase();
+        }
+
+        if (!isSecurityAnswerMatch) {
+            return res.status(400).json({ message: "Security answer is incorrect." });
+        }
 
         const hashedPassword = await Profile.hashPassword(newPassword);
 
         const result = await Profile.updateOne(
-            { email: email },
+            { email },
             { $set: { password: hashedPassword } }
         );
 
         if (result.matchedCount === 0) {
-            return res.json({ message: "User not found." });
+            return res.status(404).json({ message: "Email not found." });
         }
-        res.json({ message: "Password updated successfully!" });
+
+        return res.json({ message: "Password updated successfully!" });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error." });
+        console.error("Change password error:", err);
+        return res.status(500).json({ message: "Something went wrong. Please try again." });
     }
 });
 
@@ -884,7 +998,7 @@ app.delete('/delete-review/:id', async (req, res) => {
         }
         
         // Ownership check
-        if (post.currentUser.email !== currentUser.email) {
+        if (!isPostOwner(post, currentUser)) {
             return res.status(403).json({ message: "Unauthorized" });
         }
 
@@ -948,14 +1062,14 @@ app.get('/edit-review/:id', async (req, res) => {
     try {
         const postId = req.params.id;
         
-        const post = await Post.findById(postId);
+        const post = await Post.findById(postId).lean();
 
         if (!post) {
             return res.status(404).send("Post not found");
         }
         
         // Ownership check
-        if (post.currentUser.email !== currentUser.email) {
+        if (!isPostOwner(post, currentUser)) {
             return res.status(403).send("Unauthorized");
         }
 
@@ -987,7 +1101,7 @@ app.post('/edit-review/:id', async (req, res) => {
             return res.status(404).send("Post not found");
         }
          // Ownership check
-         if (post.currentUser.email !== currentUser.email) {
+         if (!isPostOwner(post, currentUser)) {
             return res.status(403).send("Unauthorized");
         }
 

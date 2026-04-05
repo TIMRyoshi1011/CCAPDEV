@@ -38,8 +38,7 @@
                 <div id="login-error-msg" class="form-error-message"></div>
 
                 <div class="login-options">
-                    <a href="#" class="forgot-password" onclick="openForgotPasswordPopup(); return false;">Forgot
-                        password?</a>
+                    <a href="#" class="forgot-password" onclick="openSecurityRecoveryPopup(); return false;">Forget password?</a>
                 </div>
                 <button type="submit" class="submit-btn">Login</button>
             </form>
@@ -48,44 +47,56 @@
         </div>
     </div>
 
-    <!--Forgot Password Popup-->
-    <div id="forgotPasswordPopup" class="popup hidden">
+    <!-- Forgot Password Popup -->
+    <div id="securityRecoveryPopup" class="popup hidden">
         <div class="popup-content">
-            <span class="close" onclick="closeForgotPasswordPopup()">&times;</span>
-            <h2>Forgot Password?</h2>
-            <h1>Please enter your email address to reset your password</h1>
-
-            <form onsubmit="submitForgotPassword(); return false;">
-                <div class="form-group">
-                    <label for="forgot-email">Email</label>
-                    <input type="email" id="forgot-email" placeholder="example.name@domain.com" required>
-                </div>
-
-                <div id="forgot-error-msg" class="form-error-message"></div>
-
-                <button type="submit" class="submit-btn">Submit</button>
-            </form>
-
-            <p class="popup-footer">
-                <a href="#" onclick="closeForgotPasswordPopup(); openLoginPopup(); return false;">Back to Login</a>
-            </p>
-        </div>
-    </div>
-
-    <!-- Change Password Popup -->
-    <div id="changePasswordPopup" class="popup hidden">
-        <div class="popup-content">
-            <span class="close" onclick="closeChangePassword()">&times;</span>
+            <span class="close" onclick="closeSecurityRecoveryPopup()">&times;</span>
             <div class="report-header">
                 <h2 class="report-title">
-                    <span class="report-title-icon" style="color: #4b5563;">🔒</span> Change Password
+                    <span class="report-title-icon" style="color: #4b5563;">📧</span> Forget Password
                 </h2>
             </div>
 
-            <form onsubmit="event.preventDefault(); submitChangePassword();">
+            <form onsubmit="event.preventDefault(); submitSecurityRecoveryStep();">
                 <div class="form-group">
-                    <label for="email-code">Code sent on your email</label>
-                    <input type="password" id="email-code">
+                    <label for="recovery-email-step">Email</label>
+                    <input type="email" id="recovery-email-step" required>
+                </div>
+
+                <div id="recovery-email-error-msg" class="form-error-message"></div>
+
+                <div class="report-actions">
+                    <button type="button" class="submit-btn report-cancel-btn" onclick="closeSecurityRecoveryPopup()">Cancel</button>
+                    <button type="submit" class="submit-btn report-submit-btn" style="background: #E94E66;">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Password Popup -->
+    <div id="resetPasswordPopup" class="popup hidden">
+        <div class="popup-content">
+            <span class="close" onclick="closeResetPasswordPopup()">&times;</span>
+            <div class="report-header">
+                <h2 class="report-title">
+                    <span class="report-title-icon" style="color: #4b5563;">🔐</span> Reset Password
+                </h2>
+            </div>
+
+            <form onsubmit="event.preventDefault(); submitSecurityRecovery();">
+                <div class="form-group">
+                    <label for="reset-email">Email</label>
+                    <input type="email" id="reset-email" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="recovery-question">Security Question</label>
+                    <input type="text" id="recovery-question" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="recovery-answer">Security Answer</label>
+                    <input type="text" id="recovery-answer" required>
                 </div>
 
                 <div class="form-group">
@@ -108,8 +119,8 @@
                 <div id="change-pw-error-msg" class="form-error-message"></div>
 
                 <div class="report-actions">
-                    <button type="button" class="submit-btn report-cancel-btn" onclick="closeChangePassword()">Cancel</button>
-                    <button type="submit" class="submit-btn report-submit-btn" style="background: #E94E66;">Change Password</button>
+                    <button type="button" class="submit-btn report-cancel-btn" onclick="closeResetPasswordPopup()">Cancel</button>
+                    <button type="submit" class="submit-btn report-submit-btn" style="background: #E94E66;">Reset Password</button>
                 </div>
             </form>
         </div>
@@ -138,6 +149,27 @@
                 <div class="form-group">
                     <label for="signup-confirm">Re-enter password</label>
                     <input type="password" id="signup-confirm" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-security-question">Security Question</label>
+                    <select id="signup-security-question" onchange="toggleCustomSecurityQuestion()" required>
+                        <option value="">Select security question...</option>
+                        <option value="What is your favorite food?">What is your favorite food?</option>
+                        <option value="What is the name of your first school?">What is the name of your first school?</option>
+                        <option value="What city were you born in?">What city were you born in?</option>
+                        <option value="Other">Enter my own question...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="signup-custom-security-question-group" style="display: none;">
+                    <label for="signup-security-question-custom">Custom Security Question</label>
+                    <input type="text" id="signup-security-question-custom" placeholder="Enter your security question">
+                </div>
+
+                <div class="form-group">
+                    <label for="signup-security-answer">Security Answer</label>
+                    <input type="text" id="signup-security-answer" required>
                 </div>
 
                 <div id="signup-error-msg" class="form-error-message"></div>
