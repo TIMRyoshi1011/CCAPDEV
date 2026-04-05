@@ -104,7 +104,7 @@ async function updateUserReputation(userEmail, pointsDelta) {
         );
         
         // Update session user if relevant
-        if (currentUser && currentUser.email === userEmail) {
+        if (currentUser && currentUser._id.toString() === userEmail) {
             currentUser.points = newPoints;
             currentUser.tier = newTier;
             currentUser.badge = newBadge;
@@ -226,7 +226,7 @@ app.get('/', async (req, res) => {
         // Add ownership and vote info
         for (let post of allPosts) {
             // Check ownership
-            if (currentUser.email && post.currentUser && post.currentUser.email === currentUser.email) {
+            if (currentUser._id && post.currentUser && post.currentUser._id.toString() === currentUser._id.toString()) {
                 post.ownPost = true;
             } else {
                 post.ownPost = false;
@@ -277,7 +277,7 @@ app.get('/community-reviews', async (req, res) => {
         // Add ownership and vote info
         for (let post of allPosts) {
             // Check ownership
-            if (currentUser.email && post.currentUser && post.currentUser.email === currentUser.email) {
+            if (currentUser._id && post.currentUser && post.currentUser._id.toString() === currentUser._id.toString()) {
                 post.ownPost = true;
             } else {
                 post.ownPost = false;
@@ -484,12 +484,12 @@ app.post("/signup", async (req, res) => {
 app.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-        const acc = await Profile.findOne({ email: email });
+        const acc = await Profile.findOne({ email: email }).lean();
 
         if (!acc) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
-
+        
         const isPasswordMatch = await acc.comparePassword(password);
         if (!isPasswordMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
@@ -739,7 +739,7 @@ app.get("/feed", async (req, res) => {
         // Loop through all posts to check ownership
         for (let i = 0; i < posts.length; i++) {
             // Check if the current user owns the post
-            if (currentUser.email && posts[i].currentUser && posts[i].currentUser.email === currentUser.email) {
+            if (currentUser._id && posts[i].currentUser && posts[i].currentUser._id.toString() === currentUser._id.toString()) {
                 posts[i].ownPost = true;
             } else {
                 posts[i].ownPost = false;
@@ -824,7 +824,7 @@ app.post('/write-review', async (req, res) => {
             const avgRating = ((service + taste + ambiance) / 3).toFixed(1);
 
             const newPost = {
-                currentUser,
+                currentUser: currentUser._id,
                 restaurant,
                 cuisine,
                 location,
@@ -850,7 +850,7 @@ app.post('/write-review', async (req, res) => {
             currentUser.totalReviews += 1;
 
             const result = await Profile.updateOne(
-                { email: currentUser.email },        
+                { _id: currentUser._id },        
                 { $set: { totalReviews: nReviews } } 
             );
 
@@ -860,7 +860,7 @@ app.post('/write-review', async (req, res) => {
             }
 
             // Award points for writing review
-            await updateUserReputation(currentUser.email, POINTS.WRITE_REVIEW);
+            await updateUserReputation(currentUser._id, POINTS.WRITE_REVIEW);
 
             return res.redirect('/feed'); 
         } else {
@@ -1070,7 +1070,7 @@ app.post('/vote', async (req, res) => {
         }
 
         // Prevents user from voting on their review
-        if (post.currentUser && post.currentUser.email === currentUser.email) {
+        if (post.currentUser && post.currentUser._id.toString() === currentUser._id.toString()) {
             return res.status(403).json({ message: "You cannot vote on your own review" });
         }
 
@@ -1186,14 +1186,14 @@ app.post('/vote', async (req, res) => {
                     }
                 }
             );
-            if (post.currentUser.email === currentUser.email) {
+            if (post.currentUser._id.toString() === currentUser._id.toString()) {
                 currentUser[oldField] = (currentUser[oldField] || 0) - 1;
                 currentUser[newField] = (currentUser[newField] || 0) + 1;
             }
         }
 
         // Award or deduct points for post owner, if not voting on own post
-        if (post.currentUser.email !== currentUser.email) {
+        if (post.currentUser._id.toString() !== currentUser._id.toString()) {
             // Helper to get point value for a vote type
             const getPointsValue = (voteType) => {
                 if (voteType === 'upvote') return POINTS.RECEIVE_UPVOTE;
