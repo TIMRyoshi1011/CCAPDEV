@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Profile from "./models/Profile.js";
 import Post from "./models/Post.js";
 import Vote from "./models/Vote.js";
+import bcrypt from "bcrypt";
 
 const MONGO_URI = "mongodb://adminUser:adminUserPassword@ac-tcyvp62-shard-00-00.ccrzj8t.mongodb.net:27017,ac-tcyvp62-shard-00-01.ccrzj8t.mongodb.net:27017,ac-tcyvp62-shard-00-02.ccrzj8t.mongodb.net:27017/?ssl=true&replicaSet=atlas-10gktb-shard-0&authSource=admin&appName=Cluster0";
 
@@ -169,6 +170,12 @@ async function main() {
                 downvotes: 0
             }
         ];
+
+        // Hashing
+        for (let user of usersData) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(user.password, salt);
+        }
 
         const users = await Profile.insertMany(usersData);
         console.log(`${users.length} users inserted`);
