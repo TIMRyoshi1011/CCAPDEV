@@ -239,6 +239,7 @@ app.get('/', async (req, res) => {
     try {
         const allPosts = await Post.find({})
             .populate('currentUser', 'avatar name username tier badge rankClass verified')
+            .populate('comments.currentUser', 'avatar name username tier badge rankClass verified email')
             .lean();
 
         // Gets total number of posts (reviews)
@@ -1487,6 +1488,8 @@ app.patch('/comment/:postId/:commentIndex', async (req, res) => {
 // Get Recent Notifications 
 app.get('/notifications', async (req, res) => {
     try {
+        let currentUser = await refreshCurrentUser(req);
+
         // Allows viewing of notifications for user that is logged in
         if (!currentUser || !currentUser.email) {
             return res.redirect('/');
@@ -1502,6 +1505,7 @@ app.get('/notifications', async (req, res) => {
             "comments.currentUser": currentUser._id
         })
         .populate('currentUser', 'avatar name username tier badge rankClass verified')
+        .populate('comments.currentUser', 'avatar name username tier badge rankClass verified email')
         .lean();
 
         const activities = [];
@@ -1525,13 +1529,17 @@ app.get('/notifications', async (req, res) => {
             // Adds incoming comments on user's reviews
             if (review.comments && review.comments.length > 0) {
                 review.comments.forEach(comment => {
-                    if (comment.currentUser.email !== currentUser.email) {
+                    const commentUserId = comment?.currentUser?._id
+                        ? comment.currentUser._id.toString()
+                        : (comment?.currentUser ? comment.currentUser.toString() : "");
+
+                    if (commentUserId !== currentUser._id.toString()) {
                         activities.push({
                             icon: "💬",
-                            title: `New comment from ${comment.currentUser.name} on your review of ${review.restaurant}`,
+                            title: `New comment from ${comment?.currentUser?.name || "a user"} on your review of ${review.restaurant}`,
                             date: comment.date,
                             content: comment.text,
-                            footer: { author: comment.currentUser.name }
+                            footer: { author: comment?.currentUser?.name || "Unknown" }
                         });
                     }
                 });
@@ -1544,14 +1552,12 @@ app.get('/notifications', async (req, res) => {
             postId: { $in: userPostIds },
             userId: { $ne: currentUser._id }
         })
-        .populate('currentUser', 'avatar name username tier badge rankClass verified')
+        .populate('userId', 'avatar name username tier badge rankClass verified')
         .lean();
 
         incomingVotes.forEach(vote => {
             if (vote.date) { // Only show votes with timestamps
-                const relatedPost = userReviews.find(p => p._id.toString() === vote.postId.toString())
-                    .populate('currentUser', 'avatar name username tier badge rankClass verified')
-                    .lean();
+                const relatedPost = userReviews.find(p => p._id.toString() === vote.postId.toString());
                 if (relatedPost) {
                     activities.push({
                         icon: vote.type === 'upvote' ? '🔺' : '🔻',
@@ -1565,9 +1571,13 @@ app.get('/notifications', async (req, res) => {
 
         // Adds outgoing comment activities
         commentedPosts.forEach(post => {
-            const userComments = post.comments.filter(comment =>
-                comment.currentUser.email === currentUser.email
-            );
+            const userComments = post.comments.filter(comment => {
+                const commentUserId = comment?.currentUser?._id
+                    ? comment.currentUser._id.toString()
+                    : (comment?.currentUser ? comment.currentUser.toString() : "");
+
+                return commentUserId === currentUser._id.toString();
+            });
 
             userComments.forEach(comment => {
                 activities.push({
