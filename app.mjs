@@ -1779,7 +1779,7 @@ app.get('/userprofile-reviews', async (req, res) => {
 });
 
 // Profile Update Route
-app.post('/userprofile-reviews', async (req, res) => { ///update-profile 
+app.post('/update-profile', async (req, res) => { 
     try {
         const { name, username, bio } = req.body;
 
