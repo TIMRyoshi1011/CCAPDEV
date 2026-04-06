@@ -1014,9 +1014,10 @@ if (signupForm) {
         }
 
         try {
-            const response = await fetch("http://localhost:3000/signup", {
+            const response = await fetch("/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
                 body: JSON.stringify({ name, email, password, securityQuestion, securityQuestionCustom, securityAnswer }) 
             });
 
@@ -1061,9 +1062,10 @@ if (loginForm) {
         const password = document.getElementById("login-password").value;
         hideInlineError("login-error-msg");
         try {
-            const response = await fetch("http://localhost:3000/login", {
+            const response = await fetch("/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
                 body: JSON.stringify({ email, password })
             });
 
