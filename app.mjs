@@ -2,6 +2,8 @@ import express from "express";
 import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
 import cors from "cors";
+import session from "express-session";
+import MongoStore from "connect-mongo";
 import path from "path";
 import { fileURLToPath } from "url";
 import exphbs from "express-handlebars";
@@ -14,10 +16,39 @@ import 'dotenv/config';
 const app = express();
 const filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(filename);
+const isProduction = process.env.NODE_ENV === "production";
+const sessionSecret = process.env.SESSION_SECRET || "123secret";
 
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+
+if (isProduction) {
+    app.set("trust proxy", 1);
+}
+
+const sessionOptions = {
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 30,
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "lax"
+    }
+};
+
+if (process.env.MONGODB_URL) {
+    sessionOptions.store = MongoStore.create({
+        mongoUrl: process.env.MONGODB_URL,
+        dbName: process.env.DB_NAME,
+        collectionName: "sessions",
+        ttl: 60 * 60 * 24 * 30
+    });
+}
+
+app.use(session(sessionOptions));
 
 let cuisines = ["Filipino", "Chinese", "Japanese", "Korean", "Thai", "Vietnamese", "Italian", "American", "Indian", "Mexican"];
 let locations = ["BGC", "Makati", "Quezon City", "Taguig"];
@@ -47,7 +78,7 @@ async function updateUserReputation(userEmail, pointsDelta) {
         const user = await Profile.findOne({ email: userEmail }).lean();
         if (!user) return;
         
-        // Prevent negative points
+        // to make sure theres no negative points
         let newPoints = (user.points || 0) + pointsDelta;
         if (newPoints < 0) newPoints = 0; 
         
@@ -102,54 +133,59 @@ async function updateUserReputation(userEmail, pointsDelta) {
                 }
             }
         );
-        
-        // Update session user if relevant
-        if (currentUser && currentUser._id.toString() === userEmail) {
-            currentUser.points = newPoints;
-            currentUser.tier = newTier;
-            currentUser.badge = newBadge;
-            currentUser.verified = isVerified;
-            currentUser.rankClass = rankClass;
-            currentUser.nextTier = nextTier;
-        }
     } catch (err) {
         console.error("Error updating reputation:", err);
     }
 }
 
-// current active user
-let currentUser = {};
+// getting current user from session
+function getCurrentUser(req) {
+    if (!req.session.currentUser) {
+        req.session.currentUser = {};
+    }
+    return req.session.currentUser;
+}
 
-function toBaseUsername(name) {
-    const raw = (name || "").trim().toLowerCase();
-    const normalized = raw
-        .replace(/[^a-z0-9]+/g, "_")
-        .replace(/^_+|_+$/g, "");
-
+function buildBaseUsername(name, email) {
+    const source = (name || (email ? email.split("@")[0] : "user")).toLowerCase();
+    const normalized = source.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
     return normalized || "user";
 }
 
-async function buildUniqueUsername(name) {
-    const base = toBaseUsername(name);
-    let candidate = base;
-    let counter = 1;
-
-    while (await Profile.exists({ username: candidate })) {
-        counter += 1;
-        candidate = base + "_" + counter;
+async function ensureUserHasUsername(userDoc) {
+    if (!userDoc) {
+        return userDoc;
     }
 
-    return candidate;
+    if (userDoc.username && userDoc.username.trim()) {
+        return userDoc;
+    }
+
+    const baseUsername = buildBaseUsername(userDoc.name, userDoc.email);
+    let candidate = baseUsername;
+    let suffix = 1;
+
+    while (await Profile.exists({ username: candidate, _id: { $ne: userDoc._id } })) {
+        suffix += 1;
+        candidate = `${baseUsername}_${suffix}`;
+    }
+
+    await Profile.updateOne({ _id: userDoc._id }, { $set: { username: candidate } });
+    userDoc.username = candidate;
+    return userDoc;
 }
 
 // Helper to refresh current user data from DB
-async function refreshCurrentUser() {
+async function refreshCurrentUser(req) {
+    let currentUser = getCurrentUser(req);
+
     if (currentUser && currentUser.email) {
         try {
-            const freshUser = await Profile.findOne({ email: currentUser.email }).lean();
+            const freshUser = await Profile.findOne({ email: currentUser.email });
             if (freshUser) {
-                // Merge fresh data into currentUser, preserving session-specific fields if any
-                Object.assign(currentUser, freshUser);
+                await ensureUserHasUsername(freshUser);
+                req.session.currentUser = toSessionUser(freshUser);
+                return req.session.currentUser;
             }
         } catch (err) {
             console.error("Error refreshing user data:", err);
@@ -159,13 +195,25 @@ async function refreshCurrentUser() {
     return currentUser;
 }
 
-function isPostOwner(post, user) {
-    if (!post || !post.currentUser || !user || !user._id) {
-        return false;
+function toSessionUser(profileDoc) {
+    if (!profileDoc) {
+        return {};
     }
 
-    const ownerId = post.currentUser._id ? post.currentUser._id : post.currentUser;
-    return ownerId.toString() === user._id.toString();
+    let user;
+    if (typeof profileDoc.toObject === "function") {
+        user = profileDoc.toObject();
+    } else {
+        user = { ...profileDoc };
+    }
+
+    if (user._id) {
+        user._id = user._id.toString();
+    }
+
+    user.displayUsername = user.username || (user.email ? user.email.split("@")[0] : "user");
+
+    return user;
 }
 
 // current posts
@@ -239,9 +287,10 @@ app.use(express.static('public'));
 
 app.get('/', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
         const allPosts = await Post.find({})
             .populate('currentUser', 'avatar name username tier badge rankClass verified')
-            .populate('comments.currentUser', 'avatar name username tier badge rankClass verified email')
             .lean();
 
         // Gets total number of posts (reviews)
@@ -284,40 +333,37 @@ app.get('/', async (req, res) => {
 
         res.render('landing', {
             layout: false,
+            currentUser,
+            posts: allPosts,
+            topReviews,
             stats: {
+                restaurants,
                 reviews: totalReviews,
-                restaurants: restaurants,
-                locations: locations,
-                avgRating: avgRating
-            },
-            topReviews: topReviews,
-            currentUser 
+                locations,
+                avgRating
+            }
         });
     } catch(err) {
-        console.error("Error loading landing page:", err);
-        res.status(500).send("Error loading landing page");
+        console.error("Error loading landing:", err);
+        res.status(500).send("Error loading landing");
     }
 });
 
-
 app.get('/community-reviews', async (req, res) => {
     try {
-        await refreshCurrentUser(); 
+        let currentUser = getCurrentUser(req);
 
-        const allPosts = await Post.find({}).sort({ _id: -1 })
+        const allPosts = await Post.find({})
             .populate('currentUser', 'avatar name username tier badge rankClass verified')
             .lean();
-        
-        // Add ownership and vote info
+
         for (let post of allPosts) {
-            // Check ownership
             if (currentUser._id && post.currentUser && post.currentUser._id.toString() === currentUser._id.toString()) {
                 post.ownPost = true;
             } else {
                 post.ownPost = false;
             }
 
-            // Get user vote
             if (currentUser._id) {
                 const userVote = await Vote.findOne({
                     userId: currentUser._id,
@@ -342,22 +388,27 @@ app.get('/community-reviews', async (req, res) => {
 
 // Logout route
 app.get("/logout", (req, res) => {
-    currentUser = {}; 
-    res.redirect("/");
+    req.session.destroy(function () {
+        res.clearCookie("connect.sid");
+        res.redirect("/");
+    });
 });
 
 // Delete User Account
 app.delete("/delete-user", async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
         if (!currentUser || !currentUser.username) {
             return res.status(401).json({ message: "Not logged in" });
         }
         
         await Profile.deleteOne({ username: currentUser.username }); 
-        
-        currentUser = {}; // Clear session
-        
-        res.json({ message: "Account deleted successfully" });
+
+        req.session.destroy(function () {
+            res.clearCookie("connect.sid");
+            res.json({ message: "Account deleted successfully" });
+        });
     } catch (err) {
         console.error("Error deleting account:", err);
         res.status(500).json({ message: "Server error" });
@@ -411,7 +462,7 @@ app.get("/api/user/:username", async (req, res) => {
             topLocation = Object.keys(locationCounts).reduce((a, b) => locationCounts[a] > locationCounts[b] ? a : b);
         }
 
-        // Top Cuisine (if not already in user object or verifying it)
+        // Top Cuisine 
         let topCuisine = user.topCuisine || "None";
         if (Object.keys(cuisineCounts).length > 0) {
              // prioritizing calculated one if we want dynamic
@@ -470,6 +521,7 @@ app.post("/signup", async (req, res) => {
         const cleanEmail = (email || "").trim().toLowerCase();
         const cleanPassword = password || "";
         const cleanSecurityAnswer = (securityAnswer || "").trim();
+
         const resolvedSecurityQuestion = securityQuestion === "Other" ? (securityQuestionCustom || "") : (securityQuestion || "");
 
         if (!cleanName || !cleanEmail || !cleanPassword) {
@@ -480,32 +532,45 @@ app.post("/signup", async (req, res) => {
             return res.status(400).json({ message: "Security question and answer are required" });
         }
 
+        // check if user already exists
         const existingUser = await Profile.findOne({ email: cleanEmail }).lean();
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
         }
 
-        const uniqueUsername = await buildUniqueUsername(cleanName);
+        const baseUsername = cleanName
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "") || "user";
+
+        let uniqueUsername = baseUsername;
+        let usernameCounter = 1;
+
+        while (await Profile.exists({ username: uniqueUsername })) {
+            usernameCounter += 1;
+            uniqueUsername = `${baseUsername}_${usernameCounter}`;
+        }
+
         const avatar = cleanName
-            .split(' ')
+            .split(" ")
             .filter(Boolean)
             .map(word => word[0].toUpperCase())
-            .join('') || "US";
+            .join("") || "US";
 
         const newUser = {
             name: cleanName,
             username: uniqueUsername,
-            avatar,
+            avatar: avatar,
             email: cleanEmail,
             password: cleanPassword,
             securityQuestion: resolvedSecurityQuestion.trim(),
             securityAnswer: cleanSecurityAnswer,
-            badge: "🥉 Bronze",
+            badge: "🥉 Bronze", 
             membership: "Bronze",
             memberSince: new Date().toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric'  
             }),
             tier: "Bronze",
             tierIcon: "🥉",
@@ -514,20 +579,23 @@ app.post("/signup", async (req, res) => {
             verified: false,
             bio: "Bio",
             rankClass: "bronze",
-            totalReviews: 0,
-            topCuisine: 'None',
-            avgRating: 0,
-            locations: 0,
-            topRated: 'None',
+            totalReviews: 0,  
+            topCuisine: 'None',   
+            avgRating: 0,    
+            locations: 0,    
+            topRated: 'None',    
             comments: 0,
             upvotes: 0,
             downvotes: 0
         };
 
-        const result = await Profile.create(newUser);
+        const result = await Profile.create(newUser); 
         console.log("User created:", result._id);
 
-        currentUser = result.toObject();
+        req.session.currentUser = toSessionUser(result);
+        await new Promise((resolve, reject) => {
+            req.session.save(err => err ? reject(err) : resolve());
+        });
 
         res.json({ message: "Signup successful" });
     } catch (err) {
@@ -537,9 +605,11 @@ app.post("/signup", async (req, res) => {
             if (err.keyPattern && err.keyPattern.email) {
                 return res.status(400).json({ message: "User already exists" });
             }
+
             if (err.keyPattern && err.keyPattern.username) {
-                return res.status(400).json({ message: "Display name already exists. Try adding a middle initial." });
+                return res.status(400).json({ message: "Username is already taken. Try a different name." });
             }
+
             return res.status(400).json({ message: "Account already exists" });
         }
 
@@ -550,19 +620,30 @@ app.post("/signup", async (req, res) => {
 // Login
 app.post("/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const email = (req.body.email || "").trim().toLowerCase();
+        const password = req.body.password || "";
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
+
         const acc = await Profile.findOne({ email: email });
 
         if (!acc) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
+
+        await ensureUserHasUsername(acc);
         
         const isPasswordMatch = await acc.comparePassword(password);
         if (!isPasswordMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
-        currentUser = acc.toObject();
+        req.session.currentUser = toSessionUser(acc);
+        await new Promise((resolve, reject) => {
+            req.session.save(err => err ? reject(err) : resolve());
+        });
 
         res.json({ message: "Login successful" });
     } catch (err) {
@@ -571,9 +652,8 @@ app.post("/login", async (req, res) => {
     }
 });
 
-async function handleForgotPasswordRequest(req, res) {
+async function handleSecurityQuestionRequest(req, res) {
     const email = (req.body.email || "").trim().toLowerCase();
-
     try {
         if (!email) {
             return res.status(400).json({ success: false, message: "Please enter your email." });
@@ -584,21 +664,20 @@ async function handleForgotPasswordRequest(req, res) {
             return res.status(404).json({ success: false, message: "Email not found." });
         }
 
-        const securityQuestion = (user.securityQuestion || "").trim();
-        if (!securityQuestion) {
-            return res.status(400).json({ success: false, message: "No security question set for this account." });
+        if (!user.securityQuestion || !user.securityQuestion.trim()) {
+            return res.status(400).json({ success: false, message: "No security question set." });
         }
 
-        return res.json({ success: true, securityQuestion });
+        return res.json({ success: true, securityQuestion: user.securityQuestion });
     } catch (err) {
-        console.error("Forgot password error:", err);
+        console.error(err);
         return res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
     }
 }
 
-// Forgot Password
-app.post("/forgot-password", handleForgotPasswordRequest);
-app.post("/security-question", handleForgotPasswordRequest);
+// Security Question Recovery
+app.post("/security-question", handleSecurityQuestionRequest);
+app.post("/forgot-password", handleSecurityQuestionRequest);
 
 // Change Password
 app.post("/change-password", async (req, res) => {
@@ -625,23 +704,10 @@ app.post("/change-password", async (req, res) => {
         }
 
         if (!user.securityAnswer) {
-            return res.status(400).json({ message: "No security answer set for this account." });
+            return res.status(400).json({ message: "No security answer set." });
         }
 
-        let isSecurityAnswerMatch = false;
-        const storedSecurityAnswer = String(user.securityAnswer || "").trim();
-        const normalizedInputAnswer = securityAnswer.trim();
-
-        // Support both bcrypt-hashed answers and legacy plain-text seeded answers.
-        if (/^\$2[aby]\$\d{2}\$/.test(storedSecurityAnswer)) {
-            isSecurityAnswerMatch = await user.compareSecurityAnswer(normalizedInputAnswer);
-            if (!isSecurityAnswerMatch) {
-                isSecurityAnswerMatch = await user.compareSecurityAnswer(normalizedInputAnswer.toLowerCase());
-            }
-        } else {
-            isSecurityAnswerMatch = storedSecurityAnswer.toLowerCase() === normalizedInputAnswer.toLowerCase();
-        }
-
+        const isSecurityAnswerMatch = await user.compareSecurityAnswer(securityAnswer);
         if (!isSecurityAnswerMatch) {
             return res.status(400).json({ message: "Security answer is incorrect." });
         }
@@ -659,7 +725,7 @@ app.post("/change-password", async (req, res) => {
 
         return res.json({ message: "Password updated successfully!" });
     } catch (err) {
-        console.error("Change password error:", err);
+        console.error(err);
         return res.status(500).json({ message: "Something went wrong. Please try again." });
     }
 });
@@ -669,7 +735,9 @@ app.post("/update-password", async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     try {
-        if (!currentUser) {
+        let currentUser = getCurrentUser(req);
+
+        if (!currentUser || !currentUser.email) {
             return res.status(401).json({ message: "User not authenticated" });
         }
 
@@ -694,7 +762,7 @@ app.post("/update-password", async (req, res) => {
             return res.status(404).json({ message: "User not found." });
         }
 
-        await refreshCurrentUser();
+        currentUser = await refreshCurrentUser(req);
 
         res.json({ message: "Password updated successfully!" });
     } catch (err) {
@@ -706,7 +774,11 @@ app.post("/update-password", async (req, res) => {
 // After login, redirect to feed
 app.get("/feed", async (req, res) => { 
     try {
-        await refreshCurrentUser(); 
+        let currentUser = await refreshCurrentUser(req);
+
+        if (!currentUser || !currentUser.email) {
+            return res.redirect('/');
+        }
 
         const { cuisine, location, sort, search } = req.query;
         const searchTerm = (search || "").trim();
@@ -813,37 +885,16 @@ app.get("/feed", async (req, res) => {
             });
         }
 
-        // Gets all the reviews posted by every user
-        if (currentUser) {
-            const globalPosts = await Post.find({})
-                .populate('currentUser', 'avatar name username tier badge rankClass verified')
-                .lean();
-            if (globalPosts.length > 0) {
-                currentUser.totalReviews = globalPosts.length;
-                
-                // Calculate Top Cuisine
-                const cuisineCounts = {};
-                globalPosts.forEach(post => {
-                    const c = post.cuisine;
-                    if (c) cuisineCounts[c] = (cuisineCounts[c] || 0) + 1;
-                });
-                if (Object.keys(cuisineCounts).length > 0) {
-                     currentUser.topCuisine = Object.keys(cuisineCounts).reduce((a, b) => cuisineCounts[a] > cuisineCounts[b] ? a : b);
-                } else {
-                    currentUser.topCuisine = "None";
-                }
+        // Compute stats only from the signed-in user's own activity
+        if (currentUser && currentUser.email) {
+            const userStats = await computeUserStats(currentUser.email);
 
-                // Calculate Avg Rating
-                const totalRating = globalPosts.reduce((acc, post) => acc + parseFloat(post.ratingValue || 0), 0);
-                currentUser.avgRating = (totalRating / globalPosts.length).toFixed(1);
-
-                // Calculate Locations count
-                const uniqueLocations = new Set(globalPosts.map(p => p.location).filter(l => l));
-                currentUser.locations = uniqueLocations.size;
-
-                // Calculate Top Rated (Highest rated restaurant)
-                const topRatedPost = globalPosts.reduce((prev, current) => (parseFloat(prev.ratingValue || 0) > parseFloat(current.ratingValue || 0)) ? prev : current);
-                currentUser.topRated = topRatedPost.restaurant || "None";
+            if (userStats) {
+                currentUser.totalReviews = userStats.totalReviews;
+                currentUser.topCuisine = userStats.topCuisine;
+                currentUser.avgRating = userStats.avgRating;
+                currentUser.locations = userStats.locations;
+                currentUser.topRated = userStats.topRated;
             } else {
                 currentUser.totalReviews = 0;
                 currentUser.topCuisine = "None";
@@ -851,6 +902,8 @@ app.get("/feed", async (req, res) => {
                 currentUser.locations = 0;
                 currentUser.topRated = "None";
             }
+
+            req.session.currentUser = currentUser;
         }
 
         // Loop through all posts to check ownership
@@ -895,6 +948,12 @@ app.get("/feed", async (req, res) => {
 
 // Writing a review
 app.get("/write-review", (req, res) => {
+    let currentUser = getCurrentUser(req);
+
+    if (!currentUser || !currentUser.email) {
+        return res.redirect('/');
+    }
+
     res.render("write-review", {
         pageTitle: "Write Review",
         currentUser,
@@ -906,6 +965,12 @@ app.get("/write-review", (req, res) => {
 // Posting the review
 app.post('/write-review', async (req, res) => { 
     try {
+        let currentUser = getCurrentUser(req);
+
+        if (!currentUser || !currentUser.email) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
         let { restaurant, cuisine, customCuisine, location, customLocation, content, foodRating, serviceRating, ambianceRating, title } = req.body;
 
         // Handle Custom Cuisine
@@ -977,7 +1042,9 @@ app.post('/write-review', async (req, res) => {
             }
 
             // Award points for writing review
-            await updateUserReputation(currentUser._id, POINTS.WRITE_REVIEW);
+            await updateUserReputation(currentUser.email, POINTS.WRITE_REVIEW);
+
+            currentUser = await refreshCurrentUser(req);
 
             return res.redirect('/feed'); 
         } else {
@@ -992,6 +1059,12 @@ app.post('/write-review', async (req, res) => {
 // Delete Review
 app.delete('/delete-review/:id', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
+        if (!currentUser || !currentUser.email) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
         const postId = req.params.id;
 
         const post = await Post.findById(postId);
@@ -999,9 +1072,16 @@ app.delete('/delete-review/:id', async (req, res) => {
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
+
+        const sessionProfile = await Profile.findOne({ email: currentUser.email }).select('_id').lean();
+        if (!sessionProfile) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const postOwnerId = post.currentUser && post.currentUser._id ? post.currentUser._id : post.currentUser;
         
         // Ownership check
-        if (!isPostOwner(post, currentUser)) {
+        if (!postOwnerId || postOwnerId.toString() !== sessionProfile._id.toString()) {
             return res.status(403).json({ message: "Unauthorized" });
         }
 
@@ -1031,10 +1111,12 @@ app.delete('/delete-review/:id', async (req, res) => {
 // Report Review
 app.post('/report-review/:id', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
         const postId = req.params.id;
         const { reason } = req.body;
 
-        const post = await Post.findById(postId);
+        const post = await Post.findById(postId).populate('currentUser', 'email');
 
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
@@ -1063,16 +1145,29 @@ app.post('/report-review/:id', async (req, res) => {
 // Edit Review Page
 app.get('/edit-review/:id', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
+        if (!currentUser || !currentUser.email) {
+            return res.redirect('/');
+        }
+
         const postId = req.params.id;
         
-        const post = await Post.findById(postId).lean();
+        const post = await Post.findById(postId);
 
         if (!post) {
             return res.status(404).send("Post not found");
         }
+
+        const sessionProfile = await Profile.findOne({ email: currentUser.email }).select('_id').lean();
+        if (!sessionProfile) {
+            return res.redirect('/');
+        }
+
+        const postOwnerId = post.currentUser && post.currentUser._id ? post.currentUser._id : post.currentUser;
         
         // Ownership check
-        if (!isPostOwner(post, currentUser)) {
+        if (!postOwnerId || postOwnerId.toString() !== sessionProfile._id.toString()) {
             return res.status(403).send("Unauthorized");
         }
 
@@ -1094,6 +1189,12 @@ app.get('/edit-review/:id', async (req, res) => {
 // Update Review Page
 app.post('/edit-review/:id', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
+        if (!currentUser || !currentUser.email) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
         const postId = req.params.id;
         
         let { restaurant, cuisine, customCuisine, location, customLocation, content, foodRating, serviceRating, ambianceRating, title } = req.body;
@@ -1103,8 +1204,16 @@ app.post('/edit-review/:id', async (req, res) => {
         if (!post) {
             return res.status(404).send("Post not found");
         }
+
+        const sessionProfile = await Profile.findOne({ email: currentUser.email }).select('_id').lean();
+        if (!sessionProfile) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const postOwnerId = post.currentUser && post.currentUser._id ? post.currentUser._id : post.currentUser;
+
          // Ownership check
-         if (!isPostOwner(post, currentUser)) {
+         if (!postOwnerId || postOwnerId.toString() !== sessionProfile._id.toString()) {
             return res.status(403).send("Unauthorized");
         }
 
@@ -1166,6 +1275,8 @@ app.post('/edit-review/:id', async (req, res) => {
 // Voting route
 app.post('/vote', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
         const { postId, action } = req.body;
 
         if (!currentUser || !currentUser.email) {
@@ -1191,17 +1302,17 @@ app.post('/vote', async (req, res) => {
             return res.status(403).json({ message: "You cannot vote on your own review" });
         }
 
-        // Check for existing vote in the Vote collection
-        const existingVote = await Vote.findOne({
-            userId: currentUser._id,
-            postId: postId
-        });
+        // Initialize userVotes
+        if (!post.userVotes) {
+            post.userVotes = {};
+        }
 
         const userEmail = currentUser.email;
-        const previousVote = existingVote ? existingVote.type : null;
+        const previousVote = post.userVotes[userEmail];
 
         let likesChange = 0;
         let dislikesChange = 0;
+        let userVoteChange = 0; 
 
         // Handles vote logic
         if (previousVote === action) {
@@ -1211,11 +1322,8 @@ app.post('/vote', async (req, res) => {
             } else {
                 dislikesChange = -1;
             }
-            // Delete the vote from Vote collection
-            await Vote.deleteOne({
-                userId: currentUser._id,
-                postId: postId
-            });
+            userVoteChange = -1;
+            delete post.userVotes[userEmail];
         } else if (previousVote) {
             // Switches user's vote if action is different
             if (previousVote === 'upvote') {
@@ -1225,17 +1333,7 @@ app.post('/vote', async (req, res) => {
                 likesChange = 1;
                 dislikesChange = -1;
             }
-            // Update the vote in Vote collection
-            await Vote.updateOne(
-                { userId: currentUser._id, postId: postId },
-                {
-                    $set: {
-                        type: action,
-                        userEmail: userEmail,
-                        date: new Date()
-                    }
-                }
-            );
+            post.userVotes[userEmail] = action;
         } else {
             // Adds new vote if user has not yet made a vote
             if (action === 'upvote') {
@@ -1243,17 +1341,15 @@ app.post('/vote', async (req, res) => {
             } else {
                 dislikesChange = 1;
             }
-            // Create new vote in Vote collection
-            await Vote.create({
-                userId: currentUser._id,
-                postId: postId,
-                type: action,
-                userEmail: userEmail
-            });
+            userVoteChange = 1;
+            post.userVotes[userEmail] = action;
         }
 
-        // Updates post votes
-        const updateObj = { $inc: {} };
+        // Updates post votes and userVotes
+        const updateObj = {
+            $inc: {},
+            $set: { userVotes: post.userVotes }
+        };
 
         if (likesChange !== 0) {
             updateObj.$inc.likes = likesChange;
@@ -1271,7 +1367,60 @@ app.post('/vote', async (req, res) => {
             return res.status(500).json({ message: "Failed to update vote" });
         }
 
-        // Update profile reputation counters
+        // Updates votes collection
+        const currentVote = post.userVotes[userEmail];
+        if (currentVote) {
+            // Saves user's vote in votes collection if there was a vote made 
+            await Vote.updateOne(
+                { userId: currentUser._id, postId: postId },
+                { 
+                    $set: { 
+                        userId: currentUser._id, 
+                        postId: postId, 
+                        type: currentVote,
+                        userEmail: userEmail, 
+                        date: new Date()
+                    }
+                },
+                { upsert: true }
+            );
+        } else {
+            // Deletes user's vote in votes collection if vote was removed
+            await Vote.deleteOne({
+                userId: currentUser._id,
+                postId: postId
+            });
+        }
+
+        
+        if (userVoteChange !== 0) {
+            const ownerField = action === 'upvote' ? 'upvotes' : 'downvotes';
+
+            await Profile.updateOne(
+                { email: post.currentUser.email },
+                { $inc: { [ownerField]: userVoteChange } }
+            );
+        } else if (previousVote && previousVote !== action) {
+            // Updates both counters if user switched votes
+            const oldField = previousVote === 'upvote' ? 'upvotes' : 'downvotes';
+            const newField = action === 'upvote' ? 'upvotes' : 'downvotes';
+
+            await Profile.updateOne(
+                { email: post.currentUser.email },
+                {
+                    $inc: {
+                        [oldField]: -1,
+                        [newField]: 1
+                    }
+                }
+            );
+            if (post.currentUser._id.toString() === currentUser._id.toString()) {
+                currentUser[oldField] = (currentUser[oldField] || 0) - 1;
+                currentUser[newField] = (currentUser[newField] || 0) + 1;
+            }
+        }
+
+        // Award or deduct points for post owner, if not voting on own post
         if (post.currentUser._id.toString() !== currentUser._id.toString()) {
             // Helper to get point value for a vote type
             const getPointsValue = (voteType) => {
@@ -1283,9 +1432,9 @@ app.post('/vote', async (req, res) => {
             // Determines the final state of the vote after this action
             let finalVoteState = null;
             if (previousVote === action) {
-                finalVoteState = null;
+                finalVoteState = null; 
             } else {
-                finalVoteState = action;
+                finalVoteState = action; 
             }
 
             const oldPoints = getPointsValue(previousVote);
@@ -1297,50 +1446,14 @@ app.post('/vote', async (req, res) => {
             }
         }
 
-        // Update profile vote counters
-        if (post.currentUser._id.toString() !== currentUser._id.toString()) {
-            if (previousVote === action) {
-                // Removing vote
-                const field = action === 'upvote' ? 'upvotes' : 'downvotes';
-                await Profile.updateOne(
-                    { email: post.currentUser.email },
-                    { $inc: { [field]: -1 } }
-                );
-            } else if (previousVote) {
-                // Switching vote
-                const oldField = previousVote === 'upvote' ? 'upvotes' : 'downvotes';
-                const newField = action === 'upvote' ? 'upvotes' : 'downvotes';
-                await Profile.updateOne(
-                    { email: post.currentUser.email },
-                    {
-                        $inc: {
-                            [oldField]: -1,
-                            [newField]: 1
-                        }
-                    }
-                );
-            } else {
-                // Adding new vote
-                const field = action === 'upvote' ? 'upvotes' : 'downvotes';
-                await Profile.updateOne(
-                    { email: post.currentUser.email },
-                    { $inc: { [field]: 1 } }
-                );
-            }
-        }
-
-        // Gets updated post data and current user's vote
+        // Gets updated post data
         const updatedPost = await Post.findById(postId);
-        const currentUserVote = await Vote.findOne({
-            userId: currentUser._id,
-            postId: postId
-        });
 
         res.json({
             message: "Vote updated successfully",
             likes: updatedPost.likes,
             dislikes: updatedPost.dislikes,
-            userVote: currentUserVote ? currentUserVote.type : null
+            userVote: updatedPost.userVotes[userEmail] || null
         });
 
     } catch (err) {
@@ -1352,6 +1465,8 @@ app.post('/vote', async (req, res) => {
 // Comment functionality
 app.post('/comment', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
         const { postId, text } = req.body;
 
         if (!currentUser || !currentUser.email) {
@@ -1423,6 +1538,12 @@ app.post('/comment', async (req, res) => {
 // Delete Comment
 app.delete('/comment/:postId/:commentIndex', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
+        if (!currentUser || !currentUser.email) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
         const { postId, commentIndex } = req.params;
 
         const post = await Post.findById(postId);
@@ -1453,6 +1574,12 @@ app.delete('/comment/:postId/:commentIndex', async (req, res) => {
 // Edit Comment
 app.patch('/comment/:postId/:commentIndex', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
+        if (!currentUser || !currentUser.email) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
         const { postId, commentIndex } = req.params;
         const { text } = req.body;
 
@@ -1498,6 +1625,7 @@ app.get('/notifications', async (req, res) => {
         // Gets user reviews
         const userReviews = await Post.find({ "currentUser": currentUser._id })
             .populate('currentUser', 'avatar name username tier badge rankClass verified')
+            .populate('comments.currentUser', 'avatar name username tier badge rankClass verified email')
             .lean();
 
         // Gets posts where user commented
@@ -1739,6 +1867,12 @@ function getTierProgress(points) {
 // User profile-reviews
 app.get('/userprofile-reviews', async (req, res) => {
     try {
+        let currentUser = getCurrentUser(req);
+
+        if (!currentUser || !currentUser.email) {
+            return res.redirect('/');
+        }
+
         const reviews = await Post.find({ "currentUser": currentUser._id })
           .populate('currentUser', 'avatar name username tier badge rankClass verified email')
           .lean();
@@ -1764,6 +1898,7 @@ app.get('/userprofile-reviews', async (req, res) => {
         if (userStats) {
             const updatedUser = { ...currentUser, ...userStats, ...tierProgress };
             currentUser = updatedUser;
+            req.session.currentUser = currentUser;
         }
 
         res.render("userprofile-reviews", {
@@ -1779,28 +1914,51 @@ app.get('/userprofile-reviews', async (req, res) => {
 });
 
 // Profile Update Route
-app.post('/update-profile', async (req, res) => { 
+app.post('/update-profile', async (req, res) => {
     try {
-        const { name, username, bio } = req.body;
+        let currentUser = getCurrentUser(req);
+
+        const name = (req.body.name || "").trim();
+        const username = (req.body.username || "").trim();
+        const bio = typeof req.body.bio === "string" ? req.body.bio.trim() : "";
 
         if (!currentUser || !currentUser.email) {
             return res.status(401).json({ message: "User not authenticated" });
         }
 
+        if (!name || !username) {
+            return res.status(400).json({ message: "Name and username are required." });
+        }
+
+        const nextName = name;
+        const nextUsername = username;
+        const nextBio = bio;
+
+        const usernameChanged = nextUsername !== (currentUser.username || "");
+        const profileChanged =
+            nextName !== (currentUser.name || "") ||
+            usernameChanged ||
+            nextBio !== (currentUser.bio || "");
+
+        if (!profileChanged) {
+            return res.json({ message: "No changes made", unchanged: true, usernameChanged: false });
+        }
+
+
+
         // Checks if username is already taken (if changed)
-        if (username !== currentUser.username) {
-            const existingUser = await Profile.findOne({ username: username }).lean();
-            if (existingUser) {
+        if (usernameChanged) {
+            const existingUser = await Profile.findOne({ username: nextUsername }).lean();
+            if (existingUser && existingUser.email !== currentUser.email) {
                 return res.status(400).json({ message: "Username already taken" });
             }
         }
 
         // Updates user profile
         const updateData = {
-            name: name || currentUser.name,
-            username: username || currentUser.username,
-            email: currentUser.email,
-            bio: bio || currentUser.bio
+            name: nextName,
+            username: nextUsername,
+            bio: nextBio
         };
 
         // Recalculates avatar and initials based on new name
@@ -1812,9 +1970,19 @@ app.post('/update-profile', async (req, res) => {
             { $set: updateData }
         );
 
-        Object.assign(currentUser, updateData);
+        const freshUser = await Profile.findOne({ email: currentUser.email });
+        if (freshUser) {
+            req.session.currentUser = toSessionUser(freshUser);
+        } else {
+            Object.assign(currentUser, updateData);
+            req.session.currentUser = currentUser;
+        }
 
-        res.json({ message: "Profile updated successfully" });
+        res.json({
+            message: usernameChanged ? "Username changed successfully" : "Profile updated successfully",
+            unchanged: false,
+            usernameChanged
+        });
 
     } catch (err) {
         console.error("Error updating profile:", err);
@@ -1823,7 +1991,13 @@ app.post('/update-profile', async (req, res) => {
 });
 
 // Settings 
-app.get('/settings', (req, res) => {
+app.get('/settings', async (req, res) => {
+    let currentUser = await refreshCurrentUser(req);
+
+    if (!currentUser || !currentUser.email) {
+        return res.redirect('/');
+    }
+
     res.render("settings", {
     pageTitle: 'Settings',
     activePage: "settings",
