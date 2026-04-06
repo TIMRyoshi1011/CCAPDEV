@@ -1191,17 +1191,17 @@ app.post('/vote', async (req, res) => {
             return res.status(403).json({ message: "You cannot vote on your own review" });
         }
 
-        // Initialize userVotes
-        if (!post.userVotes) {
-            post.userVotes = {};
-        }
+        // Check for existing vote in the Vote collection
+        const existingVote = await Vote.findOne({
+            userId: currentUser._id,
+            postId: postId
+        });
 
         const userEmail = currentUser.email;
-        const previousVote = post.userVotes[userEmail];
+        const previousVote = existingVote ? existingVote.type : null;
 
         let likesChange = 0;
         let dislikesChange = 0;
-        let userVoteChange = 0; 
 
         // Handles vote logic
         if (previousVote === action) {
@@ -1211,8 +1211,11 @@ app.post('/vote', async (req, res) => {
             } else {
                 dislikesChange = -1;
             }
-            userVoteChange = -1;
-            delete post.userVotes[userEmail];
+            // Delete the vote from Vote collection
+            await Vote.deleteOne({
+                userId: currentUser._id,
+                postId: postId
+            });
         } else if (previousVote) {
             // Switches user's vote if action is different
             if (previousVote === 'upvote') {
@@ -1222,7 +1225,17 @@ app.post('/vote', async (req, res) => {
                 likesChange = 1;
                 dislikesChange = -1;
             }
-            post.userVotes[userEmail] = action;
+            // Update the vote in Vote collection
+            await Vote.updateOne(
+                { userId: currentUser._id, postId: postId },
+                {
+                    $set: {
+                        type: action,
+                        userEmail: userEmail,
+                        date: new Date()
+                    }
+                }
+            );
         } else {
             // Adds new vote if user has not yet made a vote
             if (action === 'upvote') {
@@ -1230,15 +1243,17 @@ app.post('/vote', async (req, res) => {
             } else {
                 dislikesChange = 1;
             }
-            userVoteChange = 1;
-            post.userVotes[userEmail] = action;
+            // Create new vote in Vote collection
+            await Vote.create({
+                userId: currentUser._id,
+                postId: postId,
+                type: action,
+                userEmail: userEmail
+            });
         }
 
-        // Updates post votes and userVotes
-        const updateObj = {
-            $inc: {},
-            $set: { userVotes: post.userVotes }
-        };
+        // Updates post votes
+        const updateObj = { $inc: {} };
 
         if (likesChange !== 0) {
             updateObj.$inc.likes = likesChange;
@@ -1256,60 +1271,7 @@ app.post('/vote', async (req, res) => {
             return res.status(500).json({ message: "Failed to update vote" });
         }
 
-        // Updates votes collection
-        const currentVote = post.userVotes[userEmail];
-        if (currentVote) {
-            // Saves user's vote in votes collection if there was a vote made 
-            await Vote.updateOne(
-                { userId: currentUser._id, postId: postId },
-                { 
-                    $set: { 
-                        userId: currentUser._id, 
-                        postId: postId, 
-                        type: currentVote,
-                        userEmail: userEmail, 
-                        date: new Date()
-                    }
-                },
-                { upsert: true }
-            );
-        } else {
-            // Deletes user's vote in votes collection if vote was removed
-            await Vote.deleteOne({
-                userId: currentUser._id,
-                postId: postId
-            });
-        }
-
-        
-        if (userVoteChange !== 0) {
-            const ownerField = action === 'upvote' ? 'upvotes' : 'downvotes';
-
-            await Profile.updateOne(
-                { email: post.currentUser.email },
-                { $inc: { [ownerField]: userVoteChange } }
-            );
-        } else if (previousVote && previousVote !== action) {
-            // Updates both counters if user switched votes
-            const oldField = previousVote === 'upvote' ? 'upvotes' : 'downvotes';
-            const newField = action === 'upvote' ? 'upvotes' : 'downvotes';
-
-            await Profile.updateOne(
-                { email: post.currentUser.email },
-                {
-                    $inc: {
-                        [oldField]: -1,
-                        [newField]: 1
-                    }
-                }
-            );
-            if (post.currentUser._id.toString() === currentUser._id.toString()) {
-                currentUser[oldField] = (currentUser[oldField] || 0) - 1;
-                currentUser[newField] = (currentUser[newField] || 0) + 1;
-            }
-        }
-
-        // Award or deduct points for post owner, if not voting on own post
+        // Update profile reputation counters
         if (post.currentUser._id.toString() !== currentUser._id.toString()) {
             // Helper to get point value for a vote type
             const getPointsValue = (voteType) => {
@@ -1321,9 +1283,9 @@ app.post('/vote', async (req, res) => {
             // Determines the final state of the vote after this action
             let finalVoteState = null;
             if (previousVote === action) {
-                finalVoteState = null; 
+                finalVoteState = null;
             } else {
-                finalVoteState = action; 
+                finalVoteState = action;
             }
 
             const oldPoints = getPointsValue(previousVote);
@@ -1335,14 +1297,50 @@ app.post('/vote', async (req, res) => {
             }
         }
 
-        // Gets updated post data
+        // Update profile vote counters
+        if (post.currentUser._id.toString() !== currentUser._id.toString()) {
+            if (previousVote === action) {
+                // Removing vote
+                const field = action === 'upvote' ? 'upvotes' : 'downvotes';
+                await Profile.updateOne(
+                    { email: post.currentUser.email },
+                    { $inc: { [field]: -1 } }
+                );
+            } else if (previousVote) {
+                // Switching vote
+                const oldField = previousVote === 'upvote' ? 'upvotes' : 'downvotes';
+                const newField = action === 'upvote' ? 'upvotes' : 'downvotes';
+                await Profile.updateOne(
+                    { email: post.currentUser.email },
+                    {
+                        $inc: {
+                            [oldField]: -1,
+                            [newField]: 1
+                        }
+                    }
+                );
+            } else {
+                // Adding new vote
+                const field = action === 'upvote' ? 'upvotes' : 'downvotes';
+                await Profile.updateOne(
+                    { email: post.currentUser.email },
+                    { $inc: { [field]: 1 } }
+                );
+            }
+        }
+
+        // Gets updated post data and current user's vote
         const updatedPost = await Post.findById(postId);
+        const currentUserVote = await Vote.findOne({
+            userId: currentUser._id,
+            postId: postId
+        });
 
         res.json({
             message: "Vote updated successfully",
             likes: updatedPost.likes,
             dislikes: updatedPost.dislikes,
-            userVote: updatedPost.userVotes[userEmail] || null
+            userVote: currentUserVote ? currentUserVote.type : null
         });
 
     } catch (err) {
