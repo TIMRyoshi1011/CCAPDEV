@@ -155,6 +155,8 @@ async function refreshCurrentUser() {
             console.error("Error refreshing user data:", err);
         }
     }
+
+    return currentUser;
 }
 
 function isPostOwner(post, user) {
