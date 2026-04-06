@@ -977,7 +977,7 @@ app.post('/write-review', async (req, res) => {
             }
 
             // Award points for writing review
-            await updateUserReputation(currentUser._id, POINTS.WRITE_REVIEW);
+            await updateUserReputation(currentUser.email, POINTS.WRITE_REVIEW);
 
             return res.redirect('/feed'); 
         } else {
