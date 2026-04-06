@@ -1739,7 +1739,7 @@ function getTierProgress(points) {
 }
 
 // User profile-reviews
-app.get('/update-profile', async (req, res) => {
+app.get('/userprofile-reviews', async (req, res) => {
     try {
         const reviews = await Post.find({ "currentUser": currentUser._id })
           .populate('currentUser', 'avatar name username tier badge rankClass verified email')
@@ -1781,7 +1781,7 @@ app.get('/update-profile', async (req, res) => {
 });
 
 // Profile Update Route
-app.post('/update-profile', async (req, res) => { 
+app.post('/userprofile-reviews', async (req, res) => { 
     try {
         const { name, username, bio } = req.body;
 
