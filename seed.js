@@ -133,8 +133,8 @@ const usersData = [
         bio: "New to the city!"
     },
     {
-        name: "Justine Valdes",
-        username: "justine_valdes",
+        name: "Jamie Valdes",
+        username: "jamie_valdes",
         email: "justine030505@gmail.com",
         password: "123123",
         securityQuestion: "What is your favorite food?",
@@ -235,7 +235,7 @@ const postsData = [
         ]
     },
     {
-        authorUsername: "justine_valdes",
+        authorUsername: "jamie_valdes",
         restaurant: "Mcdonalds",
         cuisine: "American",
         location: "Pasig",
@@ -249,7 +249,7 @@ const postsData = [
         comments: []
     },
     {
-        authorUsername: "justine_valdes",
+        authorUsername: "jamie_valdes",
         restaurant: "La Toca Taqueria",
         cuisine: "Mexican",
         location: "Quezon City",
@@ -263,7 +263,7 @@ const postsData = [
         comments: []
     },
     {
-        authorUsername: "justine_valdes",
+        authorUsername: "jamie_valdes",
         restaurant: "The Barn",
         cuisine: "American",
         location: "Taguig",
@@ -277,7 +277,7 @@ const postsData = [
         comments: []
     },
     {
-        authorUsername: "justine_valdes",
+        authorUsername: "jamie_valdes",
         restaurant: "Rica's Bacsilog",
         cuisine: "Filipino",
         location: "Quezon City",
