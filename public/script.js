@@ -1381,7 +1381,7 @@ async function submitProfileUpdate(event) {
     };
 
     try {
-        const response = await fetch('/userprofile-reviews', {
+        const response = await fetch('/update-profile', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

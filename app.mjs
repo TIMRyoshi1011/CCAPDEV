@@ -1812,25 +1812,6 @@ app.post('/update-profile', async (req, res) => {
             { $set: updateData }
         );
 
-        // Updates name and avatar in all posts and comments
-        await Post.updateMany(
-            { "currentUser.email": currentUser.email },
-            { $set: { 
-                "currentUser.name": updateData.name,
-                "currentUser.avatar": updateData.avatar
-            } }
-        );
-
-        await Post.updateMany(
-            { "comments.currentUser.email": currentUser.email },
-            { $set: { 
-                "comments.$[elem].currentUser.name": updateData.name,
-                "comments.$[elem].currentUser.avatar": updateData.avatar,
-                "comments.$[elem].currentUser.initials": updateData.initials
-            } },
-            { arrayFilters: [{ "elem.currentUser.email": currentUser.email }] }
-        );
-
         Object.assign(currentUser, updateData);
 
         res.json({ message: "Profile updated successfully" });
