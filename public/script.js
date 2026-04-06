@@ -1373,15 +1373,36 @@ function toggleCustomSecurityQuestion() {
 async function submitProfileUpdate(event) {
     event.preventDefault();
 
-    const formData = new FormData(event.target);
+    const form = event.target;
+    const nameField = form.querySelector('[name="name"]');
+    const usernameField = form.querySelector('[name="username"]');
+    const bioField = form.querySelector('[name="bio"]');
+
+    const currentName = (nameField?.defaultValue || '').trim();
+    const currentUsername = (usernameField?.defaultValue || '').trim();
+    const currentBio = (bioField?.defaultValue || '').trim();
+
+    const nextName = (nameField?.value || '').trim();
+    const nextUsername = (usernameField?.value || '').trim();
+    const nextBio = (bioField?.value || '').trim();
+
+    const usernameChanged = nextUsername !== currentUsername;
+    const profileChanged = nextName !== currentName || usernameChanged || nextBio !== currentBio;
+
+    if (!profileChanged) {
+        clearStoredValuesByPrefix('profileDraft-');
+        closeEditProfilePopup();
+        return;
+    }
+
     const updateData = {
-        name: formData.get('name'),
-        username: formData.get('username'),
-        bio: formData.get('bio')
+        name: nextName,
+        username: nextUsername,
+        bio: nextBio
     };
 
     try {
-        const response = await fetch('/userprofile-reviews', {
+        const response = await fetch('/update-profile', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1389,11 +1410,13 @@ async function submitProfileUpdate(event) {
             body: JSON.stringify(updateData)
         });
 
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
 
         if (response.ok) {
             clearStoredValuesByPrefix('profileDraft-');
-            await showCustomAlert('Profile updated successfully!');
+            if (data.usernameChanged) {
+                await showCustomAlert('Username changed successfully!');
+            }
             closeEditProfilePopup();
             window.location.reload();
         } else {
