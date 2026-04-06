@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 import connectToMongoose from "./db/conn.js";
 import Profile from "./models/Profile.js";
 import Post from "./models/Post.js";
@@ -96,6 +97,7 @@ const usersData = [
         name: "Lance Chua",
         username: "lance_chua",
         email: "lance@example.com",
+        //  password=password123, securityAnswer=chickenjoy
         password: "password123",
         securityQuestion: "What is your favorite food?",
         securityAnswer: "chickenjoy",
@@ -106,6 +108,7 @@ const usersData = [
         name: "Mia Santos",
         username: "mia_santos",
         email: "mia@example.com",
+        //  password=password123, securityAnswer=momo
         password: "password123",
         securityQuestion: "What is your first pet's name?",
         securityAnswer: "momo",
@@ -116,6 +119,7 @@ const usersData = [
         name: "Rina Reyes",
         username: "rina_reyes",
         email: "rina@example.com",
+        //  password=password123, securityAnswer=manila
         password: "password123",
         securityQuestion: "What city were you born in?",
         securityAnswer: "manila",
@@ -126,6 +130,7 @@ const usersData = [
         name: "Carlo Dela Cruz",
         username: "carlo_dc",
         email: "carlo@example.com",
+        //  password=password123, securityAnswer=inception
         password: "password123",
         securityQuestion: "What is your favorite movie?",
         securityAnswer: "inception",
@@ -136,6 +141,7 @@ const usersData = [
         name: "Jamie Valdes",
         username: "jamie_valdes",
         email: "justine030505@gmail.com",
+        //  password=123123, securityAnswer=chiten
         password: "123123",
         securityQuestion: "What is your favorite food?",
         securityAnswer: "chiten",
@@ -146,6 +152,7 @@ const usersData = [
         name: "Bea Alonzo",
         username: "bea_alonzo",
         email: "bea@example.com",
+        //  password=password123, securityAnswer=beebee
         password: "password123",
         securityQuestion: "What was your childhood nickname?",
         securityAnswer: "beebee",
@@ -293,18 +300,25 @@ const postsData = [
 ];
 
 async function seedUsers() {
-    const payload = usersData.map(seedUser => ({
-        name: seedUser.name,
-        username: seedUser.username,
-        email: seedUser.email,
-        password: seedUser.password,
-        securityQuestion: seedUser.securityQuestion,
-        securityAnswer: seedUser.securityAnswer,
-        avatar: initialsFromName(seedUser.name),
-        membership: "Bronze",
-        memberSince: seedUser.memberSince,
-        bio: seedUser.bio
-    }));
+    const payload = [];
+
+    for (const seedUser of usersData) {
+        const hashedPassword = await bcrypt.hash(seedUser.password, 10);
+        const hashedSecurityAnswer = await bcrypt.hash(seedUser.securityAnswer, 10);
+
+        payload.push({
+            name: seedUser.name,
+            username: seedUser.username,
+            email: seedUser.email,
+            password: hashedPassword,
+            securityQuestion: seedUser.securityQuestion,
+            securityAnswer: hashedSecurityAnswer,
+            avatar: initialsFromName(seedUser.name),
+            membership: "Bronze",
+            memberSince: seedUser.memberSince,
+            bio: seedUser.bio
+        });
+    }
 
     const users = await Profile.insertMany(payload);
     console.log(`${users.length} users inserted`);
