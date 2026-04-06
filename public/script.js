@@ -1069,14 +1069,19 @@ if (loginForm) {
                 body: JSON.stringify({ email, password })
             });
 
-            const data = await response.json();
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (parseErr) {
+                data = {};
+            }
 
             if (response.ok) {
                 saveStoredValue("loginEmail", email, 7);
                 closeLoginPopup();
                 window.location.href = "/feed";
             } else {
-                showInlineError("login-error-msg", data.message); 
+                showInlineError("login-error-msg", data.message || "Login failed. Please try again.");
             }
         } catch (err) {
             console.error(err);
