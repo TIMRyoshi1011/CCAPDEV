@@ -1783,7 +1783,7 @@ app.get('/userprofile-reviews', async (req, res) => {
 // Profile Update Route
 app.post('/userprofile-reviews', async (req, res) => { ///update-profile 
     try {
-        const { name, username, email, bio } = req.body;
+        const { name, username, bio } = req.body;
 
         if (!currentUser || !currentUser.email) {
             return res.status(401).json({ message: "User not authenticated" });
@@ -1797,19 +1797,11 @@ app.post('/userprofile-reviews', async (req, res) => { ///update-profile
             }
         }
 
-        // Checks if email is already taken (if changed)
-        if (email !== currentUser.email) {
-            const existingUser = await Profile.findOne({ email: email }).lean();
-            if (existingUser) {
-                return res.status(400).json({ message: "Email already taken" });
-            }
-        }
-
         // Updates user profile
         const updateData = {
             name: name || currentUser.name,
             username: username || currentUser.username,
-            email: email || currentUser.email,
+            email: currentUser.email,
             bio: bio || currentUser.bio
         };
 
@@ -1817,30 +1809,14 @@ app.post('/userprofile-reviews', async (req, res) => { ///update-profile
         updateData.avatar = updateData.name.split(' ').map(word => word[0].toUpperCase()).join('');
         updateData.initials = updateData.name.split(' ').map(word => word[0].toUpperCase()).join('');
 
-        const oldEmail = currentUser.email;
-
         await Profile.updateOne(
             { email: currentUser.email },
             { $set: updateData }
         );
 
-        // Updates email in all posts collection if email changed
-        if (email && email !== oldEmail) {
-            await Post.updateMany(
-                { "currentUser.email": oldEmail },
-                { $set: { "currentUser.email": email } }
-            );
-
-            await Post.updateMany(
-                { "comments.currentUser.email": oldEmail },
-                { $set: { "comments.$[elem].currentUser.email": email } },
-                { arrayFilters: [{ "elem.currentUser.email": oldEmail }] }
-            );
-        }
-
         // Updates name and avatar in all posts and comments
         await Post.updateMany(
-            { "currentUser.email": updateData.email },
+            { "currentUser.email": currentUser.email },
             { $set: { 
                 "currentUser.name": updateData.name,
                 "currentUser.avatar": updateData.avatar
@@ -1848,13 +1824,13 @@ app.post('/userprofile-reviews', async (req, res) => { ///update-profile
         );
 
         await Post.updateMany(
-            { "comments.currentUser.email": updateData.email },
+            { "comments.currentUser.email": currentUser.email },
             { $set: { 
                 "comments.$[elem].currentUser.name": updateData.name,
                 "comments.$[elem].currentUser.avatar": updateData.avatar,
                 "comments.$[elem].currentUser.initials": updateData.initials
             } },
-            { arrayFilters: [{ "elem.currentUser.email": updateData.email }] }
+            { arrayFilters: [{ "elem.currentUser.email": currentUser.email }] }
         );
 
         Object.assign(currentUser, updateData);

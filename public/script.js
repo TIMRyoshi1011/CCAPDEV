@@ -1377,12 +1377,11 @@ async function submitProfileUpdate(event) {
     const updateData = {
         name: formData.get('name'),
         username: formData.get('username'),
-        email: formData.get('email'),
         bio: formData.get('bio')
     };
 
     try {
-        const response = await fetch('/update-profile', {
+        const response = await fetch('/userprofile-reviews', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
