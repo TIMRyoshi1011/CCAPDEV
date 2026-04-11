@@ -1153,7 +1153,7 @@ app.get('/edit-review/:id', async (req, res) => {
 
         const postId = req.params.id;
         
-        const post = await Post.findById(postId);
+        const post = await Post.findById(postId).lean();
 
         if (!post) {
             return res.status(404).send("Post not found");
