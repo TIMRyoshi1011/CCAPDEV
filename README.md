@@ -3,4 +3,4 @@ GitHub Repository for Final Project in CCAPDEV Course from CCS in DLSU from Term
 - This Program is made by 4 people as a group requirement for this project
 - The Layout of This Webpage is Made in Figma and is Made and Run in Visual Studio Code <br> <br>
 
-**To Run**: open Landing.html using any browser
+**To Run**: open <u>Landing.html</u> using any browser
